@@ -46,10 +46,11 @@ export default function DashboardPage() {
   const { data: sRaw } = useQuery({ queryKey:['subs-dash'], queryFn:getMySubscriptions, enabled:isAuthenticated });
 
   const pr: any = profile;
-  const bookings: any[] = Array.isArray(bRaw) ? bRaw : ((bRaw as any)?.items ?? []);
-  const subs: any[]     = Array.isArray(sRaw)  ? sRaw  : [];
+  const bookings: any[] = Array.isArray(bRaw) ? bRaw : ((bRaw as any)?.bookings ?? (bRaw as any)?.items ?? []);
+  const totalBookings: number = (bRaw as any)?.total ?? bookings.length;
+  const subs: any[]     = Array.isArray(sRaw) ? sRaw : ((sRaw as any)?.subscriptions ?? (sRaw as any)?.items ?? []);
   const activeSub = subs.find((s:any) => s.status === 'active');
-  const balance = pr?.wallet_balance ?? 0;
+  const balance = Number(pr?.wallet_balance ?? 0);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
@@ -76,7 +77,7 @@ export default function DashboardPage() {
                   {[
                     { label:'Wallet Balance', value:`₹${balance.toLocaleString('en-IN')}`, hi:true },
                     { label:'Active Plans',   value:subs.filter((s:any)=>s.status==='active').length },
-                    { label:'Total Bookings', value:bookings.length },
+                    { label:'Total Bookings', value:totalBookings },
                   ].map(stat => (
                     <div key={stat.label} style={{ background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.11)', borderRadius:14, padding:'12px 18px' }}>
                       <div style={{ fontFamily:'var(--font-display)', fontWeight:800, fontSize:'1.25rem', color:stat.hi?'var(--gold-light)':'rgba(255,255,255,0.85)', lineHeight:1 }}>{stat.value}</div>
@@ -153,7 +154,7 @@ export default function DashboardPage() {
                       <div style={{ fontSize:'0.8rem', color:'var(--text-muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{b.service_address}</div>
                     </div>
                     <div style={{ textAlign:'right', flexShrink:0 }}>
-                      <div style={{ fontFamily:'var(--font-display)', fontWeight:800, color:'var(--forest)', fontSize:'1rem' }}>₹{b.total_amount?.toLocaleString('en-IN') ?? '—'}</div>
+                      <div style={{ fontFamily:'var(--font-display)', fontWeight:800, color:'var(--forest)', fontSize:'1rem' }}>₹{b.total_amount != null ? Number(b.total_amount).toLocaleString('en-IN') : '—'}</div>
                       <div style={{ fontSize:'0.73rem', color:'var(--text-faint)', marginTop:3 }}>
                         {b.scheduled_date && new Date(b.scheduled_date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}
                       </div>
