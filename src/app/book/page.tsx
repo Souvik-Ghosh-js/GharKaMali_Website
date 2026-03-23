@@ -60,11 +60,11 @@ function BookFlow() {
   const tryLocation = async () => {
     if (!form.address.trim()) { toast.error('Please enter your service address'); return; }
     if (form.lat && form.lng) { await doCheck(form.lat, form.lng); return; }
-    if (!navigator.geolocation) { toast.error('Enter coordinates manually'); return; }
+    if (!navigator.geolocation) { toast.error('GPS not supported on this device'); return; }
     setChecking(true);
     navigator.geolocation.getCurrentPosition(
       async pos => { await doCheck(pos.coords.latitude, pos.coords.longitude); },
-      () => { setChecking(false); toast.error('Could not detect GPS. Enter coordinates below.'); }
+      () => { setChecking(false); toast.error('Could not detect your location. Please allow GPS access and try again.'); }
     );
   };
 
@@ -135,19 +135,6 @@ function BookFlow() {
                 <div className="form-group">
                   <label className="form-label">Service Address *</label>
                   <textarea className="form-input" rows={3} placeholder="House/Flat No., Street, Area, City, Pincode" value={form.address} onChange={e=>setForm(f=>({...f,address:e.target.value}))} style={{ resize:'vertical' }}/>
-                </div>
-                <div className="form-row">
-                  <div className="form-group" style={{marginBottom:0}}>
-                    <label className="form-label">Latitude <span style={{ color:'var(--text-faint)', fontWeight:400 }}>(auto-detected)</span></label>
-                    <input type="number" step="any" className="form-input" placeholder="28.5355" value={form.lat||''} onChange={e=>setForm(f=>({...f,lat:parseFloat(e.target.value)||0}))} />
-                  </div>
-                  <div className="form-group" style={{marginBottom:0}}>
-                    <label className="form-label">Longitude <span style={{ color:'var(--text-faint)', fontWeight:400 }}>(auto-detected)</span></label>
-                    <input type="number" step="any" className="form-input" placeholder="77.3910" value={form.lng||''} onChange={e=>setForm(f=>({...f,lng:parseFloat(e.target.value)||0}))} />
-                  </div>
-                </div>
-                <div style={{ margin:'16px 0 24px', padding:'12px 16px', background:'rgba(11,61,46,0.04)', borderRadius:12, fontSize:'0.82rem', color:'var(--text-muted)', display:'flex', gap:8 }}>
-                  💡 Leave coordinates empty to auto-detect via your device GPS
                 </div>
                 <button onClick={tryLocation} disabled={checking||!form.address.trim()}
                   className="btn btn-forest w-full" style={{ justifyContent:'center', padding:'14px', opacity:(checking||!form.address.trim())?.6:1 }}>
