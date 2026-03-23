@@ -134,7 +134,7 @@ export default function PlantopediaPage() {
                     : <><IcSearch /> Identify This Plant</>}
                 </button>
               )}
-              
+
               {!isAuthenticated && (
                 <div style={{ marginTop: 12, padding: '12px 16px', background: 'var(--gold-pale)', borderRadius: 13, border: '1px solid rgba(201,168,76,0.28)', fontSize: '0.82rem', color: 'var(--earth)', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   <IcLock />
@@ -254,14 +254,26 @@ export default function PlantopediaPage() {
                   <div style={{ maxHeight: 300, overflowY: 'auto' }}>
                     {history.map((h: any) => (
                       <div key={h.id} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid var(--border)' }}>
-                        {h.image_url && <img src={h.image_url} alt="" style={{ width: 42, height: 42, objectFit: 'cover', borderRadius: 10, flexShrink: 0 }} />}
+                        {h.image_url
+                          ? <img src={h.image_url} alt="" style={{ width: 42, height: 42, objectFit: 'cover', borderRadius: 10, flexShrink: 0 }} />
+                          : <div style={{ width: 42, height: 42, borderRadius: 10, background: 'rgba(11,61,46,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', flexShrink: 0 }}><IcLeaf /></div>
+                        }
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text)' }} className="truncate">{h.plant_name}</div>
-                          {h.scientific_name && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>{h.scientific_name}</div>}
+                          <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text)' }} className="truncate">
+                            {h.plant_name ?? h.result?.name ?? h.name ?? 'Unidentified Plant'}
+                          </div>
+                          {(h.scientific_name ?? h.result?.scientific_name) && (
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                              {h.scientific_name ?? h.result?.scientific_name}
+                            </div>
+                          )}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.71rem', color: 'var(--text-faint)', flexShrink: 0 }}>
                           <IcClock />
-                          {new Date(h.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                          {(() => {
+                            const d = new Date(h.created_at ?? h.createdAt ?? h.identified_at);
+                            return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                          })()}
                         </div>
                       </div>
                     ))}
