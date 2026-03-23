@@ -155,7 +155,7 @@ export default function HomePage() {
         </FloatCard>
 
         <div className="container" style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ maxWidth: 720, paddingTop: 'var(--nav-h)' }}>
+          <div style={{ maxWidth: 720, paddingTop: 'var(--nav-h)', paddingBottom: 110 }}>
             <div className="hero-badge anim-fade-up">
               <div className="hero-badge-dot" />
               <span className="hero-badge-text">India's #1 Garden Care Platform</span>

@@ -24,6 +24,7 @@ function BookFlow() {
   const preselect = params.get('plan') ? parseInt(params.get('plan')!) : 0;
 
   const [step, setStep] = useState<Step>('location');
+  const [coordMode, setCoordMode] = useState<'auto'|'manual'>('auto');
   const [checking, setChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [zone, setZone] = useState<any>(null);
@@ -59,7 +60,10 @@ function BookFlow() {
 
   const tryLocation = async () => {
     if (!form.address.trim()) { toast.error('Please enter your service address'); return; }
-    if (form.lat && form.lng) { await doCheck(form.lat, form.lng); return; }
+    if (coordMode === 'manual') {
+      if (!form.lat || !form.lng) { toast.error('Please enter both latitude and longitude'); return; }
+      await doCheck(form.lat, form.lng); return;
+    }
     if (!navigator.geolocation) { toast.error('GPS not supported on this device'); return; }
     setChecking(true);
     navigator.geolocation.getCurrentPosition(
@@ -136,6 +140,30 @@ function BookFlow() {
                   <label className="form-label">Service Address *</label>
                   <textarea className="form-input" rows={3} placeholder="House/Flat No., Street, Area, City, Pincode" value={form.address} onChange={e=>setForm(f=>({...f,address:e.target.value}))} style={{ resize:'vertical' }}/>
                 </div>
+                {/* Coordinate mode toggle */}
+                <div style={{ display:'flex', background:'rgba(11,61,46,0.06)', borderRadius:12, padding:4, marginBottom:20, gap:4 }}>
+                  {(['auto','manual'] as const).map(mode => (
+                    <button key={mode} onClick={() => setCoordMode(mode)}
+                      style={{ flex:1, padding:'8px 0', borderRadius:9, border:'none', cursor:'pointer', fontFamily:'var(--font-body)', fontWeight:600, fontSize:'0.82rem', transition:'all 0.2s',
+                        background: coordMode === mode ? '#fff' : 'transparent',
+                        color: coordMode === mode ? 'var(--forest)' : 'var(--text-muted)',
+                        boxShadow: coordMode === mode ? 'var(--sh-sm)' : 'none' }}>
+                      {mode === 'auto' ? '📍 Auto-detect GPS' : '✏️ Enter manually'}
+                    </button>
+                  ))}
+                </div>
+                {coordMode === 'manual' && (
+                  <div className="form-row" style={{ marginBottom:20 }}>
+                    <div className="form-group" style={{ marginBottom:0 }}>
+                      <label className="form-label">Latitude</label>
+                      <input type="number" step="any" className="form-input" placeholder="e.g. 12.9279" value={form.lat||''} onChange={e=>setForm(f=>({...f,lat:parseFloat(e.target.value)||0}))} />
+                    </div>
+                    <div className="form-group" style={{ marginBottom:0 }}>
+                      <label className="form-label">Longitude</label>
+                      <input type="number" step="any" className="form-input" placeholder="e.g. 77.6271" value={form.lng||''} onChange={e=>setForm(f=>({...f,lng:parseFloat(e.target.value)||0}))} />
+                    </div>
+                  </div>
+                )}
                 <button onClick={tryLocation} disabled={checking||!form.address.trim()}
                   className="btn btn-forest w-full" style={{ justifyContent:'center', padding:'14px', opacity:(checking||!form.address.trim())?.6:1 }}>
                   {checking ? <><Spin /> Checking serviceability…</> : 'Check My Location →'}

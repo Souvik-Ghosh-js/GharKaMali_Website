@@ -95,12 +95,12 @@ export default function DashboardPage() {
         <div className="container" style={{ marginTop:-44, paddingBottom:72 }}>
 
           {/* Quick actions */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:24 }} className="quick-grid">
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:24, position:'relative', zIndex:1, overflow:'visible' }} className="quick-grid">
             {QUICK_ACTIONS.map(({ href, label, Icon, bg, color }) => (
               <Link key={href} href={href}
-                style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12, padding:'clamp(16px,3vw,24px) 12px', background:'#fff', borderRadius:20, border:'1px solid var(--border)', textDecoration:'none', transition:'all 0.3s var(--ease)' }}
-                onMouseEnter={e => { (e.currentTarget as any).style.transform='translateY(-4px)'; (e.currentTarget as any).style.boxShadow='var(--sh-md)'; }}
-                onMouseLeave={e => { (e.currentTarget as any).style.transform='none'; (e.currentTarget as any).style.boxShadow='none'; }}>
+                style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12, padding:'clamp(16px,3vw,24px) 12px', background:'#fff', borderRadius:20, border:'1px solid var(--border)', textDecoration:'none', transition:'all 0.3s var(--ease)', position:'relative', zIndex:0 }}
+                onMouseEnter={e => { (e.currentTarget as any).style.transform='translateY(-4px)'; (e.currentTarget as any).style.boxShadow='var(--sh-md)'; (e.currentTarget as any).style.zIndex='2'; }}
+                onMouseLeave={e => { (e.currentTarget as any).style.transform='none'; (e.currentTarget as any).style.boxShadow='none'; (e.currentTarget as any).style.zIndex='0'; }}>
                 <div style={{ width:52, height:52, borderRadius:16, background:bg, display:'flex', alignItems:'center', justifyContent:'center', color }}>
                   <Icon />
                 </div>
