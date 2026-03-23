@@ -42,11 +42,10 @@ export default function BookingsPage() {
     enabled: isAuthenticated,
   });
 
-  // Robust safe extraction — handles both array and {items:[]} shapes
   const raw = data as any;
-  const bookings: any[] = Array.isArray(raw) ? raw : (raw?.items ?? []);
+  const bookings: any[] = Array.isArray(raw) ? raw : (raw?.bookings ?? raw?.items ?? []);
   const total: number = raw?.total ?? bookings.length;
-  const pages = Math.ceil(total / 10) || 1;
+  const pages: number = raw?.pages ?? (Math.ceil(total / 10) || 1);
 
   if (isLoading) return null;
 
@@ -135,7 +134,7 @@ export default function BookingsPage() {
                 </div>
                 <div style={{ textAlign:'right', flexShrink:0 }}>
                   <div style={{ fontFamily:'var(--font-display)', fontWeight:900, fontSize:'1.1rem', color:'var(--forest)' }}>
-                    {b.total_amount != null ? `₹${b.total_amount.toLocaleString('en-IN')}` : '—'}
+                    {b.total_amount != null ? `₹${Number(b.total_amount).toLocaleString('en-IN')}` : '—'}
                   </div>
                   <div style={{ fontSize:'0.73rem', color:'var(--text-faint)', marginTop:3 }}>{b.plan?.name ?? 'Visit'}</div>
                 </div>
