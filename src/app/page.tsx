@@ -121,6 +121,7 @@ function Stars() {
 }
 
 /* ── DATA ── */
+
 const SERVICE_ITEMS = [
   { Icon: IcHome, title: 'Gardener Visit (45 mins)', desc: 'A trained gardener visit focused on deep root inspection, de-weeding, and soil health monitoring.' },
   { Icon: IcLeaf, title: 'Botanical Analysis', desc: 'Detailed diagnosis of pest presence, leaf nutrition levels, and seasonal growth optimization.' },
@@ -142,6 +143,59 @@ const BEFORE_AFTER = [
   { before: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=800&h=800&fit=crop', after: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=800&h=800&fit=crop', label: 'Pest Eradication', desc: 'Completely removed severe Mealybug infestation and restored leaf shine for 20+ pots.' },
   { before: 'https://images.unsplash.com/photo-1509587584298-0f3b3a3a1797?w=800&h=800&fit=crop', after: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=800&fit=crop', label: 'Balcony Makeover', desc: 'Corrected overwatering damage and rearranged species for optimal sunlight exposure.' },
 ];
+
+/* ── MOBILE BEFORE/AFTER TOGGLE ── */
+const MobileBeforeAfter = ({ items }: { items: typeof BEFORE_AFTER }) => {
+  const [toggles, setToggles] = useState<boolean[]>(items.map(() => false));
+  const toggle = (i: number) => setToggles(prev => { const n = [...prev]; n[i] = !n[i]; return n; });
+  return (
+    <div className="mobile-only container" style={{ paddingBottom: 24 }}>
+      {items.map((item, i) => (
+        <div key={i} style={{ marginBottom: 24, borderRadius: 20, overflow: 'hidden', border: '1.5px solid var(--border-gold)', background: '#fff' }}>
+          <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden' }}>
+            <img
+              src={toggles[i] ? item.after : item.before}
+              alt={toggles[i] ? 'After' : 'Before'}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 0.4s ease' }}
+            />
+            {/* BEFORE / AFTER label */}
+            <div style={{
+              position: 'absolute', top: 12, left: 12,
+              background: toggles[i] ? 'rgba(22,163,74,0.95)' : 'rgba(220,38,38,0.95)',
+              color: '#fff', padding: '5px 14px', borderRadius: 99,
+              fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.1em',
+              backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.2)',
+              transition: 'background 0.3s ease'
+            }}>
+              {toggles[i] ? 'AFTER' : 'BEFORE'}
+            </div>
+            {/* Toggle button */}
+            <button
+              onClick={() => toggle(i)}
+              style={{
+                position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
+                background: 'rgba(255,255,255,0.95)', border: '1.5px solid var(--border-gold)',
+                borderRadius: 99, padding: '8px 20px', fontSize: '0.78rem', fontWeight: 800,
+                color: 'var(--forest)', cursor: 'pointer', backdropFilter: 'blur(8px)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', gap: 8,
+                transition: 'all 0.2s ease', whiteSpace: 'nowrap'
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <polyline points={toggles[i] ? "15 18 9 12 15 6" : "9 18 15 12 9 6"} />
+              </svg>
+              {toggles[i] ? 'Show Before' : 'Show After'}
+            </button>
+          </div>
+          <div style={{ padding: '14px 18px' }}>
+            <div style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '0.95rem' }}>{item.label}</div>
+            <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', lineHeight: 1.6, margin: '4px 0 0' }}>{item.desc}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const HOW_STEPS = [
   { step: '01', Icon: IcMap, title: 'Pin Your Location', desc: 'Securely share your address to find certified gardeners in your society.' },
@@ -231,7 +285,7 @@ export default function HomePage() {
         <HeroBgAnimation />
 
         <div className="container" style={{ position: 'relative', zIndex: 5 }}>
-          <div style={{ maxWidth: 920, margin: '0 auto', textAlign: 'center', paddingTop: '16vh', paddingBottom: '10vh' }}>
+          <div style={{ maxWidth: 920, margin: '0 auto', textAlign: 'center', paddingTop: '16vh', paddingBottom: '3vh' }}>
 
             <div className="hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--sh-sm)', borderRadius: 99, padding: '8px 20px', marginBottom: 32, fontSize: '0.78rem', fontWeight: 700 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#16a34a', animation: 'pulse 2s ease infinite', display: 'inline-block' }} />
@@ -262,7 +316,7 @@ export default function HomePage() {
               </a>
             </div>
 
-            <div className="hero-trust-line" style={{ display: 'inline-flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,0.85)', border: '1px solid var(--border-mid)', borderRadius: 99, padding: '12px 24px', boxShadow: 'var(--sh-sm)', marginBottom: 48 }}>
+            <div className="hero-trust-line" style={{ display: 'inline-flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,0.85)', border: '1px solid var(--border-mid)', borderRadius: 99, padding: '12px 24px', boxShadow: 'var(--sh-sm)', marginBottom: 24 }}>
               <div style={{ display: 'flex' }}>
                 {[1, 2, 3, 4].map(i => (
                   <div key={i} style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--forest-light)', border: '2px solid #fff', marginLeft: i > 1 ? -10 : 0, position: 'relative', zIndex: 10 - i }} />
@@ -295,9 +349,9 @@ export default function HomePage() {
 
 
       {/* ═══ SERVICES + BEFORE/AFTER SPLIT SCROLL ═══ */}
-      <section className="ba-split-section" id="services" style={{ background: 'var(--bg)', position: 'relative', zIndex: 10, overflow: 'hidden' }}>
+      <section className="ba-split-section section" id="services" style={{ background: 'var(--bg)', position: 'relative', zIndex: 10 }}>
         {/* Single section heading */}
-        <div className="container" style={{ paddingTop: 100, paddingBottom: 48 }}>
+        <div className="container" style={{ paddingBottom: 48 }}>
           <div style={{ textAlign: 'center' }}>
             <span className="overline">Our Services & Transformations</span>
             <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 8, marginBottom: 12 }}>Scroll to Explore</h2>
@@ -351,20 +405,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Mobile fallback — simple stacked */}
-        <div className="mobile-only container" style={{ paddingBottom: 60 }}>
-          {BEFORE_AFTER.map((item, i) => (
-            <div key={i} style={{ marginBottom: 32, borderRadius: 20, overflow: 'hidden', border: '1.5px solid var(--border-gold)', background: '#fff' }}>
-              <div style={{ position: 'relative', aspectRatio: '4/3' }}>
-                <img src={item.after} alt="After" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', top: 12, right: 12, background: 'var(--forest)', color: '#fff', padding: '5px 14px', borderRadius: 99, fontSize: '0.7rem', fontWeight: 800, whiteSpace: 'nowrap' }}>RESULT</div>
-              </div>
-              <div style={{ padding: '14px 18px' }}>
-                <div style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '0.95rem' }}>{item.label}</div>
-                <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', lineHeight: 1.6, margin: '4px 0 0' }}>{item.desc}</p>
-              </div>
-            </div>
-          ))}
+        {/* Mobile fallback — with before/after toggle */}
+        <MobileBeforeAfter items={BEFORE_AFTER} />
+        <div className="mobile-only container" style={{ paddingBottom: 0 }}>
           {SERVICE_ITEMS.map((s, i) => (
             <div key={i} style={{ background: '#fff', border: '1.5px solid var(--border)', borderRadius: 22, padding: 28, marginBottom: 16 }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--forest)', marginBottom: 6 }}>{s.title}</h3>

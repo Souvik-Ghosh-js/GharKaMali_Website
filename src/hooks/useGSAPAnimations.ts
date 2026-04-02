@@ -79,7 +79,6 @@ export function useGSAPAnimations() {
       });
 
       // ── SPLIT SCROLLER: BA images + Service cards ────────────────────────
-      const splitSection = document.querySelector('.ba-split-section');
       const splitLayout = document.querySelector('.ba-split-layout');
       const serviceCards = gsap.utils.toArray('.service-card-cinematic') as HTMLElement[];
       const baPairs = gsap.utils.toArray('.ba-pair') as HTMLElement[];
@@ -95,17 +94,17 @@ export function useGSAPAnimations() {
       ];
 
       if (splitLayout && serviceCards.length > 0) {
-        // Pin the LEFT column while RIGHT scrolls
-        // Pinned to the center of the page
-        ScrollTrigger.create({
-          trigger: splitLayout,
-          start: 'top center',
-          end: 'bottom center',
-          pin: '.ba-split-left',
-          pinType: 'fixed',
-          pinSpacing: true,
-          anticipatePin: 1,
-        });
+        // Pin the left section using GSAP
+        const leftSection = document.querySelector('.ba-split-left');
+        if (leftSection) {
+          ScrollTrigger.create({
+            trigger: splitLayout,
+            start: 'top 15%', // Matches top offset, you can adjust as needed
+            end: 'bottom 85%', // Ends when the bottom of layout hits bottom
+            pin: leftSection,
+            pinSpacing: false, // We handle the layout space using the CSS grid
+          });
+        }
 
         // Init BA pairs — first visible, rest hidden
         baPairs.forEach((pair, idx) => {
