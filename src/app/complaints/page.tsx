@@ -96,27 +96,62 @@ export default function ComplaintsPage() {
                 <button onClick={() => setShowForm(true)} className="btn btn-primary btn-lg" style={{ padding: '16px 32px', boxShadow: 'var(--sh-md)' }}>File a Complaint</button>
               </div>
             ) : (
-              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: 20 }}>
                 {complaints.map((c: any, i: number) => {
                   const [bg, color] = STATUS_MAP[c.status] ?? ['#F3F4F6','#4B5563'];
                   const typeInfo = TYPES.find(t => t.value === c.type);
                   return (
-                    <div key={c.id} className="card" style={{ padding:'28px', animation:`fade-up 0.5s var(--ease) ${i*60}ms both`, borderRadius: 24 }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:12, marginBottom:16 }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-                          <span style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: 16, border: '1px solid var(--border)', color:'var(--forest)' }}>{typeInfo && <typeInfo.icon/>}</span>
-                          <div>
-                            <div style={{ fontWeight:900, fontSize:'1.1rem', color: 'var(--forest)', marginBottom: 6, fontFamily: 'var(--font-display)' }}>{typeInfo?.label ?? c.type}</div>
-                            <div style={{ fontSize:'0.8rem', color:'var(--earth)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>Filed {c.created_at && new Date(c.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</div>
-                          </div>
-                        </div>
-                        <span style={{ display:'inline-flex', padding:'5px 16px', borderRadius:99, fontSize:'0.75rem', fontWeight:800, textTransform:'uppercase', letterSpacing:'0.06em', background:bg, border: `1px solid ${color}40`, color }}>{c.status}</span>
+                    <div key={c.id} className="card" style={{ 
+                      padding: '24px', 
+                      animation:`fade-up 0.5s var(--ease) ${i*60}ms both`, 
+                      borderRadius: 24,
+                      display: 'flex',
+                      flexDirection: 'row',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{ 
+                        width: 48, height: 48, 
+                        background: 'var(--bg-elevated)', 
+                        borderRadius: 14, 
+                        border: '1.5px solid var(--border)', 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                        color: 'var(--forest)', flexShrink: 0
+                      }}>
+                        {typeInfo && <typeInfo.icon/>}
                       </div>
-                      <p style={{ fontSize:'0.95rem', color:'var(--sage)', lineHeight:1.7, fontWeight: 500 }}>{c.description}</p>
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                          <h3 style={{ fontWeight:900, fontSize:'1.1rem', color: 'var(--forest)', margin: 0, fontFamily: 'var(--font-display)' }}>
+                            {typeInfo?.label ?? c.type}
+                          </h3>
+                          <span style={{ fontSize:'0.7rem', color:'var(--sage)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>#{c.id}</span>
+                        </div>
+                        <p style={{ fontSize:'0.9rem', color:'var(--sage)', margin: 0, fontWeight: 500, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {c.description}
+                        </p>
+                      </div>
+
+                      <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12 }}>
+                         <span style={{ 
+                            padding:'4px 14px', borderRadius:99, 
+                            fontSize:'0.65rem', fontWeight:800, textTransform:'uppercase', 
+                            letterSpacing:'0.06em', background:bg, border: `1px solid ${color}40`, color 
+                          }}>
+                            {c.status}
+                         </span>
+                         <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize:'0.7rem', color:'var(--earth)', fontFamily: 'var(--font-mono)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>Filed Date</div>
+                            <div style={{ fontSize:'0.85rem', color:'var(--forest)', fontWeight: 700 }}>
+                              {c.created_at && new Date(c.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short' })}
+                            </div>
+                         </div>
+                      </div>
+
                       {c.resolution && (
-                        <div style={{ marginTop:20, padding:'20px', background:'#DCFCE7', borderRadius:16, borderLeft:'4px solid #16A34A' }}>
-                          <div style={{ fontSize:'0.8rem', fontWeight:800, color:'#16A34A', letterSpacing:'0.07em', textTransform:'uppercase', marginBottom:10, fontFamily: 'var(--font-mono)' }}>Resolution</div>
-                          <p style={{ fontSize:'0.95rem', color:'var(--forest)', lineHeight:1.7, fontWeight: 500 }}>{c.resolution}</p>
+                        <div style={{ width: '100%', marginTop: 8, padding:'16px 20px', background:'#DCFCE7', borderRadius:16, borderLeft:'4px solid #16A34A', fontSize: '0.9rem' }}>
+                          <span style={{ fontWeight: 800, color: '#115E59', marginRight: 8 }}>Support Response:</span>
+                          <span style={{ color: 'var(--forest)', fontWeight: 500 }}>{c.resolution}</span>
                         </div>
                       )}
                     </div>
@@ -128,7 +163,6 @@ export default function ComplaintsPage() {
         </div>
       </div>
 
-      {/* File complaint modal */}
       {showForm && (
         <div className="modal-bg" onClick={() => setShowForm(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:540, padding: '36px', background: '#fff', color: 'var(--forest)' }}>

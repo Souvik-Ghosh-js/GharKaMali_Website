@@ -112,7 +112,7 @@ export default function Footer() {
           <div>
             <div style={{ fontSize: '0.7rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--earth)', fontFamily: 'var(--font-mono)', fontWeight: 800, marginBottom: 8 }}>Ready to start?</div>
             <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.4rem,3vw,2rem)', fontWeight: 800, color: 'var(--forest)', margin: 0 }}>
-              Your garden deserves <em style={{ color: 'var(--earth)', fontStyle: 'normal' }}>the best</em>
+              Your garden deserves <span style={{ color: 'var(--earth)', fontStyle: 'normal' }}>the best</span>
             </h3>
           </div>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>

@@ -71,7 +71,7 @@ export default function BlogDetailPage() {
               </Link>
 
               {b.excerpt && (
-                <p style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--forest)', lineHeight:1.75, marginBottom:36, fontStyle:'italic', borderLeft:'4px solid var(--forest)', paddingLeft:24, fontWeight:500 }}>
+                <p style={{ fontFamily:'var(--font-display)', fontSize:'1.2rem', color:'var(--forest)', lineHeight:1.75, marginBottom:36, fontStyle:'normal', borderLeft:'4px solid var(--forest)', paddingLeft:24, fontWeight:500 }}>
                   {b.excerpt}
                 </p>
               )}

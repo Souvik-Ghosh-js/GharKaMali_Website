@@ -42,7 +42,7 @@ export default function MyOrdersPage() {
     <>
       <Navbar />
       <div style={{ minHeight: '100svh', background: 'var(--bg)', paddingTop: 'calc(var(--nav-h) + 40px)', paddingBottom: 80 }}>
-        <div className="container-sm">
+        <div className="container">
           
           {/* Header */}
           <div style={{ marginBottom: 32, animation: 'fade-up 0.5s ease' }}>
@@ -55,80 +55,97 @@ export default function MyOrdersPage() {
           </div>
 
           {/* List */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Grid Layout */}
+          <div className="orders-grid" style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            gap: 20,
+            animation: 'fade-up 0.5s ease'
+          }}>
             {isLoading ? (
-              Array(3).fill(null).map((_, i) => (
-                <div key={i} className="skeleton" style={{ height: 160, borderRadius: 24 }} />
+              Array(6).fill(null).map((_, i) => (
+                <div key={i} className="skeleton" style={{ height: 260, borderRadius: 28 }} />
               ))
             ) : !orders || (orders as any).length === 0 ? (
-              <div style={{ background: 'var(--bg-card)', borderRadius: 28, padding: '64px 32px', textAlign: 'center', border: '1px solid var(--border)' }}>
-                <div style={{ width: 80, height: 80, borderRadius: 22, background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: 'var(--text-faint)' }}>
+              <div style={{ gridColumn: '1 / -1', background: 'var(--bg-card)', borderRadius: 28, padding: '64px 32px', textAlign: 'center', border: '1px solid var(--border)' }}>
+                <div style={{ width: 80, height: 80, borderRadius: 22, background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: 'var(--forest)', opacity: 0.2 }}>
                   <IcShop />
                 </div>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.25rem', marginBottom: 8 }}>No orders yet</h3>
-                <p style={{ color: 'var(--text-muted)', marginBottom: 28 }}>Explore our premium plants and garden supplies.</p>
-                <Link href="/shop" className="btn btn-forest">Browse Marketplace</Link>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.25rem', marginBottom: 8, color: 'var(--forest)' }}>No orders found</h3>
+                <p style={{ color: 'var(--text-muted)', marginBottom: 28 }}>Start your garden transformation journey today.</p>
+                <Link href="/shop" className="btn btn-forest" style={{ textDecoration: 'none', display: 'inline-flex' }}>Browse Marketplace</Link>
               </div>
             ) : (
               (orders as any).map((order: any, idx: number) => (
-                <div key={order.id} 
-                  style={{ background: 'var(--bg-card)', borderRadius: 24, border: '1px solid var(--border)', overflow: 'hidden', animation: `fade-up 0.5s ease ${idx * 60}ms both`, boxShadow: 'var(--sh-xs)' }}>
-                  
-                  {/* Order Header */}
-                  <div style={{ padding: '18px 24px', borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                <Link key={order.id} 
+                  href={`/shop/orders/${order.id}`}
+                  style={{ 
+                    borderRadius: 24, 
+                    position: 'relative',
+                    gap: 16,
+                    textDecoration: 'none',
+                    animation: `fade-up 0.5s var(--ease) ${idx * 40}ms both`,
+                    transition: 'all 0.3s var(--ease)',
+                    border: '1px solid var(--border)',
+                    overflow: 'hidden',
+                    background: 'var(--bg-card)',
+                    boxShadow: 'var(--sh-sm)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: 24
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = 'var(--border-mid)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = 'var(--sh-md)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'var(--sh-sm)';
+                  }}
+                >
+                  {/* Status Indicator Bar */}
+                  <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '6px', background: STATUS_COLORS[order.status] }} />
+
+                  {/* Top: Header Info */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: `${STATUS_COLORS[order.status]}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: STATUS_COLORS[order.status], flexShrink: 0 }}>
+                      <IcBox />
+                    </div>
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                        <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>Order ID</span>
-                        <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--forest)', fontFamily: 'monospace' }}>{order.order_number}</span>
-                      </div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-faint)' }}>
-                        Placed on {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                      </div>
+                      <div style={{ fontWeight: 900, fontSize: '1rem', color: 'var(--forest)' }}>#{order.order_number.slice(-8)}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-faint)', fontWeight: 600 }}>{new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
+                    </div>
+                    <span style={{ 
+                      marginLeft: 'auto',
+                      fontSize:'0.6rem', fontWeight:800, color:STATUS_COLORS[order.status], 
+                      background:`${STATUS_COLORS[order.status]}12`, padding:'3px 10px', 
+                      borderRadius:8, textTransform:'uppercase', letterSpacing:'0.05em' 
+                    }}>{order.status}</span>
+                  </div>
+
+                  {/* Middle: Items preview */}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Order Items ({order.items?.length || 0})</div>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--sage)', fontWeight: 600, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5 }}>
+                      {order.items?.map((it:any) => it.product?.name).join(', ')}
+                    </p>
+                  </div>
+
+                  {/* Bottom: Payment & Price */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                    <div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 2 }}>Payment</div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: order.payment_status === 'paid' ? 'var(--ok)' : 'var(--warn)' }}>{order.payment_status.toUpperCase()}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <span className="badge" style={{ background: `${STATUS_COLORS[order.status]}15`, color: STATUS_COLORS[order.status], padding: '6px 14px', borderRadius: 10 }}>
-                        {order.status.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Items list */}
-                  <div style={{ padding: '20px 24px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      {order.items?.map((item: any) => (
-                        <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                          <div style={{ width: 44, height: 44, borderRadius: 10, background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', flexShrink: 0 }}>
-                            <IcBox />
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--text)' }} className="truncate">
-                              {item.product?.name ?? 'Marketplace Item'}
-                            </div>
-                            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                              Qty: {item.quantity} × ₹{Number(item.price).toLocaleString('en-IN')}
-                            </div>
-                          </div>
-                          <div style={{ fontWeight: 700, color: 'var(--text-2)', fontSize: '0.88rem' }}>
-                            ₹{(item.quantity * Number(item.price)).toLocaleString('en-IN')}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Order Footer */}
-                  <div style={{ padding: '16px 24px', background: 'var(--cream)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                      Payment: <span style={{ fontWeight: 700, color: order.payment_status === 'paid' ? 'var(--ok)' : 'var(--warn)' }}>{order.payment_status.toUpperCase()}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Total Amount:</span>
-                      <span style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--forest)', fontFamily: 'var(--font-display)' }}>
+                      <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--forest)', fontFamily: 'var(--font-display)' }}>
                         ₹{Number(order.total_amount).toLocaleString('en-IN')}
-                      </span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))
             )}
           </div>

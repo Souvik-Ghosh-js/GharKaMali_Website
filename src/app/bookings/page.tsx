@@ -75,7 +75,7 @@ export default function BookingsPage() {
           </div>
         </div>
 
-        <div className="container-sm" style={{ marginTop:-44, paddingBottom:80, position: 'relative', zIndex: 10 }}>
+        <div className="container" style={{ marginTop:-44, paddingBottom:80, position: 'relative', zIndex: 10 }}>
           {/* Filter tabs */}
           <div className="card" style={{ padding:8, display:'flex', gap:6, marginBottom:32, overflowX:'auto', scrollbarWidth:'none', borderRadius: 99, border: '1px solid var(--border-mid)' }}>
             {STATUSES.map(s => (
@@ -87,7 +87,7 @@ export default function BookingsPage() {
           </div>
 
           {/* List */}
-          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
             {bLoad ? Array(5).fill(null).map((_,i) => (
               <div key={i} className="card skeleton" style={{ padding:'24px', borderRadius: 24 }}>
                 <div style={{ display:'flex', gap:16, alignItems:'center' }}>
@@ -113,39 +113,54 @@ export default function BookingsPage() {
                 </p>
                 <Link href="/book?type=on-demand" className="btn btn-primary btn-lg">Book a Gardener Visit</Link>
               </div>
-            ) : bookings.map((b: any, i: number) => (
-              <Link key={b.id} href={`/bookings/${b.id}`} className="card"
-                style={{ borderRadius:24, padding:'clamp(20px,4vw,28px) clamp(24px,4vw,32px)', textDecoration:'none', display:'flex', alignItems:'center', gap:20, animation:`fade-up 0.5s var(--ease) ${i*40}ms both` }}>
-                <div style={{ width:64, height:64, borderRadius:20, background:'var(--bg-elevated)', border: '1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:'var(--forest)' }}>
-                  <IcLeaf />
-                </div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8, flexWrap:'wrap' }}>
-                    <span style={{ fontWeight:900, fontSize:'0.95rem', fontFamily:'var(--font-mono)', color:'var(--forest)', letterSpacing:'0.06em' }}>{b.booking_number}</span>
+            ) : (
+              bookings.map((b: any, i: number) => (
+                <Link key={b.id} href={`/bookings/${b.id}`} className="card"
+                  style={{ 
+                    borderRadius: 24, 
+                    padding: 24, 
+                    textDecoration: 'none', 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    gap: 16, 
+                    animation: `fade-up 0.5s var(--ease) ${i * 40}ms both`,
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--bg-elevated)', border: '1.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)' }}>
+                      <IcLeaf />
+                    </div>
                     <StatusPill s={b.status} />
                   </div>
-                  <div style={{ fontSize:'0.95rem', color:'var(--sage)', fontWeight: 600, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', marginBottom:10 }}>{b.service_address}</div>
-                  <div style={{ display:'flex', gap:16, fontSize:'0.8rem', color:'var(--earth)', fontWeight: 700, flexWrap:'wrap', fontFamily: 'var(--font-mono)' }}>
-                    {b.scheduled_date && (
-                      <span style={{ display:'flex', alignItems:'center', gap:6 }}>
-                        <IcCal /> {new Date(b.scheduled_date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}
-                      </span>
-                    )}
-                    {b.scheduled_time && <span style={{ display:'flex', alignItems:'center', gap:6 }}><IcClock /> {b.scheduled_time}</span>}
-                    {b.plant_count != null && <span style={{ display:'flex', alignItems:'center', gap:6 }}><IcSeed /> {b.plant_count} plants</span>}
+
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 900, fontSize: '0.9rem', fontFamily: 'var(--font-mono)', color: 'var(--forest-mid)', marginBottom: 8 }}>#{b.booking_number}</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--sage)', fontWeight: 600, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5, marginBottom: 12 }}>{b.service_address}</div>
+                    
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: '0.72rem', color: 'var(--earth)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
+                      {b.scheduled_date && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><IcCal /> {new Date(b.scheduled_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>}
+                      {b.scheduled_time && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><IcClock /> {b.scheduled_time}</span>}
+                    </div>
                   </div>
-                </div>
-                <div style={{ textAlign:'right', flexShrink:0, paddingRight: 10 }}>
-                  <div style={{ fontFamily:'var(--font-display)', fontWeight: 900, fontSize: b.booking_type==='subscription' && (!b.extra_amount || b.extra_amount == 0) ? '1rem' : '1.4rem', color:'var(--gold-deep)' }}>
-                    {b.booking_type === 'subscription' 
-                      ? (b.extra_amount > 0 ? `+ ₹${Number(b.extra_amount).toLocaleString('en-IN')} Surge` : 'Plan Covered')
-                      : (b.total_amount != null ? `₹${Number(b.total_amount).toLocaleString('en-IN')}` : '—')}
+
+                  <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                    <div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--sage)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 2 }}>{b.plan?.name ?? 'Visit'}</div>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.2rem', color: 'var(--gold-deep)' }}>
+                        {b.booking_type === 'subscription' 
+                          ? (b.extra_amount > 0 ? `+₹${b.extra_amount}` : 'Covered')
+                          : (b.total_amount != null ? `₹${Number(b.total_amount).toLocaleString('en-IN')}` : '—')}
+                      </div>
+                    </div>
+                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', border: '1px solid var(--border)' }}>
+                      <IcArrow />
+                    </div>
                   </div>
-                  <div style={{ fontSize:'0.8rem', color:'var(--sage)', marginTop:6, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{b.plan?.name ?? 'Visit'}</div>
-                </div>
-                <span style={{ color:'var(--forest)', display:'flex', flexShrink:0, background: 'var(--bg-elevated)', padding: 12, borderRadius: '50%', border: '1px solid var(--border)' }}><IcArrow /></span>
-              </Link>
-            ))}
+                </Link>
+              ))
+            )}
           </div>
 
           {/* Pagination */}
@@ -161,7 +176,6 @@ export default function BookingsPage() {
         </div>
       </div>
       <Footer />
-      <style>{`div::-webkit-scrollbar{display:none}`}</style>
     </>
   );
 }

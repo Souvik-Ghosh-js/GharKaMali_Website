@@ -156,7 +156,7 @@ export default function SubscriptionsPage() {
           </div>
         </div>
 
-        <div className="container-sm" style={{ marginTop: -44, paddingBottom: 80, position: 'relative', zIndex: 10 }}>
+        <div className="container" style={{ marginTop: -44, paddingBottom: 80, position: 'relative', zIndex: 10 }}>
 
           {/* Loading */}
           {sLoad && (
@@ -181,57 +181,44 @@ export default function SubscriptionsPage() {
 
           {/* Subscription cards */}
           {!sLoad && subs.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(480px, 1fr))', gap: 24, paddingBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24, paddingBottom: 20 }}>
               {subs.map((sub: any, i: number) => {
                 const isActive = sub.status === 'active';
                 const isPaused = sub.status === 'paused';
                 return (
-                  <div key={sub.id} className="card" style={{ padding: 0, border: `2px solid ${isActive ? 'var(--gold)' : 'var(--border)'}`, overflow: 'hidden', boxShadow: isActive ? 'var(--sh-md)' : 'none', animation: `fade-up 0.5s var(--ease) ${i * 80}ms both`, borderRadius: 28 }}>
-
-                    {/* Top banner */}
-                    <div style={{ background: isActive ? 'var(--bg-elevated)' : 'transparent', padding: 'clamp(24px,4vw,36px)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 14 }}>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10, flexWrap: 'wrap' }}>
-                          <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 'clamp(1.4rem,3vw,1.8rem)', color: 'var(--forest)', margin: 0 }}>
+                  <div key={sub.id} className="card" style={{ padding: 0, border: `2px solid ${isActive ? 'var(--gold)' : 'var(--border)'}`, overflow: 'hidden', boxShadow: isActive ? 'var(--sh-md)' : 'none', animation: `fade-up 0.5s var(--ease) ${i * 80}ms both`, borderRadius: 28, display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ background: isActive ? 'var(--bg-elevated)' : 'transparent', padding: 'clamp(20px,3vw,32px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24, flex: 1 }}>
+                      {/* Left: Plan Info */}
+                      <div style={{ flex: 1, minWidth: 260 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+                          <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.4rem', color: 'var(--forest)', margin: 0 }}>
                             {sub.plan?.name ?? 'Garden Plan'}
                           </h3>
                           <StatusBadge s={sub.status} />
                         </div>
-                        <p style={{ fontSize: '0.95rem', color: 'var(--sage)', margin: 0, fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                          {sub.plant_count ?? 0} plants &nbsp;·&nbsp; {sub.scheduled_visits_count ?? 0}/{sub.plan?.visits_per_month ?? '—'} visits scheduled
-                        </p>
-                      </div>
-                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 'clamp(1.8rem,4vw,2.4rem)', color: isActive ? 'var(--gold-deep)' : 'var(--forest-mid)', lineHeight: 1 }}>
-                          ₹{sub.plan?.price?.toLocaleString('en-IN') ?? '—'}
+                        <div style={{ display: 'flex', gap: 16, fontSize: '0.85rem', color: 'var(--sage)', fontWeight: 600 }}>
+                           <span>{sub.plant_count ?? 0} plants</span>
+                           <span>{sub.scheduled_visits_count ?? 0}/{sub.plan?.visits_per_month ?? '—'} visits</span>
                         </div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--earth)', marginTop: 8, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>per month</div>
                       </div>
-                    </div>
 
-                    {/* Bottom row */}
-                    <div style={{ padding: 'clamp(18px,3vw,24px) clamp(24px,4vw,36px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, borderTop: '1px solid var(--border)' }}>
-                      <div style={{ display: 'flex', gap: 'clamp(14px,2vw,28px)', flexWrap: 'wrap' }}>
-                        {sub.start_date && (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem', color: 'var(--earth)', fontWeight: 600 }}>
-                            <span style={{ display: 'flex' }}><IcCal /></span>
-                            Started {new Date(sub.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                          </span>
-                        )}
-                        {sub.next_visit_date && (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem', color: 'var(--earth)', fontWeight: 600 }}>
-                            <span style={{ color: 'var(--forest)', display: 'flex' }}><IcLeaf /></span>
-                            Next {new Date(sub.next_visit_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                          </span>
-                        )}
-                        {sub.auto_renew !== undefined && (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem', color: 'var(--earth)', fontWeight: 600 }}>
-                            <span style={{ display: 'flex' }}><IcRenew /></span>
-                            Auto-renew: {sub.auto_renew ? 'On' : 'Off'}
-                          </span>
-                        )}
+                      {/* Center: Dates */}
+                      <div style={{ display: 'flex', gap: 24, flexShrink: 0 }}>
+                         {sub.next_visit_date && (
+                           <div style={{ textAlign: 'center' }}>
+                             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Next Visit</div>
+                             <div style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '0.9rem' }}>{new Date(sub.next_visit_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
+                           </div>
+                         )}
+                         <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Price</div>
+                            <div style={{ fontWeight: 900, color: 'var(--gold-deep)', fontSize: '1.25rem' }}>₹{sub.plan?.price?.toLocaleString('en-IN') ?? '—'}</div>
+                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+
+                      {/* Right: Actions */}
+                      <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
                         {isActive && (
                           <>
                             {(sub.scheduled_visits_count || 0) < (sub.plan?.visits_per_month || 0) && (
@@ -241,18 +228,15 @@ export default function SubscriptionsPage() {
                                 const sd = new Date(sub.start_date);
                                 const now = new Date();
                                 setCurrentMonth(sd > now ? sd : now);
-                              }} className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px' }}>
-                                <IcCal /> Select Dates
+                              }} className="btn btn-primary btn-sm" style={{ padding: '10px 18px', fontSize: '0.75rem' }}>
+                                Schedule
                               </button>
                             )}
-                            <button onClick={() => setConfirm({ type: 'pause', id: sub.id })} className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6, borderColor: 'var(--border-mid)', color: 'var(--forest)' }}>
-                              <IcPause /> Pause
+                            <button onClick={() => setConfirm({ type: 'pause', id: sub.id })} className="btn btn-outline btn-sm" style={{ padding: '10px 18px', fontSize: '0.75rem' }}>
+                              Pause
                             </button>
-                            <button onClick={() => setConfirm({ type: 'cancel', id: sub.id })}
-                              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 20px', borderRadius: 99, background: '#FEE2E2', color: '#DC2626', border: '1px solid #FCA5A5', fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'background 0.3s var(--ease)' }}
-                              onMouseEnter={e => (e.currentTarget.style.background = '#FCA5A5')}
-                              onMouseLeave={e => (e.currentTarget.style.background = '#FEE2E2')}>
-                              <IcX /> Cancel
+                            <button onClick={() => setConfirm({ type: 'cancel', id: sub.id })} className="btn btn-outline btn-sm" style={{ padding: '10px 18px', fontSize: '0.75rem', borderColor: '#FCA5A5', color: '#DC2626' }}>
+                              Cancel
                             </button>
                           </>
                         )}

@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import { useCart } from '@/store/cart';
 import toast from 'react-hot-toast';
 import { getShopCategories, getShopProducts } from '@/lib/api';
+import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 
 const IcSearch = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
 const IcPlus = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
@@ -145,7 +146,7 @@ export default function ShopPage() {
   const cartCount = mounted ? totalItems() : 0;
 
   return (
-    <>
+    <SmoothScrollProvider>
       <Navbar/>
       <div style={{ background: 'var(--bg)', paddingTop: 'var(--nav-h)', minHeight: '100svh' }}>
 
@@ -163,7 +164,7 @@ export default function ShopPage() {
               <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'rgba(201,168,76,0.9)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Garden Marketplace</span>
             </div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.2rem,6vw,4.5rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 0.95, textShadow: '0 0 60px rgba(3,65,26,0.8)' }}>
-              Everything your<br/><span style={{ color: '#c9a84c', fontStyle: 'italic' }}>garden needs</span>
+              Everything your<br/><span style={{ color: '#c9a84c', fontStyle: 'normal' }}>garden needs</span>
             </h1>
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 'clamp(0.9rem,1.5vw,1.1rem)', maxWidth: 480, lineHeight: 1.7 }}>
               Premium plants, quality tools, organic fertilizers — curated by expert gardeners
@@ -231,77 +232,82 @@ export default function ShopPage() {
               <p style={{ color: 'var(--text-muted)' }}>Try a different search or category</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(270px,1fr))', gap: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24, width: '100%' }}>
               {products.map((p, i) => {
                 const qty = getQty(p.id);
                 const price = Number(p.price), mrp = Number(p.mrp);
                 const disc = mrp > price ? Math.round((1 - price / mrp) * 100) : 0;
                 return (
-                  <Link key={p.id} href={`/shop/${p.slug || p._id || p.id}`} className="product-tile"
-                    style={{ display: 'block', textDecoration: 'none', background: '#fff', borderRadius: 24, border: '1px solid var(--border)', overflow: 'hidden', boxShadow: 'var(--sh-sm)', transformStyle: 'preserve-3d', willChange: 'transform', transition: 'transform 0.3s ease, box-shadow 0.3s ease', cursor: 'pointer' }}>
+                  <Link key={p.id} href={`/shop/${p.slug || p._id || p.id}`} className="product-tile card"
+                    style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'stretch', 
+                      textDecoration: 'none', 
+                      padding: 0,
+                      borderRadius: 24, 
+                      gap: 0,
+                      overflow: 'hidden',
+                      animation: `fade-up 0.5s var(--ease) ${i * 40}ms both`,
+                      cursor: 'pointer' 
+                    }}>
                     
                     {/* Image Area */}
-                    <div style={{ position: 'relative', height: 220, background: 'linear-gradient(135deg, #f0f7f2 0%, #e8f5ed 100%)', overflow: 'hidden' }}>
+                    <div style={{ width: '100%', height: 200, background: 'linear-gradient(135deg, #f0f7f2 0%, #e8f5ed 100%)', overflow: 'hidden', flexShrink: 0, borderBottom: '1px solid var(--border)', position: 'relative' }}>
                       {p.images?.[0] || p.thumbnail ? (
-                        <img src={p.images?.[0] || p.thumbnail} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
-                          onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
-                          onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+                        <img src={p.images?.[0] || p.thumbnail} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                         />
                       ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '4rem', opacity: 0.4 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.2 }}>
                           <IcLeaf />
                         </div>
                       )}
+                      {disc > 0 && <div style={{ position: 'absolute', top: 12, right: 12, padding: '4px 12px', background: '#dcfce7', color: '#16a34a', borderRadius: 99, fontSize: '0.68rem', fontWeight: 900, boxShadow: 'var(--sh-sm)' }}>{disc}% OFF</div>}
                     </div>
-
-                    {/* Badges Area */}
-                    {(p.badge || disc > 0) && (
-                      <div style={{ display: 'flex', gap: 6, padding: '8px 16px 0', background: '#fff' }}>
-                        {p.badge && <span style={{ padding: '3px 10px', background: '#c9a84c', color: '#fff', borderRadius: 6, fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase' }}>{p.badge}</span>}
-                        {disc > 0 && <span style={{ padding: '3px 10px', background: '#dcfce7', color: '#16a34a', borderRadius: 6, fontSize: '0.65rem', fontWeight: 800 }}>{disc}% OFF</span>}
-                      </div>
-                    )}
-
+                    
                     {/* Content Area */}
-                    <div style={{ padding: '14px 18px 18px', background: '#fff' }}>
-                      <div style={{ fontSize: '0.68rem', color: 'var(--earth)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
-                        {typeof p.category === 'string' ? p.category : p.category?.name || 'General'}
+                    <div style={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ marginBottom: 4 }}>
+                         <span style={{ fontSize: '0.68rem', color: 'var(--earth)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                            {typeof p.category === 'string' ? p.category : p.category?.name || 'General'}
+                         </span>
                       </div>
-                      <h3 style={{ fontSize: '1.05rem', color: 'var(--forest)', fontWeight: 800, marginBottom: 6, lineHeight: 1.3 }}>{p.name}</h3>
-                      {p.description && <p style={{ fontSize: '0.82rem', color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 10, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.description}</p>}
-                      {p.rating > 0 && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 12 }}>
-                          {[1,2,3,4,5].map(n => <IcStar key={n}/>)}
-                          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--forest)' }}>{Number(p.rating).toFixed(1)}</span>
-                        </div>
-                      )}
+                      <h3 style={{ fontSize: '1.15rem', color: 'var(--forest)', fontWeight: 900, marginBottom: 8, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{p.name}</h3>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            {[1,2,3,4,5].map(n => <IcStar key={n}/>)}
+                         </div>
+                         <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--forest)' }}>{Number(p.rating || 4.5).toFixed(1)}</span>
+                      </div>
 
-                      {/* Footer Area with Price + Add Button */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-                        <div>
-                          <div style={{ fontWeight: 900, fontSize: '1.3rem', color: 'var(--forest)', lineHeight: 1 }}>₹{price.toLocaleString('en-IN')}</div>
-                          {mrp > price && <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textDecoration: 'line-through', marginTop: 2 }}>₹{mrp.toLocaleString('en-IN')}</div>}
-                        </div>
-                        <div onClick={(e) => e.preventDefault()}> {/* This ensures the 'Add' buttons don't trigger the Link's navigation accidentally */}
-                          {qty > 0 ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-elevated)', borderRadius: 10, padding: '4px 8px', border: '1.5px solid var(--border-mid)' }}>
-                              <button onClick={(e) => { e.stopPropagation(); qty > 1 ? updateQty(p.id, qty - 1) : removeItem(p.id); }} style={{ width: 28, height: 28, borderRadius: 8, background: '#fff', border: '1px solid var(--border)', color: 'var(--forest)', fontWeight: 900, fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                              <span style={{ fontWeight: 900, color: 'var(--forest)', minWidth: 20, textAlign: 'center' }}>{qty}</span>
-                              <button onClick={(e) => { e.stopPropagation(); handleAdd(p); }} style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--forest)', border: 'none', color: '#fff', fontWeight: 900, fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
-                            </div>
-                          ) : (
-                            <button onClick={(e) => { e.stopPropagation(); handleAdd(p); }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'all 0.2s' }}>
-                              <IcPlus/> Add
-                            </button>
-                          )}
-                        </div>
+                      {/* Price & Action Area */}
+                      <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                         <div>
+                           <div style={{ fontWeight: 900, fontSize: '1.25rem', color: 'var(--forest)', lineHeight: 1 }}>₹{price.toLocaleString('en-IN')}</div>
+                           {mrp > price && <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textDecoration: 'line-through', marginTop: 2 }}>₹{mrp.toLocaleString('en-IN')}</div>}
+                         </div>
+                         
+                         <div onClick={(e) => e.preventDefault()}>
+                            {qty > 0 ? (
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--bg-elevated)', borderRadius: 10, padding: '4px 8px', border: '1.5px solid var(--border-mid)' }}>
+                                <button onClick={(e) => { e.stopPropagation(); qty > 1 ? updateQty(p.id, qty - 1) : removeItem(p.id); }} style={{ width: 28, height: 28, borderRadius: 8, background: '#fff', border: '1px solid var(--border)', color: 'var(--forest)', fontWeight: 900, fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                                <span style={{ fontWeight: 800, color: 'var(--forest)', minWidth: 20, textAlign: 'center', fontSize: '0.9rem' }}>{qty}</span>
+                                <button onClick={(e) => { e.stopPropagation(); handleAdd(p); }} style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--forest)', border: 'none', color: '#fff', fontWeight: 900, fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                              </div>
+                            ) : (
+                              <button onClick={(e) => { e.stopPropagation(); handleAdd(p); }} 
+                                style={{ background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 10, padding: '8px 14px', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'var(--font-body)', boxShadow: '0 4px 12px rgba(3,65,26,0.2)' }}>
+                                Add
+                              </button>
+                            )}
+                         </div>
                       </div>
                     </div>
                   </Link>
                 );
               })}
-
             </div>
           )}
 
@@ -321,8 +327,6 @@ export default function ShopPage() {
       </div>
       <Footer/>
 
-      <Footer/>
-
       <style jsx global>{`
         .product-tile { cursor: default; }
         @media(max-width:640px){ [style*="minmax(270px"]{grid-template-columns:1fr!important} }
@@ -330,6 +334,6 @@ export default function ShopPage() {
         @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
         input::placeholder{color:rgba(255,255,255,0.3)}
       `}</style>
-    </>
+    </SmoothScrollProvider>
   );
 }

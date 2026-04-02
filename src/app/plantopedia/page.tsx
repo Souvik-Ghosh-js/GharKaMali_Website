@@ -163,7 +163,7 @@ export default function PlantopediaPage() {
               <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Powered by AI · Botanical Intelligence</span>
             </div>
             <h1 className="display-1" style={{ color: 'var(--forest)', marginBottom: 20, letterSpacing: '-0.03em' }}>
-              AI <em style={{ color: 'var(--earth)', fontStyle: 'italic' }}>Plantopedia</em>
+              AI <span style={{ color: 'var(--earth)', fontStyle: 'normal' }}>Plantopedia</span>
             </h1>
             <p style={{ fontSize: 'clamp(0.95rem,1.5vw,1.15rem)', color: 'var(--text-2)', maxWidth: 540, margin: '0 auto 48px', lineHeight: 1.8 }}>
               Snap a photo. Our AI identifies your plant species and gives you a complete care guide instantly.
@@ -243,7 +243,7 @@ export default function PlantopediaPage() {
             {result && (
               <div style={{ marginTop: 28, padding: 28, background: 'linear-gradient(135deg, rgba(3,65,26,0.03) 0%, rgba(201,168,76,0.04) 100%)', border: '1.5px solid var(--border-gold)', borderRadius: 24, animation: 'fade-up 0.5s ease' }}>
                 {result.common_name && <h3 style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--forest)', marginBottom: 4 }}>{result.common_name}</h3>}
-                {result.scientific_name && <p style={{ fontSize: '0.88rem', color: 'var(--earth)', fontStyle: 'italic', marginBottom: 16, fontWeight: 600 }}>{result.scientific_name}</p>}
+                {result.scientific_name && <p style={{ fontSize: '0.88rem', color: 'var(--earth)', fontStyle: 'normal', marginBottom: 16, fontWeight: 600 }}>{result.scientific_name}</p>}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 12, marginBottom: 16 }}>
                   {[
                     { label: 'Watering', value: result.watering_frequency, Icon: IcDrop },
@@ -268,15 +268,33 @@ export default function PlantopediaPage() {
               <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 'clamp(1.4rem,3vw,1.9rem)', color: 'var(--forest)', marginBottom: 28, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <IcClock/> Identification History
               </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
                 {history.map((h: any, i) => (
-                  <div key={h._id || i} className="hist-card" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 22, overflow: 'hidden', boxShadow: 'var(--sh-xs)' }}>
-                    {h.image_url && <img src={h.image_url} alt={h.common_name} style={{ width: '100%', height: 160, objectFit: 'cover' }}/>}
-                    <div style={{ padding: '16px 18px' }}>
-                      <h4 style={{ fontWeight: 800, color: 'var(--forest)', marginBottom: 4 }}>{h.common_name || 'Unknown'}</h4>
-                      {h.scientific_name && <p style={{ fontSize: '0.78rem', color: 'var(--earth)', fontStyle: 'italic', marginBottom: 8 }}>{h.scientific_name}</p>}
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <IcClock/>{new Date(h.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  <div key={h._id || i} className="hist-card card" style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    padding: 0,
+                    borderRadius: 22, 
+                    overflow: 'hidden',
+                    animation: `fade-up 0.5s var(--ease) ${i * 40}ms both` 
+                  }}>
+                    {h.image_url && (
+                      <div style={{ width: '100%', height: 180, overflow: 'hidden', flexShrink: 0, borderBottom: '1px solid var(--border)' }}>
+                        <img src={h.image_url} alt={h.common_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
+                      </div>
+                    )}
+                    <div style={{ padding: 20, flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
+                        <h4 style={{ fontWeight: 800, color: 'var(--forest)', margin: 0, fontSize: '1.05rem', lineHeight: 1.2 }}>{h.common_name || 'Unknown Identification'}</h4>
+                        <span style={{ fontSize: '0.6rem', color: 'var(--earth)', background: 'var(--bg-elevated)', padding: '2px 8px', borderRadius: 99, border: '1px solid var(--border-gold)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Analyzed</span>
+                      </div>
+                      {h.scientific_name && <p style={{ fontSize: '0.85rem', color: 'var(--earth)', fontStyle: 'normal', marginBottom: 12 }}>{h.scientific_name}</p>}
+                      
+                      <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-mid)', paddingTop: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: 'var(--sage)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                           <IcClock/> {new Date(h.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                        </div>
+                        <div style={{ fontSize: '0.65rem', color: 'var(--text-faint)', fontWeight: 600 }}>ID: {String(h._id || i).slice(-6).toUpperCase()}</div>
                       </div>
                     </div>
                   </div>

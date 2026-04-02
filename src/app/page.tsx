@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import PageLoader from '@/components/PageLoader';
 import { getPlans, getBlogs, getTaglines, getShopProducts } from '@/lib/api';
 import dynamic from 'next/dynamic';
+import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 const TreeScene = dynamic(() => import('@/components/TreeScene'), { ssr: false });
 
 /* ── TYPEWRITER — single-line, no height jump ── */
@@ -42,9 +43,8 @@ const TypeWriter = ({ words }: { words: string[] }) => {
   }, [text, isDeleting, loopNum, typingSpeed, words]);
 
   return (
-    <span style={{ display: 'inline-block', minWidth: 'clamp(200px, 36vw, 540px)', minHeight: '1.1em', textAlign: 'left', verticalAlign: 'bottom' }}>
-      <span style={{ color: 'var(--earth)', fontStyle: 'italic' }}>{text}</span>
-      <span style={{ animation: 'blink 1s step-end infinite', color: 'var(--earth)', fontWeight: 400 }}>|</span>
+    <span style={{ display: 'block', minHeight: '1.2em', textAlign: 'center', fontSize: 'clamp(3rem, 10vw, 9rem)', fontWeight: 900, color: 'var(--earth)', fontStyle: 'normal' }}>
+      {text}<span style={{ animation: 'blink 1s step-end infinite', color: 'var(--earth)', fontWeight: 400 }}>|</span>
     </span>
   );
 };
@@ -275,7 +275,7 @@ export default function HomePage() {
   const shopProducts: any[] = (shopRaw as any) ?? [];
 
   return (
-    <>
+    <SmoothScrollProvider>
       <PageLoader />
       <Navbar transparent />
       <TreeScene />
@@ -285,20 +285,21 @@ export default function HomePage() {
         <HeroBgAnimation />
 
         <div className="container" style={{ position: 'relative', zIndex: 5 }}>
-          <div style={{ maxWidth: 920, margin: '0 auto', textAlign: 'center', paddingTop: '16vh', paddingBottom: '3vh' }}>
+          <div className="hero-content-box" style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center', paddingTop: '160px', paddingBottom: '100px' }}>
 
             <div className="hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--sh-sm)', borderRadius: 99, padding: '8px 20px', marginBottom: 32, fontSize: '0.78rem', fontWeight: 700 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#16a34a', animation: 'pulse 2s ease infinite', display: 'inline-block' }} />
               <span style={{ color: 'var(--forest)' }}>Redefining Botanical Excellence in Noida</span>
             </div>
 
-            {/* Hero title — SINGLE LINE typewriter, no height jump */}
-            <h1 className="hero-title display-1" style={{ color: 'var(--forest)', letterSpacing: '-0.03em', marginBottom: 28, lineHeight: 1.0 }}>
-              Plants ki{' '}
+            {/* Hero title — SINGLE LINE title, everything on one row */}
+            {/* Hero title — Multi-row centered layout */}
+            <h1 className="hero-title" style={{ color: 'var(--forest)', letterSpacing: '-0.04em', marginBottom: 28, lineHeight: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+              <span className="display-1" style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 800 }}>Plants ki</span>
+              
               <TypeWriter words={['tension?', 'bimari?', 'growth?', 'care?']} />
-              <br />
-              <em className="accent" style={{ fontStyle: 'italic', color: 'var(--earth)', display: 'inline' }}>GharKaMali</em>
-              {' '}hai na.
+              
+              <div className="display-1" style={{ fontSize: 'clamp(2.5rem, 6vw, 5.5rem)', fontStyle: 'normal', color: 'var(--earth)', display: 'block', marginTop: 10 }}>GharKaMali <span style={{ color: 'var(--forest)' }}>hai na.</span></div>
             </h1>
 
             <p className="hero-subtitle" style={{ maxWidth: 640, margin: '0 auto 44px', fontWeight: 500, color: 'var(--text-2)', fontSize: 'clamp(1rem, 1.6vw, 1.18rem)', lineHeight: 1.8 }}>
@@ -327,14 +328,14 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="hero-stats" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div className="hero-stats" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginTop: 40, opacity: 1, position: 'relative', zIndex: 10 }}>
               {[
                 { num: 1200, suffix: '+', label: 'Visits Done' },
                 { num: 25, suffix: '+', label: 'Certified Malis' },
                 { num: 4.9, suffix: '★', label: 'Avg Rating' },
                 { num: 55, suffix: '+', label: 'Societies' },
               ].map(s => (
-                <div key={s.label} className="hero-stat" style={{ background: '#fff', border: '1.5px solid var(--border-gold)', borderRadius: 20, padding: '20px 28px', minWidth: 120, boxShadow: 'var(--sh-sm)', textAlign: 'center' }}>
+                <div key={s.label} className="hero-stat" style={{ background: '#fff', border: '1.5px solid var(--border-gold)', borderRadius: 20, padding: '20px 28px', minWidth: 120, boxShadow: 'var(--sh-sm)', textAlign: 'center', opacity: 1 }}>
                   <div style={{ fontSize: 'clamp(1.6rem,3vw,2.2rem)', fontWeight: 900, color: 'var(--forest)', lineHeight: 1 }}>
                     {s.label === 'Avg Rating' ? `4.9★` : <Counter end={s.num} suffix={s.suffix} />}
                   </div>
@@ -349,9 +350,9 @@ export default function HomePage() {
 
 
       {/* ═══ SERVICES + BEFORE/AFTER SPLIT SCROLL ═══ */}
-      <section className="ba-split-section section" id="services" style={{ background: 'var(--bg)', position: 'relative', zIndex: 10 }}>
+      <section className="ba-split-section section-no-gap" id="services" style={{ background: 'var(--bg)', position: 'relative', zIndex: 10 }}>
         {/* Single section heading */}
-        <div className="container" style={{ paddingBottom: 48 }}>
+        <div className="container" style={{ paddingTop: 20, paddingBottom: 48 }}>
           <div style={{ textAlign: 'center' }}>
             <span className="overline">Our Services & Transformations</span>
             <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 8, marginBottom: 12 }}>Scroll to Explore</h2>
@@ -364,7 +365,7 @@ export default function HomePage() {
         {/* Desktop split */}
         <div className="ba-split-layout desktop-only">
           {/* LEFT — pinned image area */}
-          <div className="ba-split-left" style={{ zIndex: 5 }}>
+          <div className="ba-split-left desktop-only" style={{ zIndex: 5, paddingTop: '35vh', paddingBottom: '30vh' }}>
             <div className="ba-image-stack" style={{ position: 'relative', width: '100%', maxWidth: 540, aspectRatio: '4/3', borderRadius: 28, overflow: 'hidden', border: '2px solid var(--border-gold)', boxShadow: 'var(--sh-xl)', background: 'var(--bg-elevated)' }}>
               {BEFORE_AFTER.map((item, i) => (
                 <div key={i} className={`ba-pair ba-pair-${i}`} style={{ position: i === 0 ? 'relative' : 'absolute', inset: 0, width: '100%', height: '100%', opacity: i === 0 ? 1 : 0, zIndex: i === 0 ? 2 : 1 }}>
@@ -480,9 +481,9 @@ export default function HomePage() {
             <div style={{ position: 'absolute', right: -60, top: -60, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(237,207,135,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', left: -40, bottom: -40, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,5.5vw,4.2rem)', fontWeight: 900, color: 'var(--forest)', marginBottom: 24, lineHeight: 1.1, position: 'relative' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,5.5vw,4.2rem)', fontWeight: 900, color: 'var(--forest)', marginBottom: 24, lineHeight: 1.1, position: 'relative', fontStyle: 'normal' }}>
               Ready for a Professional<br />
-              <em style={{ fontStyle: 'italic', color: 'var(--earth)' }}>Garden Transformation?</em>
+              <span style={{ fontStyle: 'normal', color: 'var(--earth)' }}>Garden Transformation?</span>
             </h2>
             <p style={{ color: 'var(--text-2)', fontSize: 'clamp(0.95rem,1.4vw,1.2rem)', maxWidth: 640, margin: '0 auto 44px', lineHeight: 1.8, fontWeight: 500 }}>
               Join Noida's most elite plant care society. Secure your spot for a premium visit and let our realistic experts handle the rest.
@@ -514,7 +515,7 @@ export default function HomePage() {
             {[...REVIEWS, ...REVIEWS].map((r, i) => (
               <div key={i} className="testimonial-marquee-card">
                 <Stars />
-                <p style={{ color: 'var(--forest)', fontSize: '1rem', lineHeight: 1.7, margin: '16px 0', fontStyle: 'italic', fontWeight: 600 }}>
+                <p style={{ color: 'var(--forest)', fontSize: '1rem', lineHeight: 1.7, margin: '16px 0', fontStyle: 'normal', fontWeight: 600 }}>
                   &ldquo;{r.text}&rdquo;
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -563,21 +564,52 @@ export default function HomePage() {
 
       {/* ═══ PLANS PREVIEW ═══ */}
       {plans.length > 0 && (
-        <section className="section" style={{ background: '#fff', zIndex: 11, borderTop: '1px solid var(--border)' }}>
+        <section className="section" style={{ background: 'var(--bg)', zIndex: 11, borderTop: '1px solid var(--border)', paddingBottom: 120 }}>
           <div className="container">
-            <div style={{ textAlign: 'center', marginBottom: 52 }}>
-              <span className="overline">Subscription Plans</span>
-              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 8 }}>Choose Your Green Journey</h2>
+            <div style={{ textAlign: 'center', marginBottom: 64 }}>
+              <span className="overline" style={{ color: 'var(--forest)', opacity: 0.5 }}>Subscription Experience</span>
+              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, letterSpacing: '-0.02em' }}>Choose Your botanical <span style={{ color: 'var(--earth)', fontStyle: 'normal' }}>wellness journey</span></h2>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px,1fr))', gap: 24 }}>
-              {plans.slice(0, 3).map((plan: any, i: number) => (
-                <div key={plan._id || i} style={{ background: i === 1 ? 'var(--forest)' : '#fff', border: `2px solid ${i === 1 ? 'var(--forest)' : 'var(--border-gold)'}`, borderRadius: 28, padding: 36, position: 'relative', boxShadow: i === 1 ? 'var(--sh-xl)' : 'var(--sh-sm)' }}>
-                  {i === 1 && <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: 'var(--gold)', color: 'var(--forest)', padding: '5px 18px', borderRadius: 99, fontSize: '0.72rem', fontWeight: 900, whiteSpace: 'nowrap' }}>MOST POPULAR</div>}
-                  <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: i === 1 ? '#fff' : 'var(--forest)', marginBottom: 8 }}>{plan.name}</h3>
-                  <div style={{ fontSize: '2rem', fontWeight: 900, color: i === 1 ? 'var(--gold)' : 'var(--earth)', marginBottom: 16 }}>₹{plan.price}<span style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.7 }}>/mo</span></div>
-                  <Link href="/plans" style={{ display: 'block', textAlign: 'center', padding: '12px', background: i === 1 ? '#fff' : 'var(--forest)', color: i === 1 ? 'var(--forest)' : '#fff', borderRadius: 14, fontWeight: 800, fontSize: '0.9rem', textDecoration: 'none', marginTop: 20 }}>Get Started →</Link>
-                </div>
-              ))}
+            
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 32, justifyContent: 'center', marginBottom: 64 }}>
+              {plans.slice(0, 2).map((plan: any, i: number) => {
+                const isDark = i === 1;
+                return (
+                  <div key={plan._id || i} className="plan-home-card" style={{ 
+                    flex: '1 1 420px',
+                    maxWidth: 500,
+                    background: isDark ? 'var(--forest)' : '#fff', 
+                    border: `1.5px solid ${isDark ? 'transparent' : 'var(--border-gold)'}`, 
+                    borderRadius: 40, 
+                    padding: '52px 48px', 
+                    position: 'relative', 
+                    boxShadow: isDark ? 'var(--sh-xl)' : 'var(--sh-md)',
+                    transition: 'all 0.4s var(--ease)',
+                  }}>
+                    {isDark && <div style={{ position: 'absolute', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--gold)', color: 'var(--forest)', padding: '6px 20px', borderRadius: 99, fontSize: '0.72rem', fontWeight: 900, whiteSpace: 'nowrap', boxShadow: '0 4px 15px rgba(201,168,76,0.4)', zIndex: 5 }}>MOST RECOMMENDED</div>}
+                    
+                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: isDark ? 'rgba(255,255,255,0.6)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12 }}>{plan.plan_type}</div>
+                    <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 12, letterSpacing: '-0.02em' }}>{plan.name}</h3>
+                    <p style={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'var(--text-2)', fontSize: '1rem', marginBottom: 40, lineHeight: 1.7 }}>{plan.description || 'Elevate your living space with our premium botanical maintenance plans.'}</p>
+                    
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 44 }}>
+                      <span style={{ fontSize: '3.4rem', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', letterSpacing: '-0.02em' }}>₹{plan.price}</span>
+                      <span style={{ fontSize: '1.2rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 600 }}>/month</span>
+                    </div>
+                    
+                    <Link href={`/book?plan=${plan.id}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'} btn-lg`} style={{ width: '100%', justifyContent: 'center', padding: '18px', fontSize: '0.95rem' }}>
+                      Start Selection →
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ height: 1.5, background: 'linear-gradient(90deg, transparent, var(--border-gold), transparent)', marginBottom: 48, maxWidth: 400, margin: '0 auto 48px' }} />
+              <Link href="/plans" className="btn btn-outline btn-lg" style={{ borderColor: 'var(--forest)', color: 'var(--forest)', padding: '16px 52px', fontSize: '1rem', fontWeight: 800 }}>
+                View All Exclusive Plans
+              </Link>
             </div>
           </div>
         </section>
@@ -602,6 +634,18 @@ export default function HomePage() {
         @keyframes orbDrift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-30px,25px) scale(1.06)} }
         @keyframes orbDrift3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(20px,-40px) scale(0.94)} }
         @keyframes leafFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 33%{transform:translateY(-12px) rotate(8deg)} 66%{transform:translateY(-6px) rotate(-5deg)} }
+        
+        .section-no-gap { padding-top: 0 !important; }
+        @media (max-width: 768px) {
+          .hero-content-box { padding-top: 0 !important; padding-bottom: 0 !important; }
+          .hero-title { margin-bottom: 32px !important; gap: 4px !important; }
+          .hero-subtitle { margin-bottom: 30px !important; }
+          .hero-cta-row { margin-bottom: 24px !important; gap: 12px !important; }
+          .hero-stats { margin-top: 40px !important; }
+          .ba-split-section { overflow-x: hidden; }
+        }
+        .plans-carousel-track::-webkit-scrollbar { height: 4px; }
+        .plans-carousel-track::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 99px; }
 
         /* 3D Button Base Styles */
         .btn-3d-plant {
@@ -655,6 +699,6 @@ export default function HomePage() {
           background-size: 48px 48px;
         }
       `}</style>
-    </>
+    </SmoothScrollProvider>
   );
 }

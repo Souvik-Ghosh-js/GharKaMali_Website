@@ -9,13 +9,26 @@ import Footer from '@/components/Footer';
 import { useAuth } from '@/store/auth';
 import { getBooking, cancelBooking, rateBooking, rescheduleBooking, initiatePayment } from '@/lib/api';
 
+/* ─── Icons ──────────────────────────────────────────────────────────────────── */
+const IcPlan     = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>;
+const IcGardener = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>;
+const IcBike     = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"/></svg>;
+const IcLocation = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>;
+const IcLeaf     = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>;
+const IcCheck    = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>;
+const IcLock     = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+const IcCalendar = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
+const IcClock    = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+const IcStar     = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+const IcWarning  = () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+
 const TIMELINE_STEPS = [
-  { status: 'pending',     label: 'Booking Received',    icon: '📋' },
-  { status: 'assigned',    label: 'Gardener Assigned',   icon: '👨‍🌾' },
-  { status: 'en_route',    label: 'Gardener On the Way', icon: '🚴' },
-  { status: 'arrived',     label: 'Gardener Arrived',    icon: 'loc' },
-  { status: 'in_progress', label: 'Work in Progress',    icon: 'leaf' },
-  { status: 'completed',   label: 'Visit Complete',      icon: '✅' },
+  { status: 'pending',     label: 'Booking Received',    icon: <IcPlan /> },
+  { status: 'assigned',    label: 'Gardener Assigned',   icon: <IcGardener /> },
+  { status: 'en_route',    label: 'Gardener On the Way', icon: <IcBike /> },
+  { status: 'arrived',     label: 'Gardener Arrived',    icon: <IcLocation /> },
+  { status: 'in_progress', label: 'Work in Progress',    icon: <IcLeaf /> },
+  { status: 'completed',   label: 'Visit Complete',      icon: <IcCheck /> },
 ];
 
 const STATUS_ORDER = ['pending','assigned','en_route','arrived','in_progress','completed'];
@@ -194,8 +207,8 @@ export default function BookingDetailPage() {
               {/* Live OTP card — show when booking is active */}
               {['assigned','en_route','arrived'].includes(status) && booking.otp && (
                 <div style={{ background:'linear-gradient(135deg, var(--forest), var(--forest-mid))', borderRadius:24, padding:28, animation:'slide-up 0.4s var(--ease)' }}>
-                  <div style={{ fontSize:'0.7rem', fontWeight:700, color:'rgba(255,255,255,0.5)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:12 }}>
-                    🔐 Share this OTP with your gardener to start the visit
+                  <div style={{ fontSize:'0.7rem', fontWeight:700, color:'rgba(255,255,255,0.5)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:12, display:'flex', alignItems:'center', gap:8 }}>
+                    <IcLock /> Share this OTP with your gardener to start the visit
                   </div>
                   <div style={{ display:'flex', gap:8, marginBottom:16 }}>
                     {booking.otp.toString().split('').map((d: string, i: number) => (
@@ -291,7 +304,7 @@ export default function BookingDetailPage() {
                   <div style={{ display:'flex', gap:4, marginBottom:10 }}>
                     {[1,2,3,4,5].map(n => <span key={n} style={{ fontSize:'1.5rem', filter: n <= booking.rating ? 'none' : 'grayscale(1)' }}><svg width="22" height="22" viewBox="0 0 24 24" fill={n <= booking.rating ? '#C9A84C' : '#e5e7eb'}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>)}
                   </div>
-                  {booking.review && <p style={{ fontSize:'0.9rem', color:'var(--text-2)', fontStyle:'italic', lineHeight:1.7 }}>&ldquo;{booking.review}&rdquo;</p>}
+                  {booking.review && <p style={{ fontSize:'0.9rem', color:'var(--text-2)', fontStyle:'normal', lineHeight:1.7 }}>&ldquo;{booking.review}&rdquo;</p>}
                 </div>
               )}
             </div>
@@ -302,11 +315,11 @@ export default function BookingDetailPage() {
               <div style={{ background:'var(--bg-card)', borderRadius:24, padding:'22px 24px', border:'1px solid var(--border)' }}>
                 <h3 style={{ fontWeight:700, fontSize:'0.95rem', marginBottom:18 }}>Booking Details</h3>
                 {[
-                  { icon:'loc', label:'Address', value: booking.service_address },
-                  { icon:'📅', label:'Date', value: booking.scheduled_date ? new Date(booking.scheduled_date).toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'long', year:'numeric' }) : '—' },
-                  { icon:'⏰', label:'Time', value: booking.scheduled_time ?? 'Flexible' },
-                  { icon:'plant', label:'Plants', value: `${booking.plant_count ?? '—'} plants` },
-                  { icon:'loc', label:'Zone', value: booking.zone?.name ?? '—' },
+                  { icon:<IcLocation />, label:'Address', value: booking.service_address },
+                  { icon:<IcCalendar />, label:'Date', value: booking.scheduled_date ? new Date(booking.scheduled_date).toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'long', year:'numeric' }) : '—' },
+                  { icon:<IcClock />, label:'Time', value: booking.scheduled_time ?? 'Flexible' },
+                  { icon:<IcLeaf />, label:'Plants', value: `${booking.plant_count ?? '—'} plants` },
+                  { icon:<IcLocation />, label:'Zone', value: booking.zone?.name ?? '—' },
                 ].map(row => (
                   <div key={row.label} style={{ display:'flex', gap:10, alignItems:'flex-start', marginBottom:14 }}>
                     <span style={{ fontSize:'1rem', flexShrink:0, marginTop:1 }}>{row.icon}</span>
@@ -340,7 +353,7 @@ export default function BookingDetailPage() {
               {/* Action buttons */}
               {status === 'pending' && booking.payment_status !== 'paid' && (
                 <button onClick={handlePayment} disabled={paying} className="btn btn-primary w-full" style={{ justifyContent:'center', padding:'14px' }}>
-                  {paying ? 'Processing...' : '💳 Complete Payment'}
+                  {paying ? 'Processing...' : 'Complete Payment'}
                 </button>
               )}
 
@@ -380,7 +393,7 @@ export default function BookingDetailPage() {
         <div className="modal-bg" onClick={() => setShowRating(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <div style={{ textAlign:'center', marginBottom:24 }}>
-              <div style={{ fontSize:'3.5rem', marginBottom:12 }}>⭐</div>
+              <div style={{ display:'flex', justifyContent:'center', marginBottom:12, color:'var(--gold)' }}><IcStar /></div>
               <h2 style={{ fontFamily:'var(--font-display)', fontWeight:800, fontSize:'1.6rem', marginBottom:6 }}>How was your visit?</h2>
               <p style={{ color:'var(--text-muted)', fontSize:'0.9rem' }}>Your feedback helps us improve and rewards great gardeners</p>
             </div>
@@ -410,7 +423,7 @@ export default function BookingDetailPage() {
       {showCancel && (
         <div className="modal-bg" onClick={() => setShowCancel(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize:'3rem', textAlign:'center', marginBottom:16 }}>⚠️</div>
+            <div style={{ display:'flex', justifyContent:'center', marginBottom:16, color:'var(--err)' }}><IcWarning /></div>
             <h2 style={{ fontFamily:'var(--font-display)', fontWeight:800, fontSize:'1.5rem', textAlign:'center', marginBottom:8 }}>Cancel Booking?</h2>
             <p style={{ color:'var(--text-muted)', textAlign:'center', marginBottom:24, fontSize:'0.9rem' }}>This action cannot be undone. A cancellation fee may apply.</p>
             <div className="form-group">

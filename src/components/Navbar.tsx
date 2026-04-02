@@ -143,17 +143,17 @@ export default function Navbar({ transparent = false }: { transparent?: boolean 
         borderBottom: showBg ? '1px solid rgba(3,65,26,0.08)' : '1px solid transparent',
         transition: 'background 0.4s, border-color 0.4s',
       }}>
-        <div className="container" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             <img src="/logo.png" alt="GharKaMali" style={{ width: 50, height: 50, objectFit: 'contain' }} />
           </Link>
 
           {/* Desktop nav */}
-          <div className="nav-desktop-links" style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, justifyContent: 'center' }}>
+          <div className="nav-desktop-links" style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>
             {NAV_ITEMS.map(item => (
               <Link key={item.href} href={item.href} style={{
-                padding: '7px 13px', borderRadius: 10, fontWeight: 700,
-                fontSize: '0.78rem', letterSpacing: '0.05em', textTransform: 'uppercase',
+                padding: '7px 11px', borderRadius: 10, fontWeight: 700,
+                fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase',
                 color: pathname === item.href ? 'var(--forest)' : 'var(--text-2)',
                 background: pathname === item.href ? 'rgba(3,65,26,0.08)' : 'transparent',
                 transition: 'all 0.2s', whiteSpace: 'nowrap',
@@ -191,6 +191,7 @@ export default function Navbar({ transparent = false }: { transparent?: boolean 
         background: '#fff',
         backdropFilter: 'blur(40px)',
         overflowY: 'auto',
+        overflowX: 'hidden',
         WebkitOverflowScrolling: 'touch' as any,
       }}>
         {/* Animated particle canvas */}
@@ -271,10 +272,12 @@ export default function Navbar({ transparent = false }: { transparent?: boolean 
 
           {/* Download + WhatsApp row */}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingTop: 20, borderTop: '1px solid rgba(3,65,26,0.08)', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>Get the App:</span>
-            <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: 'var(--forest)', color: '#fff', borderRadius: 10, fontSize: '0.75rem', fontWeight: 700, textDecoration: 'none', border: 'none' }}><Ic.Apple/> App Store</a>
-            <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: 'var(--forest)', color: '#fff', borderRadius: 10, fontSize: '0.75rem', fontWeight: 700, textDecoration: 'none', border: 'none' }}><Ic.Android/> Play Store</a>
-            <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: 'rgba(37,211,102,0.12)', color: '#25D366', borderRadius: 10, fontSize: '0.75rem', fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(37,211,102,0.2)' }}><Ic.WA/> WhatsApp</a>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginRight: 5 }}>Apps:</span>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'var(--forest)', color: '#fff', borderRadius: 10, fontSize: '0.68rem', fontWeight: 700, textDecoration: 'none' }}><Ic.Apple/> iOS</a>
+              <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'var(--forest)', color: '#fff', borderRadius: 10, fontSize: '0.68rem', fontWeight: 700, textDecoration: 'none' }}><Ic.Android/> Android</a>
+              <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'rgba(37,211,102,0.12)', color: '#25D366', borderRadius: 10, fontSize: '0.68rem', fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(37,211,102,0.2)' }}><Ic.WA/> WhatsApp</a>
+            </div>
           </div>
         </div>
       </div>

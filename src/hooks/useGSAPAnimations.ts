@@ -99,10 +99,10 @@ export function useGSAPAnimations() {
         if (leftSection) {
           ScrollTrigger.create({
             trigger: splitLayout,
-            start: 'top 15%', // Matches top offset, you can adjust as needed
-            end: 'bottom 85%', // Ends when the bottom of layout hits bottom
+            start: 'top 35%', 
+            end: 'bottom bottom', 
             pin: leftSection,
-            pinSpacing: false, // We handle the layout space using the CSS grid
+            pinSpacing: false, 
           });
         }
 

@@ -113,7 +113,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="container-sm" style={{ marginTop: -50, paddingBottom: 80, position: 'relative', zIndex: 10 }}>
+        <div className="container" style={{ marginTop: -50, paddingBottom: 80, position: 'relative', zIndex: 10 }}>
           {/* Stats */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 20, marginBottom: 40 }}>
             {STATS.map(s => (

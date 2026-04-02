@@ -227,7 +227,7 @@ function BookFlow() {
         <div className="hero-orb hero-orb-1" style={{ opacity: 0.1 }} />
         {/* Progress bar */}
         <div className="step-bar">
-          <div className="container-sm">
+          <div className="container">
             <div style={{ display:'flex', alignItems:'center' }}>
               {STEPS.map((s,i)=>{
                 const done=i<stepIdx, active=i===stepIdx;
@@ -252,7 +252,7 @@ function BookFlow() {
           </div>
         </div>
 
-        <div className="container-sm" style={{ padding:'40px clamp(20px,4vw,48px) 80px', position: 'relative', zIndex: 10 }}>
+        <div className="container" style={{ padding:'40px clamp(20px,4vw,48px) 80px', position: 'relative', zIndex: 10 }}>
           {/* ── LOCATION ── */}
           {step==='location' && (
             <div style={{ animation:'slide-up 0.4s var(--ease)' }}>
@@ -331,8 +331,8 @@ function BookFlow() {
                   )}
                 </div>
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:16, position:'relative', zIndex: 10 }}>
-                {plans.length===0 ? Array(3).fill(null).map((_,i)=><div key={i} className="card skeleton" style={{height:200, borderRadius:28}}/>) :
+              <div style={{ display:'flex', flexDirection: 'column', gap:20, position:'relative', zIndex: 10 }}>
+                {plans.length===0 ? Array(3).fill(null).map((_,i)=><div key={i} className="card skeleton" style={{height:140, borderRadius:28}}/>) :
                   plans.map((plan:any)=>{
                     const sel = form.plan_id===plan.id;
                     let displayPrice = plan.price ?? 0;
@@ -341,40 +341,70 @@ function BookFlow() {
                     }
                     return (
                       <div key={plan.id} onClick={()=>setForm(f=>({...f,plan_id:plan.id}))}
-                        style={{ borderRadius:28, border:`2px solid ${sel?'var(--forest)':'transparent'}`, background:'var(--bg-card)', cursor:'pointer', transition:'all 0.25s var(--ease)', overflow:'hidden', boxShadow:sel?'0 12px 40px rgba(0,0,0,0.1)':'0 4px 20px rgba(0,0,0,0.04)', transform:sel?'scale(1.02)':'scale(1)', zIndex:sel?2:1, position:'relative', display:'flex', flexDirection:'column' }}>
+                        style={{ 
+                          borderRadius:32, 
+                          border:`2.5px solid ${sel?'var(--forest)':'var(--border)'}`, 
+                          background: sel ? 'var(--bg-elevated)' : '#fff', 
+                          cursor:'pointer', 
+                          transition:'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
+                          overflow:'hidden', 
+                          boxShadow:sel?'var(--sh-md)':'var(--sh-xs)', 
+                          transform:sel?'translateX(8px)':'translateX(0)', 
+                          zIndex:sel?2:1, 
+                          position:'relative', 
+                          display:'flex', 
+                          flexDirection: 'row',
+                          alignItems: 'stretch',
+                          minHeight: 160
+                        }}>
                         
                         {plan.is_best_value === 1 && (
-                          <div style={{ position:'absolute', top:0, left:'50%', transform:'translateX(-50%)', background:'var(--gold)', color:'#fff', fontSize:'0.65rem', fontWeight:800, padding:'4px 14px', borderBottomLeftRadius:8, borderBottomRightRadius:8, textTransform:'uppercase', letterSpacing:'0.05em', zIndex: 10 }}>
+                          <div style={{ position:'absolute', top:0, left:0, background:'var(--gold)', color:'#fff', fontSize:'0.65rem', fontWeight:900, padding:'4px 16px', borderBottomRightRadius:12, textTransform:'uppercase', letterSpacing:'0.1em', zIndex: 10 }}>
                             Best Value
                           </div>
                         )}
               
-                        {/* Top Section */}
-                        <div style={{ background: plan.is_best_value === 1 ? 'linear-gradient(135deg, rgba(11,61,46,0.06) 0%, transparent 100%)' : 'var(--bg-elevated)', padding:'48px 24px 32px', textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center' }}>
-                          <h3 style={{ fontFamily:'var(--font-display)', fontWeight:900, fontSize:'1.4rem', marginBottom:16, color: 'var(--forest)' }}>{plan.name}</h3>
-                          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'center', color: plan.is_best_value === 1 ? 'var(--gold-deep)' : 'var(--forest)', marginBottom:2, lineHeight:1 }}>
-                            <span style={{ fontSize:'1.1rem', fontWeight:700, marginTop:6 }}>₹</span>
-                            <span style={{ fontSize:'3.6rem', fontWeight:900 }}>{displayPrice.toLocaleString('en-IN')}</span>
+                        {/* Left Info: Name & Price */}
+                        <div style={{ padding:'40px 32px', display:'flex', flex: '1.2', flexDirection:'row', alignItems:'center', gap: 32, borderRight: '1px solid var(--border-light)' }}>
+                          <div style={{ flex: 1 }}>
+                            <h3 style={{ fontFamily:'var(--font-display)', fontWeight:900, fontSize:'1.6rem', marginBottom:8, color: 'var(--forest)', letterSpacing: '-0.02em' }}>{plan.name}</h3>
+                            <div style={{ fontSize:'0.9rem', fontWeight:600, color: 'var(--sage)' }}>
+                              {plan.plan_summary || `Up to ${plan.max_plants} Healthy Plants`}
+                            </div>
                           </div>
-                          <div style={{ fontSize:'0.8rem', fontWeight:700, color: 'var(--sage)', marginBottom:14 }}>
-                            {plan.price_subtitle || (plan.plan_type==='subscription'?'Every month':'One-time')}
+
+                          <div style={{ textAlign: 'right', minWidth: 140 }}>
+                            <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'flex-end', color: 'var(--forest)', lineHeight:1 }}>
+                              <span style={{ fontSize:'1rem', fontWeight:700, marginTop:6 }}>₹</span>
+                              <span style={{ fontSize:'3rem', fontWeight:900, fontFamily: 'var(--font-display)' }}>{displayPrice.toLocaleString('en-IN')}</span>
+                            </div>
+                            <div style={{ fontSize:'0.75rem', fontWeight:800, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 4 }}>
+                              {plan.price_subtitle || (plan.plan_type==='subscription'?'Per Month':'Per Visit')}
+                            </div>
                           </div>
-                          <div style={{ fontSize:'0.9rem', fontWeight:700, color: 'var(--forest)', marginBottom:28 }}>
-                            {plan.plan_summary || `Up to ${plan.max_plants} Plants`}
-                          </div>
-                          
-                          <button className="btn btn-primary" style={{ width:'100%', justifyContent:'center', padding:'14px 0', borderRadius:99, background: sel ? 'var(--forest)' : 'transparent', border: sel ? 'none' : '2px solid var(--border)', color: sel ? '#fff' : 'var(--forest)', fontWeight:800 }}>
-                            {sel ? '✓ Selected' : (plan.button_text || 'Select')}
-                          </button>
                         </div>
               
-                        {/* Bottom Section */}
-                        <div style={{ padding:'32px 24px', flex:1, display:'flex', flexDirection:'column', justifyContent:'flex-start', background: '#fff' }}>
-                          {(Array.isArray(plan.features) ? plan.features : []).map((feat:string, i:number) => (
-                            <div key={i} style={{ fontSize:'0.9rem', color:'var(--sage)', marginBottom:14, lineHeight:1.5, textAlign:'center', fontWeight:500 }}>
+                        {/* Middle: Features Checklist */}
+                        <div style={{ padding:'32px 40px', flex:'2', display:'flex', flexWrap: 'wrap', alignContent: 'center', gap:'12px 24px', background: sel ? 'rgba(11,61,46,0.02)' : 'transparent' }}>
+                          {(Array.isArray(plan.features) ? plan.features.slice(0, 4) : []).map((feat:string, i:number) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize:'0.85rem', color:'var(--text-muted)', fontWeight:600, width: 'calc(50% - 12px)' }}>
+                              <span style={{ color: 'var(--ok)', flexShrink: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                               {feat}
                             </div>
                           ))}
+                        </div>
+
+                        {/* Right: Select Indicator */}
+                        <div style={{ width: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid var(--border-light)', background: sel ? 'var(--forest)' : 'var(--bg-elevated)', transition: 'all 0.3s' }}>
+                           <div style={{ 
+                             width: 40, height: 40, borderRadius: '50%', 
+                             background: sel ? '#fff' : 'transparent', 
+                             border: `2px solid ${sel ? '#fff' : 'var(--border-mid)'}`,
+                             display: 'flex', alignItems: 'center', justifyContent: 'center',
+                             color: sel ? 'var(--forest)' : 'var(--text-faint)'
+                           }}>
+                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                           </div>
                         </div>
                       </div>
                     );
@@ -398,17 +428,43 @@ function BookFlow() {
               <h2 style={{ fontFamily:'var(--font-display)',fontWeight:900,fontSize:'2rem',marginBottom:6,letterSpacing:'-0.02em', color: 'var(--forest)' }}>Enhance your visit</h2>
               <p style={{ color:'var(--sage)',marginBottom:28,fontSize:'1rem',fontWeight:500 }}>Optional extras to get the most from your gardener's time</p>
               {addons.length===0 ? <p style={{ color:'var(--sage)',padding:'24px 0' }}>No add-ons available currently.</p> : (
-                <div style={{ display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))',gap:16,marginBottom:28 }}>
+                <div style={{ display:'flex', flexDirection: 'column', gap:12, marginBottom:28 }}>
                   {addons.map((addon:any)=>{
                     const sel = form.addons.some(a=>a.addon_id===addon.id);
                     return (
                       <div key={addon.id} onClick={()=>toggleAddon(addon.id)}
                         className="card"
-                        style={{ padding:24,border:`2px solid ${sel?'var(--forest)':'var(--border)'}`,background:sel?'var(--bg-elevated)':'#fff',cursor:'pointer',transition:'all 0.25s var(--ease)',position:'relative',borderRadius:24 }}>
-                        {sel && <div style={{ position:'absolute',top:12,right:12,width:24,height:24,borderRadius:'50%',background:'var(--forest)',display:'flex',alignItems:'center',justifyContent:'center' }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg></div>}
-                        <div style={{ fontWeight:800,fontSize:'1.05rem',marginBottom:6, color:'var(--forest)' }}>{addon.name}</div>
-                        {addon.description && <div style={{ fontSize:'0.9rem',color:'var(--sage)',lineHeight:1.6,marginBottom:12,fontWeight:500 }}>{addon.description}</div>}
-                        <div style={{ fontFamily:'var(--font-display)',fontWeight:900,color:'var(--gold-deep)',fontSize:'1.15rem' }}>+₹{addon.price?.toLocaleString('en-IN')}</div>
+                        style={{ 
+                          padding:'20px 28px',
+                          border:`2px solid ${sel?'var(--forest)':'var(--border)'}`,
+                          background:sel?'var(--bg-elevated)':'#fff',
+                          cursor:'pointer',
+                          transition:'all 0.2s ease',
+                          position:'relative',
+                          borderRadius:24,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 20
+                        }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
+                          <div style={{ 
+                            width: 32, height: 32, borderRadius: '50%', 
+                            background: sel ? 'var(--forest)' : 'var(--bg-elevated)', 
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: sel ? '#fff' : 'var(--forest)',
+                            transition: 'all 0.25s'
+                          }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+                          </div>
+                          <div>
+                            <div style={{ fontWeight:800,fontSize:'1.05rem', color:'var(--forest)' }}>{addon.name}</div>
+                            {addon.description && <div style={{ fontSize:'0.85rem',color:'var(--sage)',fontWeight:500 }}>{addon.description}</div>}
+                          </div>
+                        </div>
+                        <div style={{ fontFamily:'var(--font-display)',fontWeight:900,color:'var(--gold-deep)',fontSize:'1.2rem', minWidth: 100, textAlign: 'right' }}>
+                          +₹{addon.price?.toLocaleString('en-IN')}
+                        </div>
                       </div>
                     );
                   })}

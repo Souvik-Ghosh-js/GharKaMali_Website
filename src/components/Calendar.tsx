@@ -59,16 +59,16 @@ export default function Calendar({ value, onChange, minDate }: CalendarProps) {
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <div style={{ background: 'var(--bg-elevated)', borderRadius: 24, border: '1.5px solid var(--border)', overflow: 'hidden', padding: 24 }}>
+    <div style={{ background: 'var(--bg-card)', borderRadius: 24, border: '1.5px solid var(--border)', overflow: 'hidden', padding: 24, boxShadow: 'var(--sh-sm)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.15rem', margin: 0, color: '#fff' }}>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.15rem', margin: 0, color: 'var(--forest)' }}>
           {months[currentMonth]} {currentYear}
         </h3>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={prevMonth} className="flex-center" style={{ width: 34, height: 34, borderRadius: 10, border: '1.5px solid var(--border)', background: 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', transition: 'all 0.2s' }}>
+          <button onClick={prevMonth} className="flex-center" style={{ width: 34, height: 34, borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--forest)', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
-          <button onClick={nextMonth} className="flex-center" style={{ width: 34, height: 34, borderRadius: 10, border: '1.5px solid var(--border)', background: 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', transition: 'all 0.2s' }}>
+          <button onClick={nextMonth} className="flex-center" style={{ width: 34, height: 34, borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--forest)', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
@@ -95,20 +95,20 @@ export default function Calendar({ value, onChange, minDate }: CalendarProps) {
               style={{
                 aspectRatio: '1',
                 borderRadius: 14,
-                border: 'none',
-                background: selected ? 'var(--gold)' : disabled ? 'transparent' : 'rgba(255,255,255,0.03)',
-                color: selected ? '#000' : disabled ? 'var(--text-faint)' : '#fff',
+                background: selected ? 'var(--forest)' : disabled ? 'transparent' : 'var(--bg-elevated)',
+                color: selected ? '#fff' : disabled ? 'var(--text-faint)' : 'var(--forest)',
                 cursor: disabled ? 'not-allowed' : 'pointer',
-                fontWeight: selected ? 800 : 500,
+                fontWeight: selected ? 800 : 600,
                 fontSize: '0.88rem',
                 transition: 'all 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                opacity: disabled ? 0.3 : 1
+                opacity: disabled ? 0.2 : 1,
+                border: selected ? 'none' : '1px solid var(--border)'
               }}
-              onMouseEnter={e => !disabled && !selected && (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
-              onMouseLeave={e => !disabled && !selected && (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+              onMouseEnter={e => !disabled && !selected && (e.currentTarget.style.background = 'var(--border)')}
+              onMouseLeave={e => !disabled && !selected && (e.currentTarget.style.background = 'var(--bg-elevated)')}
             >
               {day}
             </button>

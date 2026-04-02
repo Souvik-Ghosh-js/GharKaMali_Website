@@ -80,7 +80,6 @@
 }
 
 html {
-  scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -91,7 +90,7 @@ body {
   background: var(--bg);
   color: var(--text);
   line-height: 1.65;
-  min-height: 100svh;
+  min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -142,6 +141,7 @@ video {
   font-weight: 900;
   line-height: 0.85;
   letter-spacing: -0.05em;
+  font-style: normal;
 }
 
 .display-1 {
@@ -150,6 +150,7 @@ video {
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: -0.04em;
+  font-style: normal;
 }
 
 .display-2 {
@@ -158,6 +159,7 @@ video {
   font-weight: 800;
   line-height: 1.0;
   letter-spacing: -0.025em;
+  font-style: normal;
 }
 
 .h1 {
@@ -166,6 +168,7 @@ video {
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.025em;
+  font-style: normal;
 }
 
 .h2 {
@@ -173,6 +176,7 @@ video {
   font-size: clamp(1.35rem, 2.5vw, 1.9rem);
   font-weight: 700;
   line-height: 1.25;
+  font-style: normal;
 }
 
 .h3 {
@@ -180,6 +184,16 @@ video {
   font-size: 1.05rem;
   font-weight: 600;
   line-height: 1.3;
+  font-style: normal;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-style: normal !important;
 }
 
 .lead {
@@ -209,23 +223,23 @@ video {
 ═══════════════════════════════════════════════════════ */
 .container {
   width: 100%;
-  max-width: 1300px;
+  max-width: 1800px;
   margin: 0 auto;
-  padding: 0 clamp(20px, 4vw, 56px);
+  padding: 0 clamp(20px, 4vw, 80px);
 }
 
 .container-sm {
   width: 100%;
-  max-width: 840px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0 clamp(20px, 4vw, 48px);
+  padding: 0 clamp(20px, 4.5vw, 70px);
 }
 
 .container-xs {
   width: 100%;
-  max-width: 580px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0 clamp(20px, 4vw, 48px);
+  padding: 0 clamp(20px, 5vw, 64px);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -433,13 +447,21 @@ video {
    HERO SECTION
 ═══════════════════════════════════════════════════════ */
 .hero {
-  min-height: 100svh;
+  min-height: 100vh;
   background: transparent;
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: auto;
+    padding-top: 30px;
+    padding-bottom: 30px;
+  }
 }
 
 .hero-bg-grid {
@@ -522,7 +544,7 @@ video {
 
 .hero-title .accent {
   color: var(--forest);
-  font-style: italic;
+  font-style: normal;
   background: linear-gradient(135deg, var(--forest) 0%, var(--forest-light) 50%, var(--gold-deep) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -547,15 +569,16 @@ video {
 }
 
 .hero-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 16px;
-  max-width: 900px;
+  width: 100%;
   margin-top: 64px;
 }
 
 .hero-stat {
-  opacity: 0;
+  opacity: 1;
   padding: 28px 20px;
   background: #fff;
   text-align: center;
@@ -605,7 +628,7 @@ video {
   display: inline-block;
   min-width: 1ch;
   color: var(--earth);
-  font-style: italic;
+  font-style: normal;
 }
 
 .typewriter-text .cursor {
@@ -1619,7 +1642,7 @@ video {
   width: 100%;
   box-shadow: var(--sh-xl);
   animation: slide-up 0.32s var(--ease);
-  max-height: 90svh;
+  max-height: 90vh;
   overflow-y: auto;
 }
 
@@ -3857,7 +3880,7 @@ h3,
    HERO ENHANCEMENTS
 ═══════════════════════════════════════════════════════ */
 .hero {
-  min-height: 100svh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
 }
@@ -4212,7 +4235,7 @@ section,
 }
 
 .hero {
-  min-height: 100svh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
 }
@@ -4459,7 +4482,7 @@ section:has(.marquee-container) {
   width: 50%;
   flex-shrink: 0;
   position: sticky;
-  top: 40vh;
+  top: 50vh;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
@@ -4473,9 +4496,7 @@ section:has(.marquee-container) {
   pointer-events: auto;
 }
 
-/* RIGHT — natural scroll.
-   padding-top adds initial space so sticky starts aligned.
-   padding-bottom: small breathing room. */
+
 .ba-split-right {
   width: 50%;
   padding-top: 0;
@@ -4483,12 +4504,10 @@ section:has(.marquee-container) {
   padding-left: 20px;
 }
 
-/* Remove margin on last service card to prevent extra gap */
 .ba-split-right .service-card-cinematic:last-child {
   margin-bottom: 0;
 }
 
-/* ba-split-section padding override — use .section padding for top, controlled bottom */
 .ba-split-section.section {
   padding-bottom: clamp(48px, 8vw, 120px);
 }

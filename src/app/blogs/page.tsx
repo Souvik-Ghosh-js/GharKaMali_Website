@@ -90,7 +90,7 @@ export default function BlogsPage() {
                 <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 6 }}><IcBook/> Botanical Journal</span>
               </div>
               <h1 className="display-1" style={{ color: 'var(--forest)', marginBottom: 20 }}>
-                Learn realistic <em style={{ color: 'var(--earth)', fontStyle: 'italic' }}>plant care</em>
+                Learn realistic <span style={{ color: 'var(--earth)', fontStyle: 'normal' }}>plant care</span>
               </h1>
               <p style={{ fontSize: 'clamp(1rem,1.5vw,1.15rem)', color: 'var(--text-2)', maxWidth: 500, margin: '0 auto 36px', lineHeight: 1.8 }}>
                 Expert-written guides on everything from pest control to seasonal pruning.
@@ -136,33 +136,41 @@ export default function BlogsPage() {
             </div>
           ) : (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 28 }}>
-                {blogs.map((b: any) => (
-                  <Link key={b._id || b.id} href={`/blogs/${b.slug}`} className="blog-card-item" style={{ display: 'flex', flexDirection: 'column', background: '#fff', borderRadius: 24, border: '1px solid var(--border)', overflow: 'hidden', textDecoration: 'none', boxShadow: 'var(--sh-xs)', transition: 'transform 0.3s ease, box-shadow 0.3s ease' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px)'; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--sh-md)'; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = 'var(--sh-xs)'; }}
-                  >
-                    <div style={{ position: 'relative', width: '100%', aspectRatio: '16/10', overflow: 'hidden' }}>
-                      <img src={b.thumbnail || 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=500&fit=crop'} alt={b.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
-                        onMouseEnter={e => (e.target as HTMLElement).style.transform = 'scale(1.06)'}
-                        onMouseLeave={e => (e.target as HTMLElement).style.transform = 'scale(1)'}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {blogs.map((b: any, i) => (
+                  <Link key={b._id || b.id} href={`/blogs/${b.slug}`} className="blog-card-item card" 
+                    style={{ 
+                      display: 'flex', 
+                      flexDirection: 'row', 
+                      alignItems: 'center', 
+                      gap: 24, 
+                      padding: 14, 
+                      borderRadius: 24, 
+                      textDecoration: 'none', 
+                      animation: `fade-up 0.5s var(--ease) ${i * 50}ms both`,
+                      cursor: 'pointer' 
+                    }}>
+                    <div style={{ width: 220, aspectRatio: '16/10', borderRadius: 18, overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
+                      <img src={b.thumbnail || 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=500&fit=crop'} alt={b.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         onError={e => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=500&fit=crop&q=80'; }}
                       />
-                      {b.category?.name && (
-                        <div style={{ position: 'absolute', top: 14, left: 14, background: 'rgba(255,255,255,0.92)', padding: '5px 14px', borderRadius: 99, fontSize: '0.7rem', fontWeight: 800, color: 'var(--forest)', backdropFilter: 'blur(8px)' }}>{b.category.name}</div>
-                      )}
                     </div>
-                    <div style={{ padding: '20px 22px 24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <h3 style={{ fontSize: '1.1rem', color: 'var(--forest)', fontWeight: 800, marginBottom: 8, lineHeight: 1.35, flex: 1 }}>{b.title}</h3>
-                      {b.excerpt && <p style={{ fontSize: '0.85rem', color: 'var(--text-2)', lineHeight: 1.7, marginBottom: 16, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{b.excerpt}</p>}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        {b.created_at && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                            <IcClock/> {new Date(b.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                          </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+                        {b.category?.name && (
+                          <span style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', padding: '4px 12px', borderRadius: 99, fontSize: '0.7rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            {b.category.name}
+                          </span>
                         )}
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.82rem', fontWeight: 700, color: 'var(--forest)' }}>Read more <IcArrow/></span>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-faint)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <IcClock/> {b.created_at && new Date(b.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' })}
+                        </span>
                       </div>
+                      <h3 style={{ fontSize: '1.4rem', color: 'var(--forest)', fontWeight: 900, marginBottom: 8, letterSpacing: '-0.01em', lineHeight: 1.25 }}>{b.title}</h3>
+                      {b.excerpt && <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: 1.65, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', margin: 0 }}>{b.excerpt}</p>}
+                    </div>
+                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', border: '1px solid var(--border)', flexShrink: 0, marginLeft: 20 }}>
+                       <IcArrow/>
                     </div>
                   </Link>
                 ))}

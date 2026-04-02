@@ -10,8 +10,7 @@ export const metadata: Metadata = {
   openGraph: { type: 'website', locale: 'en_IN', siteName: 'GharKaMali' },
 };
 
-import SmoothScrollProvider from '@/components/SmoothScrollProvider';
-import PageTransition from '@/components/PageTransition';
+// Smooth scroll and page transition removed for now
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -41,10 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <SmoothScrollProvider>
-          <PageTransition />
-          <Providers>{children}</Providers>
-        </SmoothScrollProvider>
+        <Providers>{children}</Providers>
         <Toaster
           position="top-center"
           toastOptions={{
