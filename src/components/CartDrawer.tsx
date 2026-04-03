@@ -56,23 +56,51 @@ export default function CartDrawer() {
     setStep('processing');
 
     try {
-      const payload: any = {
-        items: items.filter(i => !i.type || i.type === 'product').map(i => ({ product_id: i.id, quantity: i.qty })),
-        shipping_address: address,
-        shipping_city: city,
-        shipping_pincode: pincode,
-        // Book a Mali options
-        service_bookings: items.filter(i => i.type === 'service').map(i => i.bookingDetails),
-        book_mali: wantsMali || items.some(i => i.type === 'service'),
-        service_address_for_mali: items.find(i => i.type === 'service')?.bookingDetails?.service_address || address,
-      };
+      const productItems = items.filter(i => !i.type || i.type === 'product');
+      const serviceItems = items.filter(i => i.type === 'service');
 
-      const result: any = await createOrder(payload);
-      setOrderNum(result?.order_number || result?.txnid || 'GKM-ORD-' + Date.now());
-      setMaliBooked(wantsMali ? (result?.mali_booking || { status: 'pending' }) : null);
+      let orderResponse: any = null;
+      let bookingResponses: any[] = [];
+
+      // 1. Process Shop Order if products exist
+      if (productItems.length > 0) {
+        orderResponse = await createOrder({
+          items: productItems.map(i => ({ product_id: i.id, quantity: i.qty })),
+          shipping_address: address,
+          shipping_city: city,
+          shipping_pincode: pincode
+        });
+        setOrderNum(orderResponse?.order_number || orderResponse?.txnid || 'GKM-ORD-' + Date.now());
+      }
+
+      // 2. Process Service Bookings if services exist
+      if (serviceItems.length > 0) {
+        const { createBooking } = await import('@/lib/api');
+        for (const svc of serviceItems) {
+          const res = await createBooking({
+            zone_id: svc.bookingDetails?.zone_id!,
+            scheduled_date: svc.bookingDetails?.scheduled_date!,
+            scheduled_time: svc.bookingDetails?.scheduled_time,
+            service_address: svc.bookingDetails?.service_address || address,
+            service_latitude: svc.bookingDetails?.service_latitude || 0,
+            service_longitude: svc.bookingDetails?.service_longitude || 0,
+            plant_count: svc.bookingDetails?.plant_count || 1,
+            customer_notes: svc.bookingDetails?.notes || 'Booked via cart'
+          });
+          bookingResponses.push(res);
+        }
+        
+        // If it was ONLY services, set orderNum to the first booking number for the UI
+        if (productItems.length === 0) {
+          setOrderNum(bookingResponses[0]?.booking_number || 'GKM-BKG-' + Date.now());
+        }
+        setMaliBooked(bookingResponses[0]);
+      }
+
       setStep('success');
       clearCart();
     } catch (err: any) {
+      console.error('Checkout Error:', err);
       toast.error(err.message || 'Checkout failed. Please try again.');
       setStep('address');
     }
