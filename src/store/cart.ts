@@ -23,6 +23,7 @@ export interface CartItem {
     plant_count?: number;
     addons?: { addon_id: number; quantity: number }[];
     notes?: string;
+    price?: number;
   };
 }
 

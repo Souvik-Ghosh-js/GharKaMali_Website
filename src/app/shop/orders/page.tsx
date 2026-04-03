@@ -115,7 +115,7 @@ export default function MyOrdersPage() {
                     </div>
                     <div>
                       <div style={{ fontWeight: 900, fontSize: '1rem', color: 'var(--forest)' }}>#{order.order_number.slice(-8)}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-faint)', fontWeight: 600 }}>{new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-faint)', fontWeight: 600 }}>{new Date(order.createdAt || order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
                     </div>
                     <span style={{ 
                       marginLeft: 'auto',
@@ -127,9 +127,15 @@ export default function MyOrdersPage() {
 
                   {/* Middle: Items preview */}
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Order Items ({order.items?.length || 0})</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>
+                      Items ({order.items?.length || 0}) 
+                      {order.mali_bookings?.length > 0 && ` + Services (${order.mali_bookings.length})`}
+                    </div>
                     <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--sage)', fontWeight: 600, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5 }}>
-                      {order.items?.map((it:any) => it.product?.name).join(', ')}
+                      {[
+                        ...(order.items?.map((it:any) => it.product?.name) || []),
+                        ...(order.mali_bookings?.map(() => 'Gardener Visit') || [])
+                      ].join(', ')}
                     </p>
                   </div>
 

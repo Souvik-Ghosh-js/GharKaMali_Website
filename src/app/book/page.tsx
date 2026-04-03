@@ -216,7 +216,8 @@ function BookFlow() {
         service_longitude: form.lng,
         plant_count: form.plant_count,
         addons: form.addons,
-        notes: form.notes
+        notes: form.notes,
+        price: total
       }
     });
     
