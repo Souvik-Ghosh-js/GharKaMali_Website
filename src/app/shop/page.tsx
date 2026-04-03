@@ -238,66 +238,67 @@ export default function ShopPage() {
                 const price = Number(p.price), mrp = Number(p.mrp);
                 const disc = mrp > price ? Math.round((1 - price / mrp) * 100) : 0;
                 return (
-                  <Link key={p.id} href={`/shop/${p.slug || p._id || p.id}`} className="product-tile card"
+                  <div key={p.id} className="product-tile card"
                     style={{ 
                       display: 'flex', 
                       flexDirection: 'column', 
                       alignItems: 'stretch', 
-                      textDecoration: 'none', 
                       padding: 0,
                       borderRadius: 24, 
                       gap: 0,
                       overflow: 'hidden',
                       animation: `fade-up 0.5s var(--ease) ${i * 40}ms both`,
-                      cursor: 'pointer' 
                     }}>
                     
-                    {/* Image Area */}
-                    <div style={{ width: '100%', height: 200, background: 'linear-gradient(135deg, #f0f7f2 0%, #e8f5ed 100%)', overflow: 'hidden', flexShrink: 0, borderBottom: '1px solid var(--border)', position: 'relative' }}>
-                      {p.images?.[0] || p.thumbnail ? (
-                        <img src={p.images?.[0] || p.thumbnail} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                        />
-                      ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.2 }}>
-                          <IcLeaf />
-                        </div>
-                      )}
-                      {disc > 0 && <div style={{ position: 'absolute', top: 12, right: 12, padding: '4px 12px', background: '#dcfce7', color: '#16a34a', borderRadius: 99, fontSize: '0.68rem', fontWeight: 900, boxShadow: 'var(--sh-sm)' }}>{disc}% OFF</div>}
-                    </div>
-                    
-                    {/* Content Area */}
-                    <div style={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ marginBottom: 4 }}>
-                         <span style={{ fontSize: '0.68rem', color: 'var(--earth)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                            {typeof p.category === 'string' ? p.category : p.category?.name || 'General'}
-                         </span>
+                    <Link href={`/shop/${p.slug || p._id || p.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                      {/* Image Area */}
+                      <div style={{ width: '100%', height: 200, background: 'linear-gradient(135deg, #f0f7f2 0%, #e8f5ed 100%)', overflow: 'hidden', flexShrink: 0, borderBottom: '1px solid var(--border)', position: 'relative' }}>
+                        {p.images?.[0] || p.thumbnail ? (
+                          <img src={p.images?.[0] || p.thumbnail} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.2 }}>
+                            <IcLeaf />
+                          </div>
+                        )}
+                        {disc > 0 && <div style={{ position: 'absolute', top: 12, right: 12, padding: '4px 12px', background: '#dcfce7', color: '#16a34a', borderRadius: 99, fontSize: '0.68rem', fontWeight: 900, boxShadow: 'var(--sh-sm)' }}>{disc}% OFF</div>}
                       </div>
-                      <h3 style={{ fontSize: '1.15rem', color: 'var(--forest)', fontWeight: 900, marginBottom: 8, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{p.name}</h3>
                       
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                         <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            {[1,2,3,4,5].map(n => <IcStar key={n}/>)}
-                         </div>
-                         <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--forest)' }}>{Number(p.rating || 4.5).toFixed(1)}</span>
+                      {/* Content Area */}
+                      <div style={{ padding: '16px 16px 0', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ marginBottom: 4 }}>
+                           <span style={{ fontSize: '0.68rem', color: 'var(--earth)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                              {typeof p.category === 'string' ? p.category : p.category?.name || 'General'}
+                           </span>
+                        </div>
+                        <h3 style={{ fontSize: '1.15rem', color: 'var(--forest)', fontWeight: 900, marginBottom: 8, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{p.name}</h3>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              {[1,2,3,4,5].map(n => <IcStar key={n}/>)}
+                           </div>
+                           <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--forest)' }}>{Number(p.rating || 4.5).toFixed(1)}</span>
+                        </div>
                       </div>
+                    </Link>
 
-                      {/* Price & Action Area */}
+                    <div style={{ padding: '0 16px 16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                       <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 16 }}>
                          <div>
                            <div style={{ fontWeight: 900, fontSize: '1.25rem', color: 'var(--forest)', lineHeight: 1 }}>₹{price.toLocaleString('en-IN')}</div>
                            {mrp > price && <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textDecoration: 'line-through', marginTop: 2 }}>₹{mrp.toLocaleString('en-IN')}</div>}
                          </div>
                          
-                         <div onClick={(e) => e.preventDefault()}>
+                         <div>
                             {qty > 0 ? (
                               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--bg-elevated)', borderRadius: 10, padding: '4px 8px', border: '1.5px solid var(--border-mid)' }}>
-                                <button onClick={(e) => { e.stopPropagation(); qty > 1 ? updateQty(p.id, qty - 1) : removeItem(p.id); }} style={{ width: 28, height: 28, borderRadius: 8, background: '#fff', border: '1px solid var(--border)', color: 'var(--forest)', fontWeight: 900, fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                                <button onClick={(e) => { e.preventDefault(); qty > 1 ? updateQty(p.id, qty - 1) : removeItem(p.id); }} style={{ width: 28, height: 28, borderRadius: 8, background: '#fff', border: '1px solid var(--border)', color: 'var(--forest)', fontWeight: 900, fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
                                 <span style={{ fontWeight: 800, color: 'var(--forest)', minWidth: 20, textAlign: 'center', fontSize: '0.9rem' }}>{qty}</span>
-                                <button onClick={(e) => { e.stopPropagation(); handleAdd(p); }} style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--forest)', border: 'none', color: '#fff', fontWeight: 900, fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                                <button onClick={(e) => { e.preventDefault(); handleAdd(p); }} style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--forest)', border: 'none', color: '#fff', fontWeight: 900, fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
                               </div>
                             ) : (
-                              <button onClick={(e) => { e.stopPropagation(); handleAdd(p); }} 
+                              <button onClick={(e) => { e.preventDefault(); handleAdd(p); }} 
                                 style={{ background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 10, padding: '8px 14px', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'var(--font-body)', boxShadow: '0 4px 12px rgba(3,65,26,0.2)' }}>
                                 Add
                               </button>
@@ -305,7 +306,7 @@ export default function ShopPage() {
                          </div>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>

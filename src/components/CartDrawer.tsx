@@ -16,16 +16,13 @@ const IcCheck = () => <svg width="32" height="32" viewBox="0 0 24 24" fill="none
 
 /* Product icon map */
 const PRODUCT_ICONS: Record<string, () => JSX.Element> = {
-  soil: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z" /></svg>,
-  pest: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" /></svg>,
-  pot: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M9 2h6l1 5H8z" /><path d="M8 7c0 0-2 1.5-2 7a6 6 0 0 0 12 0c0-5.5-2-7-2-7" /></svg>,
-  fert: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" /></svg>,
-  plant: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" /><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" /></svg>,
   tool: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg>,
+  service: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" /><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" /></svg>,
   default: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>,
 };
 
-function getProductIcon(icon: string) {
+function getProductIcon(icon: string, type?: string) {
+  if (type === 'service') return PRODUCT_ICONS.service;
   return icon && PRODUCT_ICONS[icon] ? PRODUCT_ICONS[icon] : PRODUCT_ICONS.default;
 }
 
@@ -60,13 +57,14 @@ export default function CartDrawer() {
 
     try {
       const payload: any = {
-        items: items.map(i => ({ product_id: i.id, quantity: i.qty })),
+        items: items.filter(i => !i.type || i.type === 'product').map(i => ({ product_id: i.id, quantity: i.qty })),
         shipping_address: address,
         shipping_city: city,
         shipping_pincode: pincode,
-        // Book a Mali option
-        book_mali: wantsMali,
-        service_address_for_mali: address,
+        // Book a Mali options
+        service_bookings: items.filter(i => i.type === 'service').map(i => i.bookingDetails),
+        book_mali: wantsMali || items.some(i => i.type === 'service'),
+        service_address_for_mali: items.find(i => i.type === 'service')?.bookingDetails?.service_address || address,
       };
 
       const result: any = await createOrder(payload);
@@ -132,32 +130,64 @@ export default function CartDrawer() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {items.map(item => {
-                    const Icon = getProductIcon(item.icon);
+                    const Icon = getProductIcon(item.icon, item.type);
+                    const isService = item.type === 'service';
                     return (
-                      <div key={item.id} style={{ display: 'flex', gap: 14, padding: '14px', background: 'var(--bg)', borderRadius: 16, border: '1px solid var(--border-mid)', transition: 'all 0.2s', boxShadow: 'var(--sh-xs)' }}>
+                      <div key={item.id} style={{ display: 'flex', gap: 14, padding: '14px', background: isService ? 'rgba(3,65,26,0.03)' : 'var(--bg)', borderRadius: 16, border: isService ? '1px dashed var(--forest-mid)' : '1px solid var(--border-mid)', transition: 'all 0.2s', boxShadow: 'var(--sh-xs)' }}>
                         <div style={{ width: 52, height: 52, borderRadius: 12, background: '#fff', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', flexShrink: 0 }}><Icon /></div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--forest)', lineHeight: 1.3, marginBottom: 2 }} className="truncate">{item.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--earth)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>{item.category}</div>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', borderRadius: 99, padding: '4px 10px', border: '1.5px solid var(--border-mid)' }}>
-                              <button onClick={() => updateQty(item.id, item.qty - 1)} style={{ background: 'none', border: 'none', color: 'var(--forest)', fontSize: '1rem', cursor: 'pointer', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, fontWeight: 800 }}>−</button>
-                              <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--forest)', minWidth: 16, textAlign: 'center' }}>{item.qty}</span>
-                              <button onClick={() => updateQty(item.id, item.qty + 1)} style={{ background: 'none', border: 'none', color: 'var(--forest)', fontSize: '1rem', cursor: 'pointer', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, fontWeight: 800 }}>+</button>
+                          <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--forest)', lineHeight: 1.3, marginBottom: 2 }} className="truncate">
+                            {item.name}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: isService ? 'var(--forest-mid)' : 'var(--earth)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            {isService && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>}
+                            {item.category}
+                          </div>
+                          
+                          {isService && item.bookingDetails && (
+                            <div style={{ fontSize: '0.75rem', color: 'var(--sage)', fontWeight: 600, marginBottom: 8, background: '#fff', padding: '6px 10px', borderRadius: 8, border: '1px solid var(--border-light)' }}>
+                              <div>📅 {new Date(item.bookingDetails.scheduled_date!).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} at {item.bookingDetails.scheduled_time}</div>
+                              <div className="truncate">📍 {item.bookingDetails.service_address}</div>
                             </div>
+                          )}
+
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            {!isService ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', borderRadius: 99, padding: '4px 10px', border: '1.5px solid var(--border-mid)' }}>
+                                <button onClick={() => updateQty(item.id, item.qty - 1)} style={{ background: 'none', border: 'none', color: 'var(--forest)', fontSize: '1rem', cursor: 'pointer', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, fontWeight: 800 }}>−</button>
+                                <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--forest)', minWidth: 16, textAlign: 'center' }}>{item.qty}</span>
+                                <button onClick={() => updateQty(item.id, item.qty + 1)} style={{ background: 'none', border: 'none', color: 'var(--forest)', fontSize: '1rem', cursor: 'pointer', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, fontWeight: 800 }}>+</button>
+                              </div>
+                            ) : <div />}
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.95rem', color: 'var(--forest)' }}>₹{(item.price * item.qty).toLocaleString('en-IN')}</span>
-                              <button onClick={() => { removeItem(item.id); toast.success('Removed from cart'); }} style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'rgba(220,38,38,0.1)', color: 'var(--err)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.2)'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(220,38,38,0.1)'}>
-                                <IcTrash />
-                              </button>
+                               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.95rem', color: 'var(--forest)' }}>₹{(item.price * item.qty).toLocaleString('en-IN')}</span>
+                               <button onClick={() => { removeItem(item.id); toast.success('Removed from cart'); }} style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'rgba(220,38,38,0.1)', color: 'var(--err)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
+                                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.2)'}
+                                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(220,38,38,0.1)'}>
+                                 <IcTrash />
+                               </button>
                             </div>
                           </div>
                         </div>
                       </div>
                     );
                   })}
+
+                  {/* Gardener Upsell */}
+                  {!items.some(i => i.type === 'service') && !wantsMali && (
+                    <div style={{ marginTop: 8, padding: '16px', background: 'rgba(212,163,115,0.06)', borderRadius: 20, border: '1.5px dashed var(--gold)', display: 'flex', gap: 14, alignItems: 'center' }}>
+                       <div style={{ width: 44, height: 44, borderRadius: 12, background: '#fff', border: '1px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gold-deep)', flexShrink: 0 }}>
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                       </div>
+                       <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--forest)', marginBottom: 2 }}>Need a Gardener?</div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--sage)', fontWeight: 600, marginBottom: 8 }}>Book a professional visit with these plants</div>
+                          <Link href="/book?type=on-demand" onClick={closeCart} style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold-deep)', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}>
+                             Book On-Demand Visit <IcArrow />
+                          </Link>
+                       </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

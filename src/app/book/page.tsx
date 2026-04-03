@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import Calendar from '@/components/Calendar';
 import { useAuth } from '@/store/auth';
 import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, initiatePayment } from '@/lib/api';
+import { useCart } from '@/store/cart';
 
 type Step = 'location'|'plan'|'addons'|'schedule'|'confirm';
 const STEPS: Step[] = ['location','plan','addons','schedule','confirm'];
@@ -32,6 +33,7 @@ function BookFlow() {
   const params   = useSearchParams();
   const qc       = useQueryClient();
   const { isAuthenticated, isLoading } = useAuth();
+  const { addService } = useCart();
   const preselect = params.get('plan') ? parseInt(params.get('plan')!) : 0;
 
   const [step, setStep] = useState<Step>('location');
@@ -192,6 +194,33 @@ function BookFlow() {
       toast.error(e.message || 'Booking failed. Please try again.'); 
       setSubmitting(false);
     }
+  };
+
+  const handleAddToCart = () => {
+    if (!selectedPlan || !zone) return;
+    
+    addService({
+      id: Math.floor(Date.now() / 1000), // temp unique id
+      name: `${selectedPlan.name} (${form.plant_count} plants)`,
+      price: total,
+      mrp: total,
+      category: 'Gardener Visit',
+      icon: 'plant',
+      bookingDetails: {
+        plan_id: form.plan_id,
+        zone_id: zone.id,
+        scheduled_date: form.scheduled_date,
+        scheduled_time: form.scheduled_time,
+        service_address: form.address,
+        service_latitude: form.lat,
+        service_longitude: form.lng,
+        plant_count: form.plant_count,
+        addons: form.addons,
+        notes: form.notes
+      }
+    });
+    
+    toast.success('Visit added to your cart!', { icon: '🧑‍🌾' });
   };
 
   // Auto-submit PayU form when data is ready
@@ -604,6 +633,28 @@ function BookFlow() {
                         ₹{total.toLocaleString('en-IN')}{selectedPlan?.plan_type==='subscription'&&<span style={{ fontSize:'0.8rem',fontWeight:500,color:'var(--sage)' }}>/mo</span>}
                       </span>
                     </div>
+                    {/* Market Upsell */}
+                    <div style={{ background:'rgba(212,163,115,0.08)', border:'1.5px dashed var(--gold)', borderRadius:20, padding:'16px 20px', marginBottom:20 }}>
+                       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold-deep)" strokeWidth="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                          <span style={{ fontWeight:800, fontSize:'0.85rem', color:'var(--gold-deep)' }}>Professional Tip</span>
+                       </div>
+                       <p style={{ fontSize:'0.8rem', color:'var(--sage)', fontWeight:600, lineHeight:1.5, marginBottom:12 }}>
+                         Garden needs more life? Pick fresh organic plants from our marketplace and have them delivered before your visit!
+                       </p>
+                       <button onClick={() => router.push('/shop')} style={{ background:'var(--gold-deep)', color:'#fff', border:'none', padding:'8px 16px', borderRadius:99, fontSize:'0.75rem', fontWeight:800, cursor:'pointer', transition:'all 0.2s' }}
+                         onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                         onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
+                         Visit Marketplace →
+                       </button>
+                    </div>
+
+                    <button onClick={handleAddToCart}
+                      className="btn btn-outline w-full" style={{ justifyContent:'center',padding:'14px', marginBottom:12, borderColor:'var(--forest)', color:'var(--forest)', fontWeight:800 }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg> 
+                      Add to Cart & Shop Plants
+                    </button>
+
                     <button onClick={handleSubmit} disabled={submitting}
                       className="btn btn-primary w-full" style={{ justifyContent:'center',padding:'16px',opacity:submitting?.7:1 }}>
                       {submitting?<><Spin />Processing…</>:<><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg> Pay Now</>}

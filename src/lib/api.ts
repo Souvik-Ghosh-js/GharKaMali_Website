@@ -279,6 +279,9 @@ export const createOrder = (b: {
   shipping_city?: string;
   shipping_pincode?: string;
   notes?: string;
+  book_mali?: boolean;
+  service_bookings?: any[];
+  service_address_for_mali?: string;
 }) => req('/shop/orders', { method: 'POST', body: JSON.stringify(b) });
 export const getMyOrders = () => req('/shop/orders/my');
 export const getTaglines = () => req('/taglines', { auth: false });
