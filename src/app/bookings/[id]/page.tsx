@@ -223,25 +223,43 @@ export default function BookingDetailPage() {
               <div style={{ background:'var(--bg-card)', borderRadius:24, padding:'24px 28px', border:'1px solid var(--border)' }}>
                 <h3 style={{ fontWeight:700, fontSize:'1rem', marginBottom:24 }}>Booking Progress</h3>
                 <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
-                  {TIMELINE_STEPS.map((step, i) => {
-                    const done = statusIdx >= STATUS_ORDER.indexOf(step.status);
-                    const active = STATUS_ORDER.indexOf(step.status) === statusIdx;
-                    const last = i === TIMELINE_STEPS.length - 1;
-                    return (
-                      <div key={step.status} style={{ display:'flex', gap:16, alignItems:'flex-start' }}>
-                        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', flexShrink:0 }}>
-                          <div style={{ width:40, height:40, borderRadius:'50%', background: done ? 'var(--forest)' : active ? 'var(--gold-pale)' : 'var(--bg)', border: active ? '2px solid var(--gold)' : done ? 'none' : '2px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.1rem', transition:'all 0.3s', boxShadow: active ? '0 0 0 4px rgba(201,168,76,0.2)' : 'none' }}>
-                            {done && !active ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg> : step.icon}
+                    {TIMELINE_STEPS.map((step, i) => {
+                      const done = statusIdx >= STATUS_ORDER.indexOf(step.status);
+                      const active = STATUS_ORDER.indexOf(step.status) === statusIdx;
+                      const last = i === TIMELINE_STEPS.length - 1;
+                      
+                      // Get timestamp for this status
+                      let timestamp = null;
+                      if (step.status === 'pending') timestamp = booking.created_at;
+                      else if (step.status === 'assigned') timestamp = booking.assigned_at;
+                      else if (step.status === 'en_route') timestamp = booking.en_route_at;
+                      else if (step.status === 'arrived') timestamp = booking.gardener_arrived_at;
+                      else if (step.status === 'in_progress') timestamp = booking.otp_verified_at || booking.started_at;
+                      else if (step.status === 'completed') timestamp = booking.completed_at;
+
+                      return (
+                        <div key={step.status} style={{ display:'flex', gap:16, alignItems:'flex-start' }}>
+                          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', flexShrink:0 }}>
+                            <div style={{ width:40, height:40, borderRadius:'50%', background: done ? 'var(--forest)' : active ? 'var(--gold-pale)' : 'var(--bg)', border: active ? '2px solid var(--gold)' : done ? 'none' : '2px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.1rem', transition:'all 0.3s', boxShadow: active ? '0 0 0 4px rgba(201,168,76,0.2)' : 'none' }}>
+                              {done && !active ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg> : step.icon}
+                            </div>
+                            {!last && <div style={{ width:2, height:28, background: done ? 'var(--forest)' : 'var(--border)', margin:'4px 0', transition:'background 0.3s' }} />}
                           </div>
-                          {!last && <div style={{ width:2, height:28, background: done ? 'var(--forest)' : 'var(--border)', margin:'4px 0', transition:'background 0.3s' }} />}
+                          <div style={{ paddingTop:8, paddingBottom: last ? 0 : 20, flex:1, display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                            <div>
+                              <div style={{ fontWeight: done || active ? 700 : 500, fontSize:'0.9rem', color: done || active ? 'var(--text)' : 'var(--text-faint)' }}>{step.label}</div>
+                              {active && <div style={{ fontSize:'0.75rem', color:'var(--forest)', fontWeight:600, marginTop:3, display:'flex', alignItems:'center', gap:4 }}><div style={{ width:6, height:6, borderRadius:'50%', background:'var(--forest)', animation:'pulse-dot 2s ease infinite' }} />In progress</div>}
+                            </div>
+                            {timestamp && done && (
+                              <div style={{ textAlign:'right', flexShrink:0 }}>
+                                <div style={{ fontSize:'0.75rem', fontWeight:700, color: active ? 'var(--forest)' : 'var(--text-muted)' }}>{new Date(timestamp).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</div>
+                                <div style={{ fontSize:'0.6rem', color:'var(--text-faint)' }}>{new Date(timestamp).toLocaleDateString([], { day:'numeric', month:'short' })}</div>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div style={{ paddingTop:8, paddingBottom: last ? 0 : 20 }}>
-                          <div style={{ fontWeight: done || active ? 700 : 500, fontSize:'0.9rem', color: done || active ? 'var(--text)' : 'var(--text-faint)' }}>{step.label}</div>
-                          {active && <div style={{ fontSize:'0.75rem', color:'var(--forest)', fontWeight:600, marginTop:3, display:'flex', alignItems:'center', gap:4 }}><div style={{ width:6, height:6, borderRadius:'50%', background:'var(--forest)', animation:'pulse-dot 2s ease infinite' }} />In progress</div>}
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               </div>
 
@@ -316,8 +334,7 @@ export default function BookingDetailPage() {
                 <h3 style={{ fontWeight:700, fontSize:'0.95rem', marginBottom:18 }}>Booking Details</h3>
                 {[
                   { icon:<IcLocation />, label:'Address', value: booking.service_address },
-                  { icon:<IcCalendar />, label:'Date', value: booking.scheduled_date ? new Date(booking.scheduled_date).toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'long', year:'numeric' }) : '—' },
-                  { icon:<IcClock />, label:'Time', value: booking.scheduled_time ?? 'Flexible' },
+                  { icon:<IcCalendar />, label:'Scheduled', value: `${booking.scheduled_date ? new Date(booking.scheduled_date).toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'long', year:'numeric' }) : '—'} at ${booking.scheduled_time ?? 'Flexible'}` },
                   { icon:<IcLeaf />, label:'Plants', value: `${booking.plant_count ?? '—'} plants` },
                   { icon:<IcLocation />, label:'Zone', value: booking.zone?.name ?? '—' },
                 ].map(row => (

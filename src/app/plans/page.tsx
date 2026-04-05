@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { getPlans } from '@/lib/api';
+import { getPlans, getFaqs } from '@/lib/api';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 
 const IcArrow = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
@@ -26,7 +26,7 @@ const COMPARE_FEATURES = [
   { label: '24/7 WhatsApp support', basic: false, standard: false, premium: true },
 ];
 
-const FAQS = [
+const DEFAULT_FAQS = [
   { q: 'Can I change or cancel my plan anytime?', a: 'Yes. You can pause or cancel your subscription at any time with no questions asked. There are no lock-in periods or cancellation fees.' },
   { q: 'Are your gardeners background-verified?', a: 'Absolutely. Every gardener goes through a thorough background check, skill assessment, and training program before being assigned to customers.' },
   { q: "What if I'm not satisfied with the visit?", a: "We offer a 100% satisfaction guarantee. If you're not happy, we'll send a replacement gardener free of charge within 24 hours." },
@@ -167,6 +167,11 @@ function PlanCarousel({ items }: { items: any[] }) {
 export default function PlansPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { data: plansRaw, isLoading } = useQuery({ queryKey:['plans'], queryFn:getPlans });
+  const { data: faqsRaw } = useQuery({ queryKey:['faqs'], queryFn:() => getFaqs() });
+  
+  const dynamicFaqs = Array.isArray(faqsRaw) ? faqsRaw : [];
+  const FAQS = dynamicFaqs.length > 0 ? dynamicFaqs.map((f: any) => ({ q: f.question, a: f.answer })) : DEFAULT_FAQS;
+
   const plans: any[] = (plansRaw as any[]) ?? [];
   const subPlans = plans.filter((p:any) => p.plan_type === 'subscription');
   const canvasRef = useRef<HTMLCanvasElement>(null);

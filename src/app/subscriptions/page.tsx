@@ -181,8 +181,7 @@ export default function SubscriptionsPage() {
 
           {/* Subscription cards */}
           {!sLoad && subs.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(480px, 1fr))', gap: 24, paddingBottom: 20 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24, paddingBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(480px, 1fr))', gap: 24, paddingBottom: 40 }}>
               {subs.map((sub: any, i: number) => {
                 const isActive = sub.status === 'active';
                 const isPaused = sub.status === 'paused';
@@ -215,6 +214,32 @@ export default function SubscriptionsPage() {
                             <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Price</div>
                             <div style={{ fontWeight: 900, color: 'var(--gold-deep)', fontSize: '1.25rem' }}>₹{sub.plan?.price?.toLocaleString('en-IN') ?? '—'}</div>
                          </div>
+                      </div>
+
+                      {/* Billing & Validity Details */}
+                      <div style={{ width: '100%', marginTop: 24, padding: '16px 20px', background: 'rgba(255,255,255,0.5)', borderRadius: 20, border: '1px solid var(--border)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16 }}>
+                        <div>
+                          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Subscription Period</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--forest)' }}>
+                            {new Date(sub.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            <span style={{ margin: '0 8px', color: 'var(--sage)' }}>→</span>
+                            {new Date(sub.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Paid Amount</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--forest)' }}>₹{sub.amount_paid?.toLocaleString('en-IN') || sub.plan?.price?.toLocaleString('en-IN')}</div>
+                        </div>
+                        {sub.payment_id && (
+                          <div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Payment ID</div>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', fontFamily: 'monospace' }}>{sub.payment_id}</div>
+                          </div>
+                        )}
+                        <div>
+                          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Purchased On</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--forest)' }}>{new Date(sub.created_at || sub.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                        </div>
                       </div>
 
                       {/* Right: Actions */}

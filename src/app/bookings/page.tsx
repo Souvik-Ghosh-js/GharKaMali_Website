@@ -140,8 +140,13 @@ export default function BookingsPage() {
                     <div style={{ fontSize: '0.9rem', color: 'var(--sage)', fontWeight: 600, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5, marginBottom: 12 }}>{b.service_address}</div>
                     
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: '0.72rem', color: 'var(--earth)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                      {b.scheduled_date && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><IcCal /> {new Date(b.scheduled_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>}
-                      {b.scheduled_time && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><IcClock /> {b.scheduled_time}</span>}
+                      {b.scheduled_date && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <IcCal /> 
+                          {new Date(b.scheduled_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} 
+                          {b.scheduled_time && ` at ${b.scheduled_time}`}
+                        </span>
+                      )}
                     </div>
                   </div>
 

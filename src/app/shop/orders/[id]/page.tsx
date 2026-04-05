@@ -110,6 +110,34 @@ export default function OrderDetailPage() {
                   ))}
                 </div>
               </div>
+              
+              {/* Gardener Visits Associated with Order */}
+              {order.mali_bookings?.length > 0 && (
+                <div style={{ marginTop: 24, background: '#fff', borderRadius: 32, border: '1.5px solid var(--border)', overflow: 'hidden', boxShadow: 'var(--sh-sm)' }}>
+                  <div style={{ padding: '20px 32px', borderBottom: '1px solid var(--border)', background: 'rgba(3,65,26,0.03)', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--forest)' }}>Assigned Gardener Visits</h3>
+                  </div>
+                  <div style={{ padding: '0 32px' }}>
+                    {order.mali_bookings.map((b: any, idx: number) => (
+                      <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: idx === order.mali_bookings.length - 1 ? 'none' : '1px solid var(--border-light)', padding: '24px 0' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                            <div style={{ fontWeight: 900, fontFamily: 'monospace', color: 'var(--forest)', fontSize: '0.95rem' }}>#{b.booking_number}</div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 800, padding: '3px 10px', borderRadius: 8, background: 'var(--bg-elevated)', color: 'var(--forest)', textTransform: 'uppercase', border: '1px solid var(--border)' }}>{b.status}</div>
+                          </div>
+                          <div style={{ fontSize: '1.05rem', color: 'var(--text)', fontWeight: 800, marginBottom: 6 }}>
+                             {new Date(b.scheduled_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                             {b.scheduled_time && <span style={{ color: 'var(--gold-deep)' }}> at {b.scheduled_time}</span>}
+                          </div>
+                          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--sage)', fontWeight: 600, lineHeight: 1.5 }} className="truncate">{b.service_address}</p>
+                        </div>
+                        <Link href={`/bookings/${b.id}`} className="btn btn-outline btn-sm" style={{ padding: '10px 20px', fontSize: '0.78rem', flexShrink: 0, fontWeight: 800 }}>Visit Details →</Link>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Shipping Timeline */}
               <div style={{ marginTop: 32, background: '#fff', borderRadius: 32, border: '1.5px solid var(--border)', padding: 32, boxShadow: 'var(--sh-sm)' }}>

@@ -62,6 +62,11 @@ export const checkServiceability = (lat: number, lng: number) =>
 // ─── PLANS & ADDONS ───────────────────────────────────────────────────────────
 export const getPlans = () => req('/plans', { auth: false });
 export const getAddons = () => req('/addons', { auth: false });
+export const getFaqs = () => req('/faqs', { auth: false });
+
+export const getPreviousGardeners = () => req('/bookings/previous-gardeners');
+export const checkGardenerAvailability = (date: string, gardenerId?: number, zoneId?: number) =>
+  req(`/bookings/check-availability${qs({ date, gardener_id: gardenerId, zone_id: zoneId })}`, { auth: false });
 
 // ─── BOOKINGS (customer) ──────────────────────────────────────────────────────
 export const createBooking = (b: {
@@ -267,12 +272,16 @@ export const AdminAPI = {
     req(`/supervisor/gardeners/${id}/performance${qs({ period })}`),
 
   priceHikeSchedules: () => req('/admin/price-hike/schedules'),
+  faqs: () => req('/admin/faqs'),
+  createFaq: (b: any) => req('/admin/faqs', { method: 'POST', body: JSON.stringify(b) }),
+  updateFaq: (id: number, b: any) => req(`/admin/faqs/${id}`, { method: 'PUT', body: JSON.stringify(b) }),
+  deleteFaq: (id: number) => req(`/admin/faqs/${id}`, { method: 'DELETE' }),
 };
 
 // ─── SHOP ─────────────────────────────────────────────────────────────────────
-export const getShopCategories = () => req('/shop/categories', { auth: false });
-export const getShopProduct = (idOrSlug: string | number) => req(`/shop/products/${idOrSlug}`, { auth: false });
-export const getShopProducts = (p?: { category?: string; search?: string; limit?: number; page?: number }) => req(`/shop/products${qs(p)}`, { auth: false });
+export const getShopCategories = () => req('/shop/categories');
+export const getShopProduct = (idOrSlug: string | number) => req(`/shop/products/${idOrSlug}`);
+export const getShopProducts = (p?: { category?: string; search?: string; limit?: number; page?: number }) => req(`/shop/products${qs(p)}`);
 export const createOrder = (b: {
   items: { product_id: number; quantity: number }[];
   shipping_address: string;

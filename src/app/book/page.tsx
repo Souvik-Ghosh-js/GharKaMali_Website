@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Calendar from '@/components/Calendar';
 import { useAuth } from '@/store/auth';
-import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, initiatePayment } from '@/lib/api';
+import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, initiatePayment, getPreviousGardeners, checkGardenerAvailability } from '@/lib/api';
 import { useCart } from '@/store/cart';
 
 type Step = 'location'|'plan'|'addons'|'schedule'|'confirm';
@@ -25,6 +25,7 @@ const StepIcPlan  = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="
 const StepIcPlus  = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
 const StepIcCal   = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
 const StepIcOk    = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>;
+const StepIcUser  = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
 
 const STEP_ICONS = [StepIcMap, StepIcPlan, StepIcPlus, StepIcCal, StepIcOk];
 
@@ -46,13 +47,21 @@ function BookFlow() {
     address:'', lat:0, lng:0, plan_id:preselect,
     plant_count:5, scheduled_date:'', scheduled_time:'09:00',
     addons:[] as {addon_id:number;quantity:number}[],
-    auto_renew:true, notes:'',
+    auto_renew:true, notes:'', preferred_gardener_id: 0
   });
+
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   useEffect(() => { if (!isLoading && !isAuthenticated) router.replace('/login?redirect=/book'); }, [isAuthenticated, isLoading, router]);
 
   const { data: plansRaw } = useQuery({ queryKey:['plans'], queryFn:getPlans });
   const { data: addonsRaw } = useQuery({ queryKey:['addons'], queryFn:getAddons });
+  const { data: prevGardeners = [] } = useQuery({ 
+    queryKey:['prev-gardeners'], 
+    queryFn:getPreviousGardeners,
+    enabled: isAuthenticated
+  });
   
   const typeFilter = params.get('type'); // e.g. 'one-time' or 'on-demand'
   
@@ -60,6 +69,33 @@ function BookFlow() {
     if (typeFilter === 'one-time' || typeFilter === 'on-demand') return p.plan_type !== 'subscription';
     return true;
   });
+
+  // Availability Check Effect
+  useEffect(() => {
+    if (form.scheduled_date && zone?.id && step === 'schedule') {
+      const fetchSlots = async () => {
+        setLoadingSlots(true);
+        try {
+          const slots = await checkGardenerAvailability(
+            form.scheduled_date, 
+            form.preferred_gardener_id || undefined, 
+            zone.id
+          );
+          setAvailableSlots(slots);
+          
+          // Selection logic: if current time is not available, try to pick the first available one
+          if (slots.length > 0 && !slots.includes(form.scheduled_time)) {
+             setForm(f => ({ ...f, scheduled_time: slots[0] }));
+          }
+        } catch (e) {
+          console.error('Failed to fetch slots', e);
+        } finally {
+          setLoadingSlots(false);
+        }
+      };
+      fetchSlots();
+    }
+  }, [form.scheduled_date, form.preferred_gardener_id, zone?.id, step]);
 
   // Auto-select plan if only one exists in the filtered list (e.g. for on-demand)
   useEffect(() => {
@@ -113,21 +149,20 @@ function BookFlow() {
   }));
 
   const total = (() => {
-    let t = selectedPlan?.price ?? 0;
+    const planBase = Number(selectedPlan?.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : (selectedPlan?.price || 0));
     
-    // For on-demand or one-time, we use the zone base price if available
-    if (selectedPlan?.plan_type !== 'subscription' && zone?.base_price != null) {
-      t = parseFloat(zone.base_price);
-    }
-    
-    // Extra plants calculation
+    let extraPlants = 0;
     if (zone && form.plant_count > (zone.min_plants || 1)) {
-      const extra = (form.plant_count - (zone.min_plants || 1)) * (parseFloat(zone.price_per_plant) || 0);
-      t += extra;
+      extraPlants = (form.plant_count - (zone.min_plants || 1)) * Number(zone.price_per_plant || 0);
     }
 
-    form.addons.forEach(({addon_id}) => { const a=addons.find(x=>x.id===addon_id); if(a)t+=a.price??0; });
-    return t;
+    const addonsBase = form.addons.reduce((sum, {addon_id}) => {
+      const a = addons.find(x => x.id === addon_id);
+      return sum + (Number(a?.price) || 0);
+    }, 0);
+
+    const val = planBase + extraPlants + addonsBase;
+    return isNaN(val) ? 0 : val;
   })();
 
   const handleSubmit = async () => {
@@ -146,6 +181,7 @@ function BookFlow() {
           service_latitude: form.lat, 
           service_longitude: form.lng, 
           plant_count: form.plant_count, 
+          preferred_gardener_id: form.preferred_gardener_id || null,
           auto_renew: form.auto_renew 
         });
         subscriptionId = sub.id;
@@ -159,6 +195,7 @@ function BookFlow() {
           service_latitude: form.lat, 
           service_longitude: form.lng, 
           plant_count: form.plant_count, 
+          preferred_gardener_id: form.preferred_gardener_id || null,
           customer_notes: form.notes 
         });
         bookingId = res.id;
@@ -516,12 +553,60 @@ function BookFlow() {
               <h2 style={{ fontFamily:'var(--font-display)',fontWeight:900,fontSize:'2rem',marginBottom:6,letterSpacing:'-0.02em', color:'var(--forest)' }}>
                 {selectedPlan?.plan_type==='subscription' ? 'Confirm your subscription' : 'When should we come?'}
               </h2>
-              <p style={{ color:'var(--sage)',marginBottom:28,fontSize:'1rem',fontWeight:500 }}>
+              <p style={{ color:'var(--sage)',marginBottom:20,fontSize:'1rem',fontWeight:500 }}>
                 {selectedPlan?.plan_type==='subscription' ? 'You will be able to choose your visit dates after checkout' : 'Choose your preferred date and time slot'}
               </p>
-              <div className="card" style={{ padding:36, borderRadius:28 }}>
+              {selectedPlan?.plan_type!=='subscription' && form.scheduled_date && (
+                <div style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 20px', background:'var(--forest)', color:'#fff', borderRadius:16, marginBottom:24, fontSize:'0.9rem', fontWeight:800, animation:'fade-in 0.3s ease' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  {new Date(form.scheduled_date).toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' })} at {form.scheduled_time}
+                </div>
+              )}
+              <div className="card" style={{ padding:36, borderRadius:28, marginBottom: 24 }}>
                 {selectedPlan?.plan_type!=='subscription' && (
                   <>
+                    {/* Gardener Selection */}
+                    <div className="form-group" style={{ marginBottom: 32 }}>
+                      <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        Choose a Gardener
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)' }}>Optional</span>
+                      </label>
+                      <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 10, scrollbarWidth: 'none' }}>
+                        {/* System Assign */}
+                        <div onClick={() => setForm(f => ({ ...f, preferred_gardener_id: 0 }))}
+                          style={{ 
+                            minWidth: 100, padding: '16px 14px', borderRadius: 20, cursor: 'pointer', border: `2.5px solid ${form.preferred_gardener_id === 0 ? 'var(--forest)' : 'var(--border)'}`, 
+                            background: form.preferred_gardener_id === 0 ? 'var(--bg-elevated)' : '#fff', transition: 'all 0.2s', textAlign: 'center', flexShrink: 0 
+                          }}>
+                          <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--bg-elevated)', margin: '0 auto 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sage)' }}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                          </div>
+                          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--forest)' }}>Best Available</div>
+                        </div>
+
+                        {/* Previous Gardeners */}
+                        {prevGardeners.map((g: any) => {
+                          const sel = form.preferred_gardener_id === g.id;
+                          return (
+                            <div key={g.id} onClick={() => setForm(f => ({ ...f, preferred_gardener_id: g.id }))}
+                              style={{ 
+                                minWidth: 120, padding: '16px 14px', borderRadius: 20, cursor: 'pointer', border: `2.5px solid ${sel ? 'var(--forest)' : 'var(--border)'}`, 
+                                background: sel ? 'var(--bg-elevated)' : '#fff', transition: 'all 0.2s', textAlign: 'center', flexShrink: 0 
+                              }}>
+                              <div style={{ width: 48, height: 48, borderRadius: '50%', overflow: 'hidden', margin: '0 auto 10px', border: '2px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                                <img src={g.profile_image || '/placeholder-user.png'} alt={g.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              </div>
+                              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--forest)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.name}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, marginTop: 2 }}>
+                                <span style={{ color: 'var(--gold)', fontSize: '0.7rem' }}>★</span>
+                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--sage)' }}>{g.gardenerProfile?.rating || 'New'}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
                     <div className="form-group">
                       <label className="form-label">Select Date *</label>
                       <Calendar 
@@ -533,22 +618,30 @@ function BookFlow() {
                     <div className="form-group">
                       <label className="form-label">Preferred Time</label>
                       <div style={{ display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10 }}>
-                        {(() => {
+                        {TIMES.map(t => {
+                          const isAvailable = availableSlots.includes(t);
                           const isToday = form.scheduled_date === getLocalDateString(new Date());
                           const currentHour = new Date().getHours();
-                          const availableTimes = isToday ? TIMES.filter(t => parseInt(t.split(':')[0]) >= currentHour + 4) : TIMES;
-                          
-                          if (availableTimes.length === 0) {
-                            return <div style={{ gridColumn: '1 / -1', color: 'var(--gold)', fontSize: '0.85rem', padding: '10px 0', textAlign: 'center' }}>No time slots available for this date. Please select another date.</div>;
-                          }
+                          const isTooEarly = isToday && parseInt(t.split(':')[0]) < currentHour + 4;
+                          const active = form.scheduled_time === t;
 
-                          return availableTimes.map(t=>(
-                            <button key={t} onClick={()=>setForm(f=>({...f,scheduled_time:t}))}
-                              style={{ padding:'12px 0',borderRadius:14,border:`2px solid ${form.scheduled_time===t?'var(--forest)':'var(--border)'}`,background:form.scheduled_time===t?'var(--bg-elevated)':'#fff',color:form.scheduled_time===t?'var(--forest)':'var(--sage)',fontWeight:800,fontSize:'0.9rem',cursor:'pointer',fontFamily:'var(--font-body)',transition:'all 0.2s' }}>
+                          return (
+                            <button key={t} onClick={() => isAvailable && !isTooEarly && setForm(f => ({ ...f, scheduled_time: t }))}
+                              disabled={!isAvailable || isTooEarly}
+                              style={{ 
+                                padding: '12px 0', borderRadius: 14, border: `2px solid ${active ? 'var(--forest)' : isAvailable && !isTooEarly ? 'var(--border)' : 'var(--border-light)'}`, 
+                                background: active ? 'var(--bg-elevated)' : isAvailable && !isTooEarly ? '#fff' : 'var(--bg-muted)', 
+                                color: active ? 'var(--forest)' : isAvailable && !isTooEarly ? 'var(--sage)' : 'var(--text-faint)', 
+                                fontWeight: 800, fontSize: '0.9rem', cursor: isAvailable && !isTooEarly ? 'pointer' : 'not-allowed', 
+                                fontFamily: 'var(--font-body)', transition: 'all 0.2s', position: 'relative' 
+                              }}>
                               {t}
+                              {!isAvailable && !isTooEarly && <div style={{ position: 'absolute', bottom: -18, left: 0, right: 0, fontSize: '0.6rem', color: 'var(--error)', fontWeight: 700 }}>Busy</div>}
                             </button>
-                          ));
-                        })()}
+                          );
+                        })}
+                        {loadingSlots && <div style={{ gridColumn: '1 / -1', textAlign: 'center', marginTop: 10 }}><Spin white={false} /></div>}
+                        {!loadingSlots && availableSlots.length === 0 && <div style={{ gridColumn: '1 / -1', color: 'var(--error)', fontSize: '0.8rem', textAlign: 'center', padding: '10px 0' }}>No availability found for this date. Try another date or a different gardener.</div>}
                       </div>
                     </div>
                   </>
@@ -615,23 +708,23 @@ function BookFlow() {
                     <div style={{ display:'flex',flexDirection:'column',gap:14,marginBottom:24,paddingBottom:24,borderBottom:'1px solid var(--border-mid)' }}>
                       <div style={{ display:'flex',justifyContent:'space-between',fontSize:'0.95rem' }}>
                         <span style={{ color:'var(--sage)', fontWeight:600 }}>{selectedPlan?.name || 'Visit Base Price'}</span>
-                        <span style={{ fontWeight:800, color:'var(--forest)' }}>₹{(selectedPlan?.plan_type !== 'subscription' && zone?.base_price != null ? parseFloat(zone.base_price) : (selectedPlan?.price ?? 0)).toLocaleString('en-IN')}</span>
+                        <span style={{ fontWeight:800, color:'var(--forest)' }}>₹{Number(selectedPlan?.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : (selectedPlan?.price ?? 0)).toLocaleString('en-IN')}</span>
                       </div>
                       {zone && form.plant_count > (zone.min_plants || 1) && (
                         <div style={{ display:'flex',justifyContent:'space-between',fontSize:'0.95rem' }}>
                           <span style={{ color:'var(--sage)', fontWeight:600 }}>Extra Plants ({form.plant_count - zone.min_plants})</span>
-                          <span style={{ fontWeight:800, color:'var(--forest)' }}>+₹{((form.plant_count - zone.min_plants) * (parseFloat(zone.price_per_plant) || 0)).toLocaleString('en-IN')}</span>
+                          <span style={{ fontWeight:800, color:'var(--forest)' }}>+₹{Number((form.plant_count - zone.min_plants) * (parseFloat(zone.price_per_plant) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                       )}
                       {form.addons.map(({addon_id})=>{
                         const a=addons.find(x=>x.id===addon_id);
-                        return a?<div key={addon_id} style={{ display:'flex',justifyContent:'space-between',fontSize:'0.95rem' }}><span style={{ color:'var(--sage)', fontWeight:600 }}>{a.name}</span><span style={{ fontWeight:800, color:'var(--forest)' }}>+₹{a.price}</span></div>:null;
+                        return a?<div key={addon_id} style={{ display:'flex',justifyContent:'space-between',fontSize:'0.95rem' }}><span style={{ color:'var(--sage)', fontWeight:600 }}>{a.name}</span><span style={{ fontWeight:800, color:'var(--forest)' }}>+₹{Number(a.price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>:null;
                       })}
                     </div>
                     <div style={{ display:'flex',justifyContent:'space-between',marginBottom:32 }}>
-                      <span style={{ fontWeight:900,fontSize:'1.2rem', color:'var(--forest)' }}>To Pay</span>
+                      <span style={{ fontWeight:900,fontSize:'1.2rem', color:'var(--forest)' }}>TOTAL TO PAY (FIXED)</span>
                       <span style={{ fontFamily:'var(--font-display)',fontWeight:900,fontSize:'2rem',color:'var(--gold-deep)' }}>
-                        ₹{total.toLocaleString('en-IN')}{selectedPlan?.plan_type==='subscription'&&<span style={{ fontSize:'0.8rem',fontWeight:500,color:'var(--sage)' }}>/mo</span>}
+                        ₹{Number(total).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{selectedPlan?.plan_type==='subscription'&&<span style={{ fontSize:'0.8rem',fontWeight:500,color:'var(--sage)' }}>/mo</span>}
                       </span>
                     </div>
                     {/* Market Upsell */}

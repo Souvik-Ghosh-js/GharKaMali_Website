@@ -151,7 +151,7 @@ export default function DashboardPage() {
                       </div>
                       <div style={{ textAlign:'right', flexShrink:0 }}>
                         <div style={{ fontFamily:'var(--font-display)', fontWeight:900, color:'var(--gold-deep)', fontSize:'1.15rem' }}>₹{Number(b.total_amount).toLocaleString('en-IN')}</div>
-                        <div style={{ fontSize:'0.8rem', color:'var(--sage)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{new Date(b.scheduled_date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+                        <div style={{ fontSize:'0.8rem', color:'var(--sage)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{new Date(b.scheduled_date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})} {b.scheduled_time && `at ${b.scheduled_time}`}</div>
                       </div>
                     </Link>
                   ))}
