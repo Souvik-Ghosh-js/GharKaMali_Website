@@ -11,8 +11,8 @@ import dynamic from 'next/dynamic';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 const TreeScene = dynamic(() => import('@/components/TreeScene'), { ssr: false });
 
-/* ── TYPEWRITER — single-line, no height jump ── */
-const TypeWriter = ({ words }: { words: string[] }) => {
+/* ── TYPEWRITER — single line or multi-line support ── */
+const TypeWriter = ({ words, style, className }: { words: string[]; style?: React.CSSProperties; className?: string }) => {
   const [text, setText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [loopNum, setLoopNum] = useState(0);
@@ -43,8 +43,15 @@ const TypeWriter = ({ words }: { words: string[] }) => {
   }, [text, isDeleting, loopNum, typingSpeed, words]);
 
   return (
-    <span style={{ display: 'block', minHeight: '1.2em', textAlign: 'center', fontSize: 'clamp(3rem, 10vw, 9rem)', fontWeight: 900, color: 'var(--earth)', fontStyle: 'normal' }}>
-      {text}<span style={{ animation: 'blink 1s step-end infinite', color: 'var(--earth)', fontWeight: 400 }}>|</span>
+    <span className={className} style={{ 
+      display: 'block', 
+      minHeight: '1.2em', 
+      textAlign: 'center', 
+      fontStyle: 'normal', 
+      whiteSpace: 'pre-wrap', 
+      ...style 
+    }}>
+      {text}<span style={{ animation: 'blink 1s step-end infinite', opacity: 0.6, fontWeight: 400 }}>|</span>
     </span>
   );
 };
@@ -269,10 +276,21 @@ export default function HomePage() {
   const { data: plansRaw } = useQuery({ queryKey: ['plans'], queryFn: getPlans });
   const { data: blogsRaw } = useQuery({ queryKey: ['blogs-home'], queryFn: () => getBlogs({ limit: 4 }) });
   const { data: shopRaw } = useQuery({ queryKey: ['shop-preview'], queryFn: () => getShopProducts({ limit: 4 }) });
+  const { data: taglinesRaw } = useQuery({ queryKey: ['taglines'], queryFn: getTaglines });
 
   const plans: any[] = (plansRaw as any[]) ?? [];
   const blogs: any[] = (blogsRaw as any)?.items ?? (blogsRaw as any[]) ?? [];
   const shopProducts: any[] = (shopRaw as any) ?? [];
+  
+  const taglineItems = (taglinesRaw as any[]) ?? [];
+  const dynamicWords = taglineItems.length > 0 
+    ? taglineItems.map(t => t.text || t.tagline || (typeof t === 'string' ? t : 'care?'))
+    : [
+        'Plants ki\ntension?\nGharKaMali hai na.',
+        'Plants ki\nbimari?\nGharKaMali hai na.',
+        'Plants ki\ngrowth?\nGharKaMali hai na.',
+        'Plants ki\ncare?\nGharKaMali hai na.'
+      ];
 
   return (
     <SmoothScrollProvider>
@@ -292,14 +310,18 @@ export default function HomePage() {
               <span style={{ color: 'var(--forest)' }}>Redefining Botanical Excellence in Noida</span>
             </div>
 
-            {/* Hero title — SINGLE LINE title, everything on one row */}
-            {/* Hero title — Multi-row centered layout */}
-            <h1 className="hero-title" style={{ color: 'var(--forest)', letterSpacing: '-0.04em', marginBottom: 28, lineHeight: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-              <span className="display-1" style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 800 }}>Plants ki</span>
-              
-              <TypeWriter words={['tension?', 'bimari?', 'growth?', 'care?']} />
-              
-              <div className="display-1" style={{ fontSize: 'clamp(2.5rem, 6vw, 5.5rem)', fontStyle: 'normal', color: 'var(--earth)', display: 'block', marginTop: 10 }}>GharKaMali <span style={{ color: 'var(--forest)' }}>hai na.</span></div>
+            {/* Hero title — Fully Dynamic from Admin */}
+            <h1 className="hero-title" style={{ marginBottom: 28, textAlign: 'center' }}>
+              <TypeWriter 
+                words={dynamicWords} 
+                className="display-1" 
+                style={{ 
+                  fontSize: 'clamp(2.5rem, 8vw, 6rem)', 
+                  fontWeight: 800, 
+                  color: 'var(--forest)',
+                  lineHeight: 1.1
+                }} 
+              />
             </h1>
 
             <p className="hero-subtitle" style={{ maxWidth: 640, margin: '0 auto 44px', fontWeight: 500, color: 'var(--text-2)', fontSize: 'clamp(1rem, 1.6vw, 1.18rem)', lineHeight: 1.8 }}>
@@ -437,6 +459,69 @@ export default function HomePage() {
                 <p style={{ color: 'var(--text-2)', lineHeight: 1.8, fontSize: '1.05rem', fontWeight: 500 }}>{s.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ BRAND STORY ═══ */}
+      <section className="section brand-story-section" id="brand-story" style={{ background: 'var(--bg-elevated)', position: 'relative', zIndex: 11, borderTop: '1px solid var(--border-gold)' }}>
+        <div className="container">
+          <div className="section-header" style={{ textAlign: 'center', marginBottom: 64 }}>
+            <span className="overline">Our Brand Story</span>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 8 }}>Professional gardening made simple</h2>
+          </div>
+
+          <div className="brand-story-grid">
+            {/* Left Column: Vision & Values */}
+            <div className="brand-story-left">
+              <div style={{ marginBottom: 48 }}>
+                <h3 style={{ color: 'var(--forest)', fontSize: '1.8rem', fontWeight: 900, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ color: 'var(--earth)' }}><IcSun /></span> Our Vision
+                </h3>
+                <p style={{ color: 'var(--text-2)', lineHeight: 1.8, fontSize: '1.05rem', fontWeight: 500 }}>
+                  At GharKaMali, our vision is to make plant care simple, reliable, and accessible for every home. In today&apos;s busy lifestyle, many people love plants but struggle to maintain them due to lack of time or proper guidance. We aim to become a trusted platform for professional plant care services that help homes and communities keep their plants healthy, green, and thriving.
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ color: 'var(--forest)', fontSize: '1.8rem', fontWeight: 900, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
+                   <span style={{ color: 'var(--earth)' }}><IcShield /></span> Our Values
+                </h3>
+                <div className="values-grid">
+                  {[
+                    { title: 'Trust', desc: 'Providing reliable and honest services that customers can depend on.' },
+                    { title: 'Care', desc: 'Treating every plant with attention, responsibility, and genuine care.' },
+                    { title: 'Quality', desc: 'Delivering professional gardening solutions that actually work.' },
+                    { title: 'Sustainability', desc: 'Encouraging greener homes and healthier living spaces.' }
+                  ].map((v, i) => (
+                    <div key={i} className="value-card">
+                      <div style={{ fontWeight: 800, color: 'var(--forest)', marginBottom: 6, fontSize: '1rem' }}>{v.title}</div>
+                      <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', lineHeight: 1.6, margin: 0 }}>{v.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Journey */}
+            <div className="journey-card">
+              {/* Decoration */}
+              <div className="journey-card-deco" />
+              
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <h3 style={{ color: 'var(--forest)', fontSize: '1.8rem', fontWeight: 900, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ color: 'var(--earth)' }}><IcLeaf /></span> From Scratch
+                </h3>
+                <div style={{ color: 'var(--text-2)', lineHeight: 1.8, fontSize: '0.95rem', fontWeight: 500 }}>
+                  <p style={{ marginBottom: 20 }}>Every journey begins with a small problem. We noticed that many people love plants but taking care of them is not always easy. Busy schedules, lack of gardening knowledge, and difficulty finding a reliable mali often lead to plants slowly losing their health.</p>
+                  <p style={{ marginBottom: 20 }}>This everyday problem sparked the idea of GharKaMali – a reliable and trustworthy platform for plant care. The journey was not easy. There were many challenges, rejections, and countless sleepless nights while building the right team, creating systems, and solving day-to-day problems.</p>
+                  <p style={{ marginBottom: 20 }}>Step by step, the belief in the vision kept growing stronger. What started as a simple idea gradually became a dream to build something that could truly help people and contribute positively to society.</p>
+                  <p className="journey-milestone">
+                    Today, we are proud to share an important milestone – the GharKaMali website is now live, serving homes in Noida and Greater Noida West. And this is just the beginning of our journey to help homes keep their plants healthy and green.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -697,6 +782,76 @@ export default function HomePage() {
           inset: 0;
           background-image: radial-gradient(circle, rgba(3,65,26,0.12) 1px, transparent 1px);
           background-size: 48px 48px;
+        }
+
+        /* Brand Story Styles */
+        .brand-story-grid {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+          gap: 60px;
+          align-items: start;
+        }
+        .values-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+        }
+        .value-card {
+          padding: 24px;
+          background: #fff;
+          border-radius: 20px;
+          border: 1px solid var(--border-gold);
+          box-shadow: var(--sh-sm);
+          transition: all 0.3s ease;
+        }
+        .value-card:hover {
+          transform: translateY(-5px);
+          box-shadow: var(--sh-md);
+          border-color: var(--gold);
+        }
+        .journey-card {
+          background: #fff;
+          padding: 48px;
+          border-radius: 40px;
+          border: 1.5px solid var(--border-gold);
+          position: relative;
+          overflow: hidden;
+          box-shadow: var(--sh-md);
+        }
+        .journey-card-deco {
+          position: absolute;
+          top: -20px;
+          right: -20px;
+          width: 120px;
+          height: 120px;
+          background: var(--bg-elevated);
+          border-radius: 50%;
+          z-index: 0;
+        }
+        .journey-milestone {
+          font-weight: 700;
+          color: var(--forest);
+          background: var(--cream);
+          padding: 24px;
+          border-radius: 20px;
+          border-left: 5px solid var(--earth);
+          margin-top: 24px;
+          font-size: 1rem;
+        }
+
+        @media (max-width: 991px) {
+          .brand-story-grid {
+            grid-template-columns: 1fr;
+            gap: 48px;
+          }
+        }
+        @media (max-width: 576px) {
+          .values-grid {
+            grid-template-columns: 1fr;
+          }
+          .journey-card {
+            padding: 32px 24px;
+          }
         }
       `}</style>
     </SmoothScrollProvider>
