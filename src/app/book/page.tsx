@@ -377,25 +377,11 @@ function BookFlow() {
               <div className="book-plan-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
                 <div>
                   <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2rem', marginBottom: 4, letterSpacing: '-0.02em', color: 'var(--forest)' }}>
-                    {typeFilter === 'on-demand' ? 'Your On-demand Visit' : 'Choose your plan'}
+                    {selectedPlan?.plan_type === 'subscription' ? 'Choose your plan' : 'Your On-demand Visit'}
                   </h2>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 16px', background: 'var(--bg-elevated)', borderRadius: 99, fontSize: '0.82rem', fontWeight: 800, color: 'var(--forest)', border: '1px solid var(--border)' }}>
                     {zone?.name ?? 'Your Area'}
                   </div>
-                </div>
-                {/* Plant count */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                  <div style={{ background: 'var(--bg-elevated)', borderRadius: 20, padding: '14px 20px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--sage)' }}>Plants:</span>
-                    <button onClick={() => setForm(f => ({ ...f, plant_count: Math.max(1, f.plant_count - 1) }))} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border)', background: '#fff', color: 'var(--forest)', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>−</button>
-                    <span style={{ fontWeight: 900, fontSize: '1.3rem', minWidth: 24, textAlign: 'center', color: 'var(--forest)', fontFamily: 'var(--font-display)' }}>{form.plant_count}</span>
-                    <button onClick={() => setForm(f => ({ ...f, plant_count: f.plant_count + 1 }))} style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--forest)', background: 'var(--forest)', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900 }}>+</button>
-                  </div>
-                  {zone?.price_per_plant > 0 && form.plant_count > zone.min_plants && (
-                    <span style={{ fontSize: '0.75rem', color: 'var(--gold)', fontWeight: 600 }}>
-                      +₹{zone.price_per_plant} per extra plant
-                    </span>
-                  )}
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20, position: 'relative', zIndex: 10 }}>
@@ -478,9 +464,22 @@ function BookFlow() {
                     );
                   })}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 32, padding: '24px', background: 'rgba(3,65,26,0.03)', borderRadius: 24, border: '1.5px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                  <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--forest)' }}>Number of Plants:</span>
+                  <div style={{ background: '#fff', borderRadius: 99, padding: '6px 8px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <button onClick={() => setForm(f => ({ ...f, plant_count: Math.max(1, f.plant_count - 1) }))} style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', background: 'var(--bg-elevated)', color: 'var(--forest)', cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>−</button>
+                    <span style={{ fontWeight: 900, fontSize: '1.4rem', minWidth: 32, textAlign: 'center', color: 'var(--forest)', fontFamily: 'var(--font-display)' }}>{form.plant_count}</span>
+                    <button onClick={() => setForm(f => ({ ...f, plant_count: f.plant_count + 1 }))} style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', background: 'var(--forest)', cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900 }}>+</button>
+                  </div>
+                  {zone?.price_per_plant > 0 && form.plant_count > (zone.min_plants || 1) && (
+                    <div style={{ fontSize: '0.85rem', color: 'var(--gold-deep)', fontWeight: 700 }}>
+                      +₹{zone.price_per_plant}/extra plant
+                    </div>
+                  )}
+                </div>
                 <button onClick={() => setStep('addons')} disabled={!form.plan_id}
-                  className="btn btn-primary" style={{ opacity: !form.plan_id ? .5 : 1 }}>
+                  className="btn btn-primary btn-lg" style={{ opacity: !form.plan_id ? .5 : 1, padding: '16px 40px' }}>
                   Continue →
                 </button>
               </div>

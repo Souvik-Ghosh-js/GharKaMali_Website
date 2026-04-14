@@ -912,7 +912,7 @@ export default function HomePage() {
                     </div>
 
                     <Link href={`/book?plan=${plan.id}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'} btn-lg`} style={{ width: '100%', justifyContent: 'center', padding: '18px', fontSize: '0.95rem' }}>
-                      Subscribe Now →
+                      {plan.plan_type === 'subscription' ? 'Subscribe Now →' : 'Book a Visit →'}
                     </Link>
                   </div>
                 );

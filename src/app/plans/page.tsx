@@ -98,7 +98,7 @@ function PlanCarousel({ items }: { items: any[] }) {
                   ))}
                 </div>
                 <Link href={`/book?plan=${plan.id}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'}`} style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '0.9rem', fontWeight: 800, borderRadius: 18 }}>
-                  Subscribe
+                  {plan.plan_type === 'subscription' ? 'Subscribe Now' : 'Book Now'}
                 </Link>
               </div>
             );
@@ -196,7 +196,7 @@ function PlanCarousel({ items }: { items: any[] }) {
                   </div>
 
                   <Link href={`/book?plan=${plan.id}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'}`} style={{ width: '100%', justifyContent: 'center', padding: '20px', fontSize: '1rem', fontWeight: 900, borderRadius: 24, marginTop: 'auto' }}>
-                    Subscribe
+                    {plan.plan_type === 'subscription' ? 'Subscribe Now' : 'Book Now'}
                   </Link>
                 </div>
               </motion.div>
