@@ -18,12 +18,17 @@ export default function SocialProofToast() {
   const [activeIndex, setActiveIndex] = useState(-1);
   const [visible, setVisible] = useState(false);
   const [config, setConfig] = useState({ enabled: true, interval: 8000, delay: 5000, duration: 5000 });
+  const [cycleKey, setCycleKey] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function init() {
       try {
         const res = await getSocialProof();
+        if (!isMounted) return;
+
         if (res.success && res.data.enabled && res.data.items?.length > 0) {
           setItems(res.data.items);
           setConfig({ 
@@ -34,16 +39,20 @@ export default function SocialProofToast() {
           });
           
           timerRef.current = setTimeout(() => {
+            if (!isMounted) return;
             setActiveIndex(0);
             setVisible(true);
-          }, res.data.delay || 5000);
+          }, Math.max(1000, res.data.delay || 5000)); // Ensure it at least waits 1s but appears eventually
         }
       } catch (err) {
         console.error('Failed to load social proof', err);
       }
     }
     init();
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    return () => { 
+      isMounted = false;
+      if (timerRef.current) clearTimeout(timerRef.current); 
+    };
   }, []);
 
   useEffect(() => {
@@ -55,6 +64,7 @@ export default function SocialProofToast() {
 
     const nextTimer = setTimeout(() => {
       setActiveIndex((prev) => (prev + 1) % items.length);
+      setCycleKey((prev) => prev + 1);
       setVisible(true);
     }, config.interval + config.duration);
 
@@ -62,7 +72,7 @@ export default function SocialProofToast() {
       clearTimeout(hideTimer);
       clearTimeout(nextTimer);
     };
-  }, [activeIndex, items.length, config.interval, config.duration]);
+  }, [activeIndex, cycleKey, items.length, config.interval, config.duration]);
 
   if (!config.enabled || activeIndex === -1 || items.length === 0) return null;
 
