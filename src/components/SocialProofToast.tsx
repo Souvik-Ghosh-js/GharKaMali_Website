@@ -3,18 +3,21 @@ import { useEffect, useState, useRef } from 'react';
 import { getSocialProof } from '@/lib/api';
 
 type SocialProofItem = {
-  name: string;
-  city: string;
-  service: string;
+  type: 'booking' | 'visitor';
+  message: string;
   time_ago: string;
-  status: string;
+  data?: {
+    name: string;
+    city: string;
+    service: string;
+  };
 };
 
 export default function SocialProofToast() {
   const [items, setItems] = useState<SocialProofItem[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [visible, setVisible] = useState(false);
-  const [config, setConfig] = useState({ enabled: true, interval: 8000 });
+  const [config, setConfig] = useState({ enabled: true, interval: 8000, delay: 5000, duration: 5000 });
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -23,13 +26,17 @@ export default function SocialProofToast() {
         const res = await getSocialProof();
         if (res.success && res.data.enabled && res.data.items?.length > 0) {
           setItems(res.data.items);
-          setConfig({ enabled: true, interval: res.data.interval || 8000 });
+          setConfig({ 
+            enabled: true, 
+            interval: res.data.interval || 8000,
+            delay: res.data.delay || 5000,
+            duration: res.data.duration || 5000
+          });
           
-          // Initial delay before showing first toast
           timerRef.current = setTimeout(() => {
             setActiveIndex(0);
             setVisible(true);
-          }, 5000);
+          }, res.data.delay || 5000);
         }
       } catch (err) {
         console.error('Failed to load social proof', err);
@@ -42,22 +49,20 @@ export default function SocialProofToast() {
   useEffect(() => {
     if (activeIndex === -1 || items.length === 0) return;
 
-    // Show for 5 seconds, then hide, then wait for interval to show next
-    const showDuration = 5000;
     const hideTimer = setTimeout(() => {
       setVisible(false);
-    }, showDuration);
+    }, config.duration);
 
     const nextTimer = setTimeout(() => {
       setActiveIndex((prev) => (prev + 1) % items.length);
       setVisible(true);
-    }, config.interval);
+    }, config.interval + config.duration);
 
     return () => {
       clearTimeout(hideTimer);
       clearTimeout(nextTimer);
     };
-  }, [activeIndex, items.length, config.interval]);
+  }, [activeIndex, items.length, config.interval, config.duration]);
 
   if (!config.enabled || activeIndex === -1 || items.length === 0) return null;
 
@@ -65,67 +70,69 @@ export default function SocialProofToast() {
 
   return (
     <div 
+      className="social-proof-toast"
       style={{
         position: 'fixed',
         bottom: 'clamp(20px, 4vw, 30px)',
         left: 'clamp(20px, 4vw, 30px)',
         zIndex: 1000,
-        transform: visible ? 'translateX(0)' : 'translateX(-120%)',
+        transform: visible ? 'translateY(0)' : 'translateY(120%)',
         opacity: visible ? 1 : 0,
         transition: 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
         pointerEvents: visible ? 'auto' : 'none',
-        maxWidth: '320px',
+        maxWidth: '340px',
         width: 'calc(100vw - 40px)',
       }}
     >
       <div 
         style={{
-          background: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          borderRadius: '20px',
-          border: '1.5px solid rgba(201, 168, 76, 0.3)',
-          padding: '14px 18px',
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: '24px',
+          border: '1.5px solid rgba(22, 163, 74, 0.2)',
+          padding: '16px',
           display: 'flex',
           gap: '14px',
           alignItems: 'center',
-          boxShadow: '0 10px 40px rgba(3, 65, 26, 0.12), 0 2px 10px rgba(3, 65, 26, 0.08)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+          position: 'relative'
         }}
       >
         <div style={{
-          width: '44px',
-          height: '44px',
-          borderRadius: '12px',
-          background: 'linear-gradient(135deg, var(--forest), #4a8c3f)',
+          width: '48px',
+          height: '48px',
+          borderRadius: '16px',
+          background: item.type === 'visitor' ? 'linear-gradient(135deg, #16a34a, #22c55e)' : 'linear-gradient(135deg, #4f46e5, #6366f1)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           color: '#fff',
-          fontSize: '1.2rem',
+          fontSize: '1.4rem',
           flexShrink: 0,
-          boxShadow: '0 4px 12px rgba(3, 65, 26, 0.2)',
+          boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
         }}>
-          🌿
+          {item.type === 'visitor' ? '🔥' : '🌱'}
         </div>
         
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2px' }}>
-            <span style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--forest)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {item.name} from {item.city}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              {item.type === 'visitor' ? 'Live Activity' : 'Recent Booking'}
             </span>
-            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-muted)', background: 'rgba(0,0,0,0.05)', padding: '2px 6px', borderRadius: '4px' }}>
+            <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'rgba(0,0,0,0.4)' }}>
               {item.time_ago}
             </span>
           </div>
-          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-2)', lineHeight: 1.4 }}>
-            just booked a <strong style={{ color: 'var(--earth)', fontWeight: 700 }}>{item.service}</strong>
+          <p style={{ 
+            margin: 0, 
+            fontSize: '0.85rem', 
+            color: '#1a1a1a', 
+            lineHeight: 1.4,
+            fontWeight: 500
+          }}>
+            {item.message}
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a', animation: 'pulse 1.5s infinite' }} />
-            <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              {item.status === 'completed' ? 'Verified Service' : 'Booking Confirmed'}
-            </span>
-          </div>
         </div>
         
         <button 
@@ -136,13 +143,15 @@ export default function SocialProofToast() {
             right: '8px',
             background: 'none',
             border: 'none',
-            color: 'var(--text-muted)',
+            color: 'rgba(0,0,0,0.2)',
             cursor: 'pointer',
             padding: '4px',
-            fontSize: '1rem',
+            fontSize: '1.2rem',
             lineHeight: 1,
-            opacity: 0.5,
+            transition: 'color 0.2s'
           }}
+          onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(0,0,0,0.5)'}
+          onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(0,0,0,0.2)'}
         >
           ×
         </button>
