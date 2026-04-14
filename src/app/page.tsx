@@ -452,19 +452,17 @@ export default function HomePage() {
                     ref={el => { baCardRefs.current[i] = el; }}
                     className="svc-card service-card-cinematic"
                     style={{
-                      background: 'rgba(255,255,255,0.82)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      border: '1.5px solid rgba(237,207,135,0.5)',
+                      background: '#ffffff',
+                      border: '1.5px solid rgba(237,207,135,0.8)',
                       borderRadius: 28,
                       padding: 'clamp(32px,4vw,48px)',
                       marginBottom: 28,
-                      boxShadow: '0 4px 24px rgba(3,65,26,0.08), 0 1px 4px rgba(3,65,26,0.06)',
+                      boxShadow: '0 8px 32px rgba(3,65,26,0.12), 0 2px 8px rgba(3,65,26,0.08)',
                       transition: 'all 0.4s cubic-bezier(0.22,1,0.36,1)',
                       cursor: 'default',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 16px 48px rgba(3,65,26,0.18), 0 4px 16px rgba(3,65,26,0.1)'; e.currentTarget.style.transform = 'translateX(8px)'; e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.background = 'rgba(255,255,255,0.96)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 24px rgba(3,65,26,0.08), 0 1px 4px rgba(3,65,26,0.06)'; e.currentTarget.style.transform = ''; e.currentTarget.style.borderColor = 'rgba(237,207,135,0.5)'; e.currentTarget.style.background = 'rgba(255,255,255,0.82)'; }}
+                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 16px 48px rgba(3,65,26,0.18), 0 4px 16px rgba(3,65,26,0.1)'; e.currentTarget.style.transform = 'translateX(8px)'; e.currentTarget.style.borderColor = 'var(--gold)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(3,65,26,0.12), 0 2px 8px rgba(3,65,26,0.08)'; e.currentTarget.style.transform = ''; e.currentTarget.style.borderColor = 'rgba(237,207,135,0.8)'; }}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24 }}>
                       <div style={{ width: 64, height: 64, flexShrink: 0, borderRadius: 20, background: 'linear-gradient(135deg, var(--forest), #4a8c3f)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 8px 24px rgba(3,65,26,0.3)' }}>
