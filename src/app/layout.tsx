@@ -3,6 +3,7 @@ import './globals.css';
 import Providers from '@/components/Providers';
 import { Toaster } from 'react-hot-toast';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
+import SocialProofToast from '@/components/SocialProofToast';
 
 export const metadata: Metadata = {
   title: { default: 'GharKaMali — Expert Plant Care at Home | Starting ₹349', template: '%s | GharKaMali' },
@@ -26,6 +27,55 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap"
           rel="stylesheet"
         />
+        {/* ── Schema Markup — LocalBusiness + Service ─────────────────── */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'LocalBusiness',
+              name: 'GharKaMali',
+              description: 'Expert plant care at your home. Professional gardening services starting ₹349/month.',
+              url: 'https://gharkamali.com',
+              telephone: '+91-9999999999',
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: 'Noida',
+                addressRegion: 'Uttar Pradesh',
+                addressCountry: 'IN',
+              },
+              areaServed: ['Noida', 'Greater Noida', 'Delhi NCR'],
+              priceRange: '₹349 - ₹1499',
+              image: 'https://gharkamali.com/logo.png',
+              sameAs: [
+                'https://www.instagram.com/gharkamali',
+                'https://www.facebook.com/gharkamali',
+              ],
+              hasOfferCatalog: {
+                '@type': 'OfferCatalog',
+                name: 'Gardening Services',
+                itemListElement: [
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Regular Garden Maintenance',
+                      description: 'Professional gardener visits for regular plant care and garden maintenance',
+                    },
+                  },
+                  {
+                    '@type': 'Offer',
+                    itemOffered: {
+                      '@type': 'Service',
+                      name: 'Plant Expert Consultation',
+                      description: 'Expert botanical consultation for plant health, landscaping, and garden design',
+                    },
+                  },
+                ],
+              },
+            }),
+          }}
+        />
         {/* ── Meta Pixel ─────────────────────────────────────────────────── */}
         <script
           dangerouslySetInnerHTML={{
@@ -46,6 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Providers>{children}</Providers>
         <WhatsAppFloat />
+        <SocialProofToast />
         <Toaster
           position="top-center"
           toastOptions={{

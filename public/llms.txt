@@ -1,0 +1,34 @@
+# GharKaMali - Expert Plant Care at Home
+
+## About
+GharKaMali is India's premier home plant care service. We connect homeowners with trained, certified gardeners for regular garden maintenance, plant care, and botanical consultations. Operating in Noida, Greater Noida, and expanding to other cities.
+
+## Services
+- **Subscription Plans**: Regular garden visits (8-16 visits/month) starting ₹349/month
+- **On-Demand Booking**: Book a one-time gardener visit for your home garden
+- **Plant Expert Consultation**: Professional advice on plant health, landscaping, and garden design
+- **Plantopedia**: AI-powered plant identification and care guidance
+- **Plant Store**: Shop indoor plants, outdoor plants, gardening tools, pots & planters, and organic fertilizers
+
+## Key Features
+- Trained & verified gardeners with background checks
+- Real-time GPS tracking of gardener visits
+- Before/after photo documentation of garden work
+- OTP-verified visits for security
+- Wallet system for easy payments
+- Subscription management with pause/resume
+
+## Coverage Areas
+- Noida (all sectors)
+- Greater Noida
+- Expanding to Delhi NCR, Gurgaon, Ghaziabad
+
+## Contact
+- Website: https://gharkamali.com
+- WhatsApp: Available on website
+- App: Available on Google Play Store
+
+## Technical
+- Built with Next.js (website), Flutter (mobile apps), Node.js (backend)
+- Real-time features via Socket.io
+- Payment via PayU gateway
