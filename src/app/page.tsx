@@ -241,14 +241,14 @@ const HeroBackground = () => (
         <source src="/bg.mp4" type="video/mp4" />
       </video>
     </div>
-    
+
     {/* Netflix-style overlay for contrast (vignette + base darkness) */}
     <div style={{
       position: 'absolute', inset: 0, zIndex: 1,
       background: 'radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.85) 100%)',
       pointerEvents: 'none',
     }} />
-    
+
     {/* Secondary Gradient overlay specifically for text readability at center/bottom */}
     <div style={{
       position: 'absolute', inset: 0, zIndex: 2,
@@ -270,16 +270,16 @@ export default function HomePage() {
   const plans: any[] = (plansRaw as any[]) ?? [];
   const blogs: any[] = (blogsRaw as any)?.items ?? (blogsRaw as any[]) ?? [];
   const shopProducts: any[] = (shopRaw as any) ?? [];
-  
+
   const taglineItems = (taglinesRaw as any[]) ?? [];
   const dynamicWords = taglineItems.length > 0
     ? taglineItems.map(t => t.text || t.tagline || (typeof t === 'string' ? t : 'care?'))
     : [
-        'Plants ki tension? GharKaMali hai na.',
-        'Plants ki bimari? GharKaMali hai na.',
-        'Plants ki growth? GharKaMali hai na.',
-        'Plants ki care? GharKaMali hai na.'
-      ];
+      'Plants ki tension? GharKaMali hai na.',
+      'Plants ki bimari? GharKaMali hai na.',
+      'Plants ki growth? GharKaMali hai na.',
+      'Plants ki care? GharKaMali hai na.'
+    ];
 
   // ── Before/After scroll tracking ──
   const [activeBA, setActiveBA] = useState(0);
@@ -301,7 +301,7 @@ export default function HomePage() {
       if (!el) return null;
       const obs = new IntersectionObserver(
         ([entry]) => { if (entry.isIntersecting) setActiveBA(i); },
-        { threshold: 0.45, rootMargin: '0px 0px -5% 0px' }
+        { threshold: 0.35, rootMargin: '-15% 0px -15% 0px' }
       );
       obs.observe(el);
       return obs;
@@ -321,6 +321,20 @@ export default function HomePage() {
     );
     obs.observe(stepsRef.current);
     return () => obs.disconnect();
+  }, []);
+
+  // ── Global section scroll-reveal ──
+  useEffect(() => {
+    const els = document.querySelectorAll<HTMLElement>('.s-reveal');
+    const show = (el: Element) => el.classList.add('in-view');
+    const obs = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) { show(e.target); obs.unobserve(e.target); } }),
+      { threshold: 0.05, rootMargin: '0px 0px -4% 0px' }
+    );
+    els.forEach(el => obs.observe(el));
+    // Fallback: show anything still hidden after 1.6s
+    const t = setTimeout(() => els.forEach(show), 1600);
+    return () => { obs.disconnect(); clearTimeout(t); };
   }, []);
 
   return (
@@ -345,8 +359,8 @@ export default function HomePage() {
               GharKaMali
             </h1>
             <div style={{ marginBottom: 32, textAlign: 'center', width: '100%' }}>
-              <TypeWriter 
-                words={dynamicWords} 
+              <TypeWriter
+                words={dynamicWords}
               />
             </div>
 
@@ -398,164 +412,193 @@ export default function HomePage() {
 
 
       {/* ═══ SERVICES + BEFORE/AFTER GSAP SCROLL (Desktop) ═══ */}
-      <section id="services" style={{ background: 'var(--bg)', position: 'relative', zIndex: 10, padding: 'clamp(48px,6vw,96px) 0 clamp(64px,10vw,120px)' }}>
-        <div className="container">
+      <section id="services" style={{ position: 'relative', zIndex: 10, padding: 'clamp(48px,6vw,96px) 0 clamp(64px,10vw,120px)' }}>
+        {/* Gardening video background — light airy overlay */}
+        <video autoPlay loop muted playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.22 }}>
+          <source src="/bg.mp4" type="video/mp4" />
+        </video>
+        {/* Light warm overlay so the section stays bright */}
+        <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(135deg, rgba(255,249,225,0.93) 0%, rgba(235,250,240,0.90) 50%, rgba(255,249,225,0.93) 100%)', pointerEvents: 'none' }} />
+        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           {/* Heading */}
           <div style={{ textAlign: 'center', marginBottom: 'clamp(32px,5vw,64px)' }}>
-            <span className="overline">Our Services & Transformations</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 8, marginBottom: 14 }}>Real Transformations</h2>
+            <div className="section-divider-line" />
+            <span className="overline overline-dot">Our Services & Transformations</span>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, marginBottom: 14 }}>Real Transformations</h2>
             <p style={{ color: 'var(--text-2)', fontSize: 'clamp(0.9rem,1.4vw,1.05rem)', fontWeight: 500, maxWidth: 540, margin: '0 auto', lineHeight: 1.75 }}>
               Watch how GharKaMali turns neglected spaces into thriving green sanctuaries.
             </p>
           </div>
         </div>
 
-        {/* Full-bleed split layout — Using flex for better stability than grid during pinning */}
-        <div className="desktop-only ba-split-layout" style={{ 
-          display: 'flex', 
-          width: '100%', 
-          position: 'relative', 
-          marginBottom: 0 
-        }}>
-
-          {/* LEFT: service cards — 50% width */}
-          <div style={{ flex: '0 0 50%', display: 'flex', justifyContent: 'flex-end', paddingLeft: 'clamp(20px,4vw,80px)', paddingRight: 40 }}>
-            <div style={{ maxWidth: 800, width: '100%', paddingBottom: 0 }}>
-              {SERVICE_ITEMS.map((s, i) => (
-                <div
-                  key={i}
-                  ref={el => { baCardRefs.current[i] = el; }}
-                  className="svc-card service-card-cinematic"
-                  style={{
-                    background: '#fff',
-                    border: '1.5px solid var(--border-gold)',
-                    borderRadius: 28,
-                    padding: 'clamp(32px,4vw,48px)',
-                    marginBottom: 32,
-                    boxShadow: 'var(--sh-sm)',
-                    transition: 'all 0.4s cubic-bezier(0.22,1,0.36,1)',
-                    cursor: 'default',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = 'var(--sh-lg)'; e.currentTarget.style.transform = 'translateX(8px)'; e.currentTarget.style.borderColor = 'var(--gold)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = 'var(--sh-sm)'; e.currentTarget.style.transform = ''; e.currentTarget.style.borderColor = 'var(--border-gold)'; }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24 }}>
-                    <div style={{ width: 64, height: 64, flexShrink: 0, borderRadius: 20, background: 'linear-gradient(135deg, var(--forest), #4a8c3f)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 8px 24px rgba(3,65,26,0.3)' }}>
-                      <s.Icon />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                        <span style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.12em', background: 'rgba(201,168,76,0.12)', padding: '4px 12px', borderRadius: 99, border: '1px solid rgba(201,168,76,0.3)' }}>0{i + 1}</span>
-                        <h3 style={{ fontSize: 'clamp(1.1rem,1.8vw,1.4rem)', fontWeight: 900, color: 'var(--forest)', margin: 0 }}>{s.title}</h3>
+          {/* Desktop Split Layout — CSS Grid for smooth sticky, no flex-resize glitch */}
+          <div
+            className="ba-split-layout"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '60px',
+              alignItems: 'start',
+              width: '100%',
+              position: 'relative',
+            }}
+          >
+            {/* LEFT: cards — grid track is fixed, no resize during scroll */}
+            <div style={{ minWidth: 0 }}>
+              <div style={{ width: '100%' }}>
+                {SERVICE_ITEMS.map((s, i) => (
+                  <div
+                    key={i}
+                    ref={el => { baCardRefs.current[i] = el; }}
+                    className="svc-card service-card-cinematic"
+                    style={{
+                      background: 'rgba(255,255,255,0.82)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      border: '1.5px solid rgba(237,207,135,0.5)',
+                      borderRadius: 28,
+                      padding: 'clamp(32px,4vw,48px)',
+                      marginBottom: 28,
+                      boxShadow: '0 4px 24px rgba(3,65,26,0.08), 0 1px 4px rgba(3,65,26,0.06)',
+                      transition: 'all 0.4s cubic-bezier(0.22,1,0.36,1)',
+                      cursor: 'default',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 16px 48px rgba(3,65,26,0.18), 0 4px 16px rgba(3,65,26,0.1)'; e.currentTarget.style.transform = 'translateX(8px)'; e.currentTarget.style.borderColor = 'var(--gold)'; e.currentTarget.style.background = 'rgba(255,255,255,0.96)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 24px rgba(3,65,26,0.08), 0 1px 4px rgba(3,65,26,0.06)'; e.currentTarget.style.transform = ''; e.currentTarget.style.borderColor = 'rgba(237,207,135,0.5)'; e.currentTarget.style.background = 'rgba(255,255,255,0.82)'; }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24 }}>
+                      <div style={{ width: 64, height: 64, flexShrink: 0, borderRadius: 20, background: 'linear-gradient(135deg, var(--forest), #4a8c3f)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 8px 24px rgba(3,65,26,0.3)' }}>
+                        <s.Icon />
                       </div>
-                      <p style={{ color: 'var(--text-2)', fontSize: 'clamp(0.9rem,1.2vw,1.05rem)', lineHeight: 1.85, fontWeight: 500, margin: 0 }}>{s.desc}</p>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                          <span style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.12em', background: 'rgba(201,168,76,0.12)', padding: '4px 12px', borderRadius: 99, border: '1px solid rgba(201,168,76,0.3)' }}>0{i + 1}</span>
+                          <h3 style={{ fontSize: 'clamp(1.1rem,1.8vw,1.4rem)', fontWeight: 900, color: 'var(--forest)', margin: 0 }}>{s.title}</h3>
+                        </div>
+                        <p style={{ color: 'var(--text-2)', fontSize: 'clamp(0.9rem,1.2vw,1.05rem)', lineHeight: 1.85, fontWeight: 500, margin: 0 }}>{s.desc}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-
-          {/* RIGHT: pinned before/after panel — Now an interactive SLIDER */}
-          <div className="ba-split-right" style={{ flex: '0 0 50%', width: '50vw', minWidth: '50vw', height: '100vh', position: 'relative', zIndex: 5, overflow: 'hidden', padding: '10vh 4vw 10vh 2vw' }}>
-            <div 
-              className="ba-slider-container"
-              onMouseMove={(e) => isDragging.current && handleSliderMove(e)}
-              onTouchMove={(e) => handleSliderMove(e)}
-              onMouseDown={() => { isDragging.current = true; }}
-              onMouseUp={() => { isDragging.current = false; }}
-              onMouseLeave={() => { isDragging.current = false; }}
-              style={{ 
-                width: '100%', height: '100%', position: 'relative', borderRadius: 48, overflow: 'hidden', 
-                boxShadow: '0 25px 60px -12px rgba(3,65,26,0.25), 0 10px 30px -5px rgba(3,65,26,0.15)', 
-                background: 'var(--bg-elevated)', cursor: 'ew-resize', userSelect: 'none' 
+            {/* RIGHT: sticky panel — grid track is fixed, perfectly smooth */}
+            <div
+              className="ba-split-right"
+              style={{
+                position: 'sticky',
+                top: '90px',
+                minWidth: 0,
+                zIndex: 5,
               }}
             >
-              {/* All image pairs layered, the active one fades in */}
-              {BEFORE_AFTER.map((item, bi) => (
-                <div 
-                  key={bi} 
-                  className="ba-pair"
-                  style={{ 
-                    position: 'absolute', inset: 0, width: '100%', height: '100%', 
-                    transition: 'opacity 0.8s cubic-bezier(0.4,0,0.2,1)',
-                    opacity: activeBA === bi ? 1 : 0,
-                    zIndex: activeBA === bi ? 2 : 1,
-                    pointerEvents: activeBA === bi ? 'auto' : 'none'
-                  }}
-                >
-                  {/* BEFORE (Bottom layer) */}
-                  <div style={{ position: 'absolute', inset: 0 }}>
-                    <img src={item.before} alt="Before" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <div style={{ position: 'absolute', top: 24, left: 24, background: 'rgba(220,38,38,0.9)', color: '#fff', padding: '6px 18px', borderRadius: 99, fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.12em', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}>BEFORE</div>
-                  </div>
-                  
-                  {/* AFTER (Top layer with clip-path) */}
-                  <div style={{ 
-                    position: 'absolute', inset: 0, 
-                    clipPath: `inset(0 0 0 ${sliderPos}%)`,
-                    transition: isDragging.current ? 'none' : 'clip-path 0.1s ease-out'
-                  }}>
-                    <img src={item.after} alt="After" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <div style={{ position: 'absolute', top: 24, right: 24, background: 'rgba(22,163,74,0.9)', color: '#fff', padding: '6px 18px', borderRadius: 99, fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.12em', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}>AFTER</div>
-                  </div>
+              <div
+                className="ba-slider-container"
+                onMouseMove={(e) => isDragging.current && handleSliderMove(e)}
+                onTouchMove={(e) => handleSliderMove(e)}
+                onMouseDown={() => { isDragging.current = true; }}
+                onMouseUp={() => { isDragging.current = false; }}
+                onMouseLeave={() => { isDragging.current = false; }}
+                style={{
+                  width: '100%',
+                  height: 'min(560px, 75vh)',
+                  position: 'relative',
+                  borderRadius: 40,
+                  overflow: 'hidden',
+                  boxShadow: 'var(--sh-xl)',
+                  background: 'var(--bg-elevated)',
+                  cursor: 'ew-resize',
+                  userSelect: 'none',
+                }}
+              >
+                {/* All image pairs layered, the active one fades in */}
+                {BEFORE_AFTER.map((item, bi) => (
+                  <div
+                    key={bi}
+                    className="ba-pair"
+                    style={{
+                      position: 'absolute', inset: 0, width: '100%', height: '100%',
+                      transition: 'opacity 0.8s cubic-bezier(0.4,0,0.2,1)',
+                      opacity: activeBA === bi ? 1 : 0,
+                      zIndex: activeBA === bi ? 2 : 1,
+                      pointerEvents: activeBA === bi ? 'auto' : 'none'
+                    }}
+                  >
+                    {/* BEFORE (Bottom layer) */}
+                    <div style={{ position: 'absolute', inset: 0 }}>
+                      <img src={item.before} alt="Before" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{ position: 'absolute', top: 24, left: 24, background: 'rgba(220,38,38,0.9)', color: '#fff', padding: '6px 18px', borderRadius: 99, fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.12em', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}>BEFORE</div>
+                    </div>
 
-                  {/* SLIDER HANDLE (The Toggle Bar) */}
-                  <div style={{ 
-                    position: 'absolute', top: 0, bottom: 0, left: `${sliderPos}%`,
-                    width: 4, background: '#fff', transform: 'translateX(-50%)',
-                    zIndex: 10, pointerEvents: 'none', boxShadow: '0 0 20px rgba(0,0,0,0.3)'
-                  }}>
-                    <div style={{ 
-                      position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                      width: 44, height: 44, background: '#fff', borderRadius: '50%',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)', color: 'var(--forest)',
-                      fontSize: '1.2rem', fontWeight: 'bold'
+                    {/* AFTER (Top layer with clip-path) */}
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      clipPath: `inset(0 0 0 ${sliderPos}%)`,
+                      transition: isDragging.current ? 'none' : 'clip-path 0.1s ease-out'
                     }}>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="m18 8 4 4-4 4M6 8l-4 4 4 4" />
-                      </svg>
+                      <img src={item.after} alt="After" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{ position: 'absolute', top: 24, right: 24, background: 'rgba(22,163,74,0.9)', color: '#fff', padding: '6px 18px', borderRadius: 99, fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.12em', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}>AFTER</div>
+                    </div>
+
+                    {/* SLIDER HANDLE */}
+                    <div style={{
+                      position: 'absolute', top: 0, bottom: 0, left: `${sliderPos}%`,
+                      width: 4, background: '#fff', transform: 'translateX(-50%)',
+                      zIndex: 10, pointerEvents: 'none', boxShadow: '0 0 20px rgba(0,0,0,0.3)'
+                    }}>
+                      <div style={{
+                        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                        width: 44, height: 44, background: '#fff', borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)', color: 'var(--forest)',
+                        fontSize: '1.2rem', fontWeight: 'bold'
+                      }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m18 8 4 4-4 4M6 8l-4 4 4 4" />
+                        </svg>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              
+                ))}
 
-              {/* Info overlay — Massive and readable */}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)', padding: '80px 48px 48px', zIndex: 10, pointerEvents: 'none' }}>
-                <div style={{ fontWeight: 900, color: '#fff', fontSize: '1.7rem', marginBottom: 6 }}>{BEFORE_AFTER[activeBA].label}</div>
-                <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem', lineHeight: 1.6, fontWeight: 500, maxWidth: 600 }}>{BEFORE_AFTER[activeBA].desc}</div>
+                {/* Info overlay */}
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)', padding: '80px 48px 48px', zIndex: 10, pointerEvents: 'none' }}>
+                  <div style={{ fontWeight: 900, color: '#fff', fontSize: '1.7rem', marginBottom: 6 }}>{BEFORE_AFTER[activeBA].label}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem', lineHeight: 1.6, fontWeight: 500, maxWidth: 600 }}>{BEFORE_AFTER[activeBA].desc}</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-          <div className="container mobile-only" style={{ paddingBottom: 60 }}>
-            <MobileBeforeAfter items={BEFORE_AFTER.slice(0, 3)} />
-            <div style={{ marginTop: 24 }}>
-              {SERVICE_ITEMS.map((s, i) => (
-                <div key={i} style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 20, padding: '18px 16px', marginBottom: 12, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                  <div style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 14, background: 'linear-gradient(135deg, var(--forest), #4a8c3f)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                    <s.Icon />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--forest)', marginBottom: 4 }}>{s.title}</h3>
-                    <p style={{ color: 'var(--text-2)', fontSize: '0.83rem', lineHeight: 1.65, margin: 0 }}>{s.desc}</p>
-                  </div>
+        <div className="container mobile-only" style={{ paddingBottom: 60, position: 'relative', zIndex: 2 }}>
+          <MobileBeforeAfter items={BEFORE_AFTER.slice(0, 3)} />
+          <div style={{ marginTop: 24 }}>
+            {SERVICE_ITEMS.map((s, i) => (
+              <div key={i} style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 20, padding: '18px 16px', marginBottom: 12, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <div style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 14, background: 'linear-gradient(135deg, var(--forest), #4a8c3f)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                  <s.Icon />
                 </div>
-              ))}
-            </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--forest)', marginBottom: 4 }}>{s.title}</h3>
+                  <p style={{ color: 'var(--text-2)', fontSize: '0.83rem', lineHeight: 1.65, margin: 0 }}>{s.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
+        </div>
       </section>
 
 
       {/* ═══ HOW IT WORKS — horizontal GSAP-style stack-expand ═══ */}
-      <section className="section" style={{ background: '#fff', position: 'relative', zIndex: 11, overflow: 'hidden', padding: 'clamp(40px,9vw,120px) 0 clamp(64px,10vw,120px)' }}>
+      <section className="section sec-sage" style={{ position: 'relative', zIndex: 11, overflow: 'hidden', padding: 'clamp(56px,9vw,130px) 0 clamp(72px,10vw,140px)' }}>
+        {/* Subtle radial blob decorations */}
+        <div style={{ position: 'absolute', top: -80, right: -80, width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -60, left: -60, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div className="container">
           <div className="section-header" style={{ textAlign: 'center', marginBottom: 'clamp(40px,6vw,80px)' }}>
-            <span className="overline">Streamlined System</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 8 }}>Booking to bloom in 3 steps</h2>
+            <div className="section-divider-line" />
+            <span className="overline overline-dot">Streamlined System</span>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Booking to bloom in 3 steps</h2>
           </div>
 
           {/* Desktop: horizontal row with GSAP-style expand from stack */}
@@ -584,16 +627,19 @@ export default function HomePage() {
                 }}
               >
                 <div style={{
-                  background: i === 1 ? 'var(--forest)' : '#fff',
+                  background: i === 1 ? 'var(--forest)' : 'rgba(255,255,255,0.82)',
+                  backdropFilter: i === 1 ? 'none' : 'blur(12px)',
+                  WebkitBackdropFilter: i === 1 ? 'none' : 'blur(12px)',
                   borderRadius: 'clamp(24px,3vw,40px)',
-                  border: i === 1 ? 'none' : '1.5px solid var(--border-gold)',
+                  border: i === 1 ? '1px solid rgba(201,168,76,0.25)' : '1px solid rgba(3,65,26,0.07)',
                   padding: 'clamp(28px,3.5vw,52px) clamp(20px,2.5vw,36px)',
                   textAlign: 'center',
-                  boxShadow: i === 1 ? 'var(--sh-xl)' : 'var(--sh-md)',
+                  boxShadow: i === 1 ? '0 24px 80px rgba(3,65,26,0.35), 0 8px 32px rgba(3,65,26,0.2)' : '0 4px 24px rgba(3,65,26,0.06), 0 1px 4px rgba(3,65,26,0.04)',
                   height: '100%',
                   position: 'relative',
                   overflow: 'hidden',
-                  transform: i === 1 ? 'translateY(-16px)' : 'none',
+                  transform: i === 1 ? 'translateY(-18px)' : 'none',
+                  transition: 'all 0.4s cubic-bezier(0.22,1,0.36,1)',
                 }}>
                   {/* Subtle glow for center card */}
                   {i === 1 && <div style={{ position: 'absolute', top: -30, right: -30, width: 150, height: 150, borderRadius: '50%', background: 'rgba(201,168,76,0.15)', filter: 'blur(40px)', pointerEvents: 'none' }} />}
@@ -630,11 +676,15 @@ export default function HomePage() {
       </section>
 
       {/* ═══ BRAND STORY ═══ */}
-      <section className="section brand-story-section" id="brand-story" style={{ background: '#fff', position: 'relative', zIndex: 11, borderTop: '1px solid var(--border-gold)', borderBottom: '1px solid var(--border-gold)', padding: 'clamp(64px,8vw,120px) 0 clamp(80px,12vw,160px)' }}>
-        <div className="container">
+      <section className="section brand-story-section sec-cream" id="brand-story" style={{ position: 'relative', zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)', borderBottom: '1px solid rgba(3,65,26,0.06)', padding: 'clamp(64px,8vw,120px) 0 clamp(80px,12vw,160px)' }}>
+        {/* Decorative blobs */}
+        <div style={{ position: 'absolute', top: -40, left: '10%', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -40, right: '8%', width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div className="container" style={{ position: 'relative' }}>
           <div className="section-header" style={{ textAlign: 'center', marginBottom: 64 }}>
-            <span className="overline">Our Brand Story</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 8 }}>Professional gardening made simple</h2>
+            <div className="section-divider-line" />
+            <span className="overline overline-dot">Our Brand Story</span>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Professional gardening made simple</h2>
           </div>
 
           <div className="brand-story-grid">
@@ -651,7 +701,7 @@ export default function HomePage() {
 
               <div>
                 <h3 style={{ color: 'var(--forest)', fontSize: '1.8rem', fontWeight: 900, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
-                   <span style={{ color: 'var(--earth)' }}><IcShield /></span> Our Values
+                  <span style={{ color: 'var(--earth)' }}><IcShield /></span> Our Values
                 </h3>
                 <div className="values-grid">
                   {[
@@ -673,7 +723,7 @@ export default function HomePage() {
             <div className="journey-card">
               {/* Decoration */}
               <div className="journey-card-deco" />
-              
+
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <h3 style={{ color: 'var(--forest)', fontSize: '1.8rem', fontWeight: 900, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ color: 'var(--earth)' }}><IcLeaf /></span> From Scratch
@@ -694,12 +744,13 @@ export default function HomePage() {
 
       {/* ═══ SHOP PREVIEW ═══ */}
       {shopProducts?.length > 0 && (
-        <section className="section" style={{ background: 'var(--bg)', position: 'relative', zIndex: 11, borderTop: '1px solid var(--border-mid)' }}>
+        <section className="section sec-white" style={{ position: 'relative', zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)' }}>
           <div className="container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 52, flexWrap: 'wrap', gap: 20 }}>
               <div style={{ maxWidth: 540 }}>
-                <span className="overline">GharKaMali Market</span>
-                <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 8 }}>Premium Plant Utilities</h2>
+                <div className="section-divider-line" style={{ margin: '0 0 16px' }} />
+                <span className="overline overline-dot">GharKaMali Market</span>
+                <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 10 }}>Premium Plant Utilities</h2>
                 <p className="lead">Curated organic fertilizers, elite tools, and exotic species.</p>
               </div>
               <Link href="/shop" className="btn btn-outline btn-3d-plant" style={{ background: '#fff', fontWeight: 700, borderColor: 'var(--forest)', color: 'var(--forest)', position: 'relative', overflow: 'visible' }}>
@@ -727,12 +778,17 @@ export default function HomePage() {
         </section>
       )}
       {/* ═══ FINAL CTA ═══ */}
-      <section className="section final-cta" id="cta" style={{ background: 'var(--cream)', borderTop: '1px solid var(--border-gold)' }}>
-        <div className="container" style={{ textAlign: 'center', position: 'relative', zIndex: 10 }}>
-          <div className="final-cta-box" style={{ background: '#fff', padding: 'clamp(36px,6vw,80px) clamp(20px,5vw,60px)', borderRadius: 'clamp(28px,5vw,52px)', border: '2px solid var(--gold)', boxShadow: 'var(--sh-xl)', position: 'relative', overflow: 'hidden' }}>
-            {/* Background decoration */}
-            <div style={{ position: 'absolute', right: -60, top: -60, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(237,207,135,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', left: -40, bottom: -40, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <section className="section final-cta" id="cta" style={{ borderTop: '1px solid rgba(3,65,26,0.07)', padding: 'clamp(56px,8vw,120px) 0' }}>
+        {/* Light gardening video background */}
+        <video autoPlay loop muted playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.18 }}>
+          <source src="/bg.mp4" type="video/mp4" />
+        </video>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(145deg, rgba(255,252,234,0.94) 0%, rgba(240,252,244,0.92) 50%, rgba(255,252,234,0.94) 100%)', pointerEvents: 'none' }} />
+        <div className="container" style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
+          <div className="final-cta-box" style={{ background: 'rgba(255,255,255,0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: 'clamp(36px,6vw,80px) clamp(20px,5vw,60px)', borderRadius: 'clamp(28px,5vw,52px)', border: '1.5px solid rgba(201,168,76,0.35)', boxShadow: '0 20px 80px rgba(3,65,26,0.10), 0 4px 20px rgba(3,65,26,0.07)', position: 'relative', overflow: 'hidden' }}>
+            {/* Soft radial glows */}
+            <div style={{ position: 'absolute', right: -60, top: -60, width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle, rgba(237,207,135,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', left: -40, bottom: -40, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,5.5vw,4.2rem)', fontWeight: 900, color: 'var(--forest)', marginBottom: 24, lineHeight: 1.1, position: 'relative', fontStyle: 'normal' }}>
               Ready for a Professional<br />
@@ -753,12 +809,13 @@ export default function HomePage() {
         </div>
       </section>
       {/* ═══ TESTIMONIALS ═══ */}
-      <section className="section trust-section" id="testimonials" style={{ background: '#fff', zIndex: 11, paddingBottom: 100 }}>
+      <section className="section trust-section" id="testimonials" style={{ zIndex: 11, paddingBottom: 100 }}>
         <div className="container">
           <div className="section-header" style={{ textAlign: 'center', marginBottom: 52 }}>
-            <span className="overline">Social Proof</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 8 }}>Voices from Noida Societies</h2>
-            <p style={{ color: 'var(--text-2)', marginTop: 12, fontSize: '0.9rem', opacity: 0.7 }}>Hover to pause</p>
+            <div className="section-divider-line" />
+            <span className="overline overline-dot">Social Proof</span>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Voices from Noida Societies</h2>
+            <p style={{ color: 'var(--text-2)', marginTop: 12, fontSize: '0.9rem', opacity: 0.6 }}>Hover to pause</p>
           </div>
         </div>
         {/* Infinite Marquee — duplicated for seamless loop */}
@@ -788,16 +845,17 @@ export default function HomePage() {
 
       {/* ═══ BLOG JOURNAL ═══ */}
       {blogs?.length > 0 && (
-        <section className="section" style={{ background: 'var(--cream)', position: 'relative', zIndex: 11, borderTop: '1px solid var(--border-gold)' }}>
+        <section className="section sec-white" style={{ position: 'relative', zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)' }}>
           <div className="container">
             <div style={{ textAlign: 'center', marginBottom: 52 }}>
-              <span className="overline">Botanical Journal</span>
-              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 8 }}>Learn Realistic Plant Care</h2>
+              <div className="section-divider-line" />
+              <span className="overline overline-dot">Botanical Journal</span>
+              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Learn Realistic Plant Care</h2>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 28 }}>
-              {blogs?.length > 0 ? blogs.slice(0, 3).map((b: any) => (
-                <Link key={b._id} href={`/blogs/${b.slug}`} style={{ display: 'flex', flexDirection: 'column', gap: 18, textDecoration: 'none' }}>
-                  <div style={{ position: 'relative', borderRadius: 28, overflow: 'hidden', aspectRatio: '16/10', boxShadow: 'var(--sh-sm)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 32 }}>
+              {blogs?.length > 0 ? blogs.slice(0, 3).map((b: any, bi: number) => (
+                <Link key={b._id} href={`/blogs/${b.slug}`} className={`s-reveal s-reveal-d${bi + 1}`} style={{ display: 'flex', flexDirection: 'column', gap: 18, textDecoration: 'none' }}>
+                  <div className="blog-img-zoom" style={{ position: 'relative', aspectRatio: '16/10' }}>
                     <img src={b.thumbnail || 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=500&fit=crop'} alt={b.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <div style={{ position: 'absolute', top: 16, left: 16, background: 'rgba(255,255,255,0.92)', padding: '6px 16px', borderRadius: 99, fontSize: '0.72rem', fontWeight: 800, color: 'var(--forest)', backdropFilter: 'blur(8px)' }}>{b.category?.name || 'Expert Tips'}</div>
                   </div>
@@ -817,13 +875,14 @@ export default function HomePage() {
 
       {/* ═══ PLANS PREVIEW ═══ */}
       {plans.length > 0 && (
-        <section className="section" style={{ background: 'var(--bg)', zIndex: 11, borderTop: '1px solid var(--border)', paddingBottom: 120 }}>
+        <section className="section sec-sage" style={{ zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)', paddingBottom: 120 }}>
           <div className="container">
             <div style={{ textAlign: 'center', marginBottom: 64 }}>
-              <span className="overline" style={{ color: 'var(--forest)', opacity: 0.5 }}>Subscription Experience</span>
+              <div className="section-divider-line" />
+              <span className="overline overline-dot">Subscription Experience</span>
               <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, letterSpacing: '-0.02em' }}>Choose Your botanical <span style={{ color: 'var(--earth)', fontStyle: 'normal' }}>wellness journey</span></h2>
             </div>
-            
+
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center', marginBottom: 64 }}>
               {plans.slice(0, 2).map((plan: any, i: number) => {
                 const isDark = i === 1;
@@ -831,8 +890,10 @@ export default function HomePage() {
                   <div key={plan._id || i} className="plan-home-card" style={{
                     flex: '1 1 min(420px, calc(100vw - 40px))',
                     maxWidth: 500,
-                    background: isDark ? 'var(--forest)' : '#fff',
-                    border: `1.5px solid ${isDark ? 'transparent' : 'var(--border-gold)'}`,
+                    background: isDark ? 'var(--forest)' : 'rgba(255,255,255,0.85)',
+                    backdropFilter: isDark ? 'none' : 'blur(12px)',
+                    WebkitBackdropFilter: isDark ? 'none' : 'blur(12px)',
+                    border: `1.5px solid ${isDark ? 'rgba(201,168,76,0.2)' : 'rgba(201,168,76,0.35)'}`,
                     borderRadius: 'clamp(24px,4vw,40px)',
                     padding: 'clamp(28px,5vw,52px) clamp(20px,4vw,48px)',
                     position: 'relative',
@@ -840,16 +901,16 @@ export default function HomePage() {
                     transition: 'all 0.4s var(--ease)',
                   }}>
                     {isDark && <div style={{ position: 'absolute', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--gold)', color: 'var(--forest)', padding: '6px 20px', borderRadius: 99, fontSize: '0.72rem', fontWeight: 900, whiteSpace: 'nowrap', boxShadow: '0 4px 15px rgba(201,168,76,0.4)', zIndex: 5 }}>MOST RECOMMENDED</div>}
-                    
+
                     <div style={{ fontSize: '0.75rem', fontWeight: 800, color: isDark ? 'rgba(255,255,255,0.6)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12 }}>{plan.plan_type}</div>
                     <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 12, letterSpacing: '-0.02em' }}>{plan.name}</h3>
                     <p style={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'var(--text-2)', fontSize: '1rem', marginBottom: 40, lineHeight: 1.7 }}>{plan.description || 'Elevate your living space with our premium botanical maintenance plans.'}</p>
-                    
+
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 44 }}>
                       <span style={{ fontSize: '3.4rem', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', letterSpacing: '-0.02em' }}>₹{plan.price}</span>
                       <span style={{ fontSize: '1.2rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 600 }}>/month</span>
                     </div>
-                    
+
                     <Link href={`/book?plan=${plan.id}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'} btn-lg`} style={{ width: '100%', justifyContent: 'center', padding: '18px', fontSize: '0.95rem' }}>
                       Subscribe Now →
                     </Link>

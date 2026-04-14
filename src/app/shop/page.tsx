@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -27,9 +28,10 @@ const CATEGORY_ICONS: Record<string, () => JSX.Element> = {
   'all': () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
 };
 
-export default function ShopPage() {
+function ShopPageInner() {
+  const searchParams = useSearchParams();
   const [cat, setCat] = useState('All');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>(['All']);
   const [loading, setLoading] = useState(true);
@@ -40,6 +42,12 @@ export default function ShopPage() {
   const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Sync search from URL (e.g. when navbar search redirects here)
+  useEffect(() => {
+    const q = searchParams.get('search');
+    if (q) setSearch(q);
+  }, [searchParams]);
 
   // 3D GSAP + Three.js-lite canvas hero
   useEffect(() => {
@@ -169,7 +177,7 @@ export default function ShopPage() {
           <div className="container shop-hero-content" style={{ position: 'relative', zIndex: 5, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 16 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 99, padding: '6px 18px' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#c9a84c', animation: 'badgePulse 2s infinite' }}/>
-              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'rgba(201,168,76,0.9)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Garden Marketplace</span>
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'rgba(201,168,76,0.9)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Plant Store</span>
             </div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.2rem,6vw,4.5rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 0.95, textShadow: '0 0 60px rgba(3,65,26,0.8)' }}>
               Everything your<br/><span style={{ color: '#c9a84c', fontStyle: 'normal' }}>garden needs</span>
@@ -177,15 +185,6 @@ export default function ShopPage() {
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 'clamp(0.9rem,1.5vw,1.1rem)', maxWidth: 480, lineHeight: 1.7 }}>
               Premium plants, quality tools, organic fertilizers — curated by expert plant experts
             </p>
-            {/* Futuristic search */}
-            <div style={{ position: 'relative', width: '100%', maxWidth: 500, marginTop: 8 }}>
-              <div style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', color: 'rgba(201,168,76,0.7)' }}><IcSearch/></div>
-              <input type="text" placeholder="Search plants, pots, fertilizers..." value={search} onChange={e => setSearch(e.target.value)}
-                style={{ width: '100%', padding: '16px 20px 16px 52px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 99, color: '#fff', fontSize: '0.95rem', fontFamily: 'var(--font-body)', fontWeight: 500, outline: 'none', backdropFilter: 'blur(10px)', boxSizing: 'border-box' }}
-                onFocus={e => e.target.style.borderColor = 'rgba(201,168,76,0.5)'}
-                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.12)'}
-              />
-            </div>
           </div>
         </div>
 
@@ -205,7 +204,7 @@ export default function ShopPage() {
 
         <div className="container" style={{ paddingTop: 32, paddingBottom: 80 }}>
           {/* Filter bar: Search + Category tabs + Sort */}
-          <div className="cat-tabs-row" style={{ display: 'flex', gap: 10, alignItems: 'center', paddingBottom: 8, marginBottom: 32, flexWrap: 'wrap' }}>
+          <div className="cat-tabs-row" style={{ display: 'flex', gap: 10, alignItems: 'center', paddingBottom: 8, marginBottom: 32, flexWrap: 'wrap', paddingTop: 8 }}>
             {/* Search input */}
             <div style={{ position: 'relative', flex: '0 0 auto', minWidth: 220 }}>
               <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--forest)', opacity: 0.5 }}><IcSearch /></div>
@@ -262,7 +261,7 @@ export default function ShopPage() {
               <p style={{ color: 'var(--text-muted)' }}>Try a different search or category</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24, width: '100%' }}>
+            <div className="product-grid" key={`${cat}-${search}-${sort}`} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24, width: '100%' }}>
               {products.map((p, i) => {
                 const qty = getQty(p.id);
                 const price = Number(p.price), mrp = Number(p.mrp);
@@ -359,8 +358,12 @@ export default function ShopPage() {
       <Footer/>
 
       <style jsx global>{`
-        .product-tile { cursor: default; }
+        .product-tile { cursor: default; transition: box-shadow 0.3s ease, transform 0.3s ease; }
+        .product-grid { animation: gridFadeIn 0.45s ease both; }
+        @keyframes gridFadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        @keyframes fade-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
         @media(max-width:640px){ [style*="minmax(270px"]{grid-template-columns:1fr!important} }
+        @media(max-width:900px){ .cat-tabs-row { padding-top: 16px !important; } }
         .skeleton{background:linear-gradient(90deg,var(--bg-elevated) 25%,var(--cream-dark) 50%,var(--bg-elevated) 75%);background-size:200% 100%;animation:shimmer 1.6s ease infinite;border-radius:8px}
         @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
         input::placeholder{color:rgba(255,255,255,0.3)}
@@ -368,3 +371,5 @@ export default function ShopPage() {
     </SmoothScrollProvider>
   );
 }
+
+export default function ShopPage() { return <Suspense><ShopPageInner /></Suspense>; }

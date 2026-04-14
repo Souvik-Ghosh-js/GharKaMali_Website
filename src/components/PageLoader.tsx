@@ -134,7 +134,7 @@ export default function PageLoader() {
 
           {/* Inner leaf ring (decorative dots) */}
           <svg width="140" height="140" viewBox="0 0 140 140" style={{ position: 'absolute', inset: 0, animation: 'loaderRing 6s linear infinite reverse' }}>
-            {[0,45,90,135,180,225,270,315].map((deg, i) => (
+            {[0, 45, 90, 135, 180, 225, 270, 315].map((deg, i) => (
               <circle key={i}
                 cx={70 + 54 * Math.cos((deg * Math.PI) / 180)}
                 cy={70 + 54 * Math.sin((deg * Math.PI) / 180)}
@@ -153,7 +153,7 @@ export default function PageLoader() {
             boxShadow: '0 8px 32px rgba(3,65,26,0.15), 0 0 0 1px rgba(3,65,26,0.06)',
             animation: 'logo-breathe 2.2s ease-in-out infinite',
           }}>
-            <Image src="/logo.png" alt="GharKaMali" width={72} height={72} priority style={{ objectFit: 'contain' }} />
+            <Image src="/logo-dark.png" alt="GharKaMali" width={72} height={72} priority style={{ objectFit: 'contain' }} />
           </div>
         </div>
 
