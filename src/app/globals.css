@@ -155,13 +155,28 @@ video {
 
 .display-2 {
   font-family: var(--font-display);
-  font-size: clamp(0.7rem, 2.8vw, 3.8rem);
+  font-size: clamp(1.55rem, 4vw, 4.5rem);
   font-weight: 800;
-  line-height: 1.0;
+  line-height: 1.08;
   letter-spacing: -0.025em;
   font-style: normal;
-  white-space: nowrap;
-  max-width: 100%;
+  /* Mobile: full-width block, text centered within it */
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Desktop: shrink-wrap to content then center the block itself —
+   this is immune to text-align BFC/flex inheritance quirks */
+@media (min-width: 769px) {
+  .display-2 {
+    white-space: nowrap;
+    line-height: 1.0;
+    width: fit-content;
+    text-align: left; /* irrelevant when width=fit-content, but explicit */
+  }
 }
 
 .h1 {
@@ -228,6 +243,8 @@ h6 {
   max-width: 1800px;
   margin: 0 auto;
   padding: 0 clamp(20px, 4vw, 80px);
+  /* container-type removed — no @container queries exist; it was creating
+     an unwanted block-formatting-context that shifted centered h2 text. */
 }
 
 .container-sm {

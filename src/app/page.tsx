@@ -165,56 +165,114 @@ const BEFORE_AFTER = [
   { before: 'https://images.unsplash.com/photo-1509587584298-0f3b3a3a1797?w=800&h=800&fit=crop', after: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=800&fit=crop', label: 'Digital Report', desc: 'Real-time plant health analytics and WhatsApp-based before/after photo documentation.' },
 ];
 
-/* ── MOBILE BEFORE/AFTER TOGGLE ── */
-const MobileBeforeAfter = ({ items }: { items: typeof BEFORE_AFTER }) => {
-  const [toggles, setToggles] = useState<boolean[]>(items.map(() => false));
-  const toggle = (i: number) => setToggles(prev => { const n = [...prev]; n[i] = !n[i]; return n; });
+/* ── INTERACTIVE SERVICES ACCORDION & MOBILE ── */
+const ServicesAccordion = () => {
+  const [active, setActive] = useState(0);
+
   return (
-    <div className="mobile-only container" style={{ paddingBottom: 24 }}>
-      {items.map((item, i) => (
-        <div key={i} style={{ marginBottom: 24, borderRadius: 20, overflow: 'hidden', border: '1.5px solid var(--border-gold)', background: '#fff' }}>
-          <div style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden' }}>
-            <img
-              src={toggles[i] ? item.after : item.before}
-              alt={toggles[i] ? 'After' : 'Before'}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 0.4s ease' }}
-            />
-            {/* BEFORE / AFTER label */}
-            <div style={{
-              position: 'absolute', top: 12, left: 12,
-              background: toggles[i] ? 'rgba(22,163,74,0.95)' : 'rgba(220,38,38,0.95)',
-              color: '#fff', padding: '5px 14px', borderRadius: 99,
-              fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.1em',
-              backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.2)',
-              transition: 'background 0.3s ease'
-            }}>
-              {toggles[i] ? 'AFTER' : 'BEFORE'}
-            </div>
-            {/* Toggle button */}
-            <button
-              onClick={() => toggle(i)}
+    <>
+      <div className="desktop-only" style={{ display: 'flex', height: '540px', gap: '20px', width: '100%' }}>
+        {SERVICE_ITEMS.map((s, i) => {
+          const isActive = active === i;
+          const transformation = BEFORE_AFTER[i] || BEFORE_AFTER[0];
+          return (
+            <div
+              key={i}
+              onMouseEnter={() => setActive(i)}
               style={{
-                position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
-                background: 'rgba(255,255,255,0.95)', border: '1.5px solid var(--border-gold)',
-                borderRadius: 99, padding: '8px 20px', fontSize: '0.78rem', fontWeight: 800,
-                color: 'var(--forest)', cursor: 'pointer', backdropFilter: 'blur(8px)',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', gap: 8,
-                transition: 'all 0.2s ease', whiteSpace: 'nowrap'
+                flex: isActive ? 6 : 1,
+                position: 'relative',
+                borderRadius: '32px',
+                overflow: 'hidden',
+                transition: 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
+                cursor: 'pointer',
+                boxShadow: isActive ? '0 20px 60px rgba(3,65,26,0.2)' : '0 4px 10px rgba(3,65,26,0.05)'
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <polyline points={toggles[i] ? "15 18 9 12 15 6" : "9 18 15 12 9 6"} />
-              </svg>
-              {toggles[i] ? 'Show Before' : 'Show After'}
-            </button>
-          </div>
-          <div style={{ padding: '14px 18px' }}>
-            <div style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '0.95rem' }}>{item.label}</div>
-            <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', lineHeight: 1.6, margin: '4px 0 0' }}>{item.desc}</p>
-          </div>
-        </div>
-      ))}
-    </div>
+              {/* Background Image */}
+              <img 
+                src={transformation.after} 
+                alt={s.title} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0, filter: isActive ? 'none' : 'grayscale(30%) brightness(0.8)' }} 
+              />
+              
+              {/* Gradient Overlay */}
+              <div style={{ position: 'absolute', inset: 0, background: isActive ? 'linear-gradient(to top, rgba(3,65,26,0.95) 0%, rgba(3,65,26,0.4) 40%, transparent 100%)' : 'rgba(3,65,26,0.6)', transition: 'background 0.6s' }} />
+
+              {/* Icon Overlay for inactive tabs */}
+              <div style={{ 
+                position: 'absolute', 
+                bottom: 40,
+                left: '50%', 
+                transform: 'translateX(-50%)', 
+                transition: 'all 0.6s ease',
+                display: isActive ? 'none' : 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12
+              }}>
+                <div style={{ color: '#fff', width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <s.Icon />
+                </div>
+              </div>
+
+              {/* Active Content */}
+              <div style={{ 
+                position: 'absolute', 
+                bottom: 0, left: 0, right: 0, 
+                padding: '40px',
+                color: '#fff',
+                opacity: isActive ? 1 : 0,
+                transform: isActive ? 'translateY(0)' : 'translateY(20px)',
+                transition: 'all 0.5s ease 0.2s',
+                pointerEvents: isActive ? 'auto' : 'none'
+              }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.2)', padding: '6px 14px', borderRadius: 99, fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16, backdropFilter: 'blur(8px)' }}>
+                  {transformation.label}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                   <div style={{ color: '#fff', width: 64, height: 64, flexShrink: 0, borderRadius: '20px', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(237,207,135,0.3)' }}>
+                     <s.Icon />
+                   </div>
+                   <div>
+                     <h3 style={{ fontSize: '1.8rem', fontWeight: 900, margin: '0 0 8px 0', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>{s.title}</h3>
+                     <p style={{ fontSize: '1rem', fontWeight: 500, margin: 0, opacity: 0.9, maxWidth: 500, lineHeight: 1.6 }}>{s.desc}</p>
+                   </div>
+                </div>
+              </div>
+
+            </div>
+          );
+        })}
+      </div>
+
+      {/* MOBILE LIST */}
+      <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 60 }}>
+        {SERVICE_ITEMS.map((s, i) => {
+          const transformation = BEFORE_AFTER[i] || BEFORE_AFTER[0];
+          return (
+            <div key={i} style={{ borderRadius: 28, overflow: 'hidden', position: 'relative', boxShadow: 'var(--sh-md)', background: '#fff' }}>
+               <div style={{ height: 220, position: 'relative' }}>
+                 <img src={transformation.after} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(3,65,26,0.9) 0%, transparent 100%)' }} />
+                 <div style={{ position: 'absolute', bottom: 20, left: 20, display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.2)', padding: '6px 14px', borderRadius: 99, fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#fff', backdropFilter: 'blur(8px)' }}>
+                    {transformation.label}
+                  </div>
+               </div>
+               <div style={{ padding: 24, display: 'flex', gap: 16 }}>
+                 <div style={{ color: '#fff', width: 50, height: 50, flexShrink: 0, borderRadius: '16px', background: 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <s.Icon />
+                 </div>
+                 <div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--forest)', margin: '0 0 6px 0' }}>{s.title}</h3>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-2)', margin: 0, lineHeight: 1.6 }}>{s.desc}</p>
+                 </div>
+               </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
   );
 };
 
@@ -411,178 +469,25 @@ export default function HomePage() {
 
 
 
-      {/* ═══ SERVICES + BEFORE/AFTER GSAP SCROLL (Desktop) ═══ */}
+      {/* ═══ NEW: INTERACTIVE SERVICES SHOWCASE ═══ */}
       <section id="services" style={{ position: 'relative', zIndex: 10, padding: 'clamp(48px,6vw,96px) 0 clamp(64px,10vw,120px)' }}>
-        {/* Gardening video background — light airy overlay */}
-        <video autoPlay loop muted playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.22 }}>
+        <video autoPlay loop muted playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.15 }}>
           <source src="/bg.mp4" type="video/mp4" />
         </video>
-        {/* Light warm overlay so the section stays bright */}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(135deg, rgba(255,249,225,0.93) 0%, rgba(235,250,240,0.90) 50%, rgba(255,249,225,0.93) 100%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(135deg, rgba(255,249,225,0.95) 0%, rgba(235,250,240,0.92) 50%, rgba(255,249,225,0.95) 100%)', pointerEvents: 'none' }} />
+        
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           {/* Heading */}
           <div style={{ textAlign: 'center', marginBottom: 'clamp(32px,5vw,64px)' }}>
             <div className="section-divider-line" />
-            <span className="overline overline-dot">Our Services & Transformations</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, marginBottom: 14 }}>Real Transformations</h2>
+            <span className="overline overline-dot">Our Expertise</span>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, marginBottom: 14 }}>Premium Care Services</h2>
             <p style={{ color: 'var(--text-2)', fontSize: 'clamp(0.9rem,1.4vw,1.05rem)', fontWeight: 500, maxWidth: 540, margin: '0 auto', lineHeight: 1.75 }}>
-              Watch how GharKaMali turns neglected spaces into thriving green sanctuaries.
+              Expert solutions tailored for every plant. Hover to explore our services and view realistic transformations.
             </p>
           </div>
-        </div>
 
-          {/* Desktop Split Layout — CSS Grid for smooth sticky, no flex-resize glitch */}
-          <div
-            className="ba-split-layout"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '60px',
-              alignItems: 'start',
-              width: '100%',
-              position: 'relative',
-            }}
-          >
-            {/* LEFT: cards — grid track is fixed, no resize during scroll */}
-            <div style={{ minWidth: 0 }}>
-              <div style={{ width: '100%' }}>
-                {SERVICE_ITEMS.map((s, i) => (
-                  <div
-                    key={i}
-                    ref={el => { baCardRefs.current[i] = el; }}
-                    className="svc-card service-card-cinematic"
-                    style={{
-                      background: '#ffffff',
-                      border: '1.5px solid rgba(237,207,135,0.8)',
-                      borderRadius: 28,
-                      padding: 'clamp(32px,4vw,48px)',
-                      marginBottom: 28,
-                      boxShadow: '0 8px 32px rgba(3,65,26,0.12), 0 2px 8px rgba(3,65,26,0.08)',
-                      transition: 'all 0.4s cubic-bezier(0.22,1,0.36,1)',
-                      cursor: 'default',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 16px 48px rgba(3,65,26,0.18), 0 4px 16px rgba(3,65,26,0.1)'; e.currentTarget.style.transform = 'translateX(8px)'; e.currentTarget.style.borderColor = 'var(--gold)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(3,65,26,0.12), 0 2px 8px rgba(3,65,26,0.08)'; e.currentTarget.style.transform = ''; e.currentTarget.style.borderColor = 'rgba(237,207,135,0.8)'; }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24 }}>
-                      <div style={{ width: 64, height: 64, flexShrink: 0, borderRadius: 20, background: 'linear-gradient(135deg, var(--forest), #4a8c3f)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 8px 24px rgba(3,65,26,0.3)' }}>
-                        <s.Icon />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                          <span style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.12em', background: 'rgba(201,168,76,0.12)', padding: '4px 12px', borderRadius: 99, border: '1px solid rgba(201,168,76,0.3)' }}>0{i + 1}</span>
-                          <h3 style={{ fontSize: 'clamp(1.1rem,1.8vw,1.4rem)', fontWeight: 900, color: 'var(--forest)', margin: 0 }}>{s.title}</h3>
-                        </div>
-                        <p style={{ color: 'var(--text-2)', fontSize: 'clamp(0.9rem,1.2vw,1.05rem)', lineHeight: 1.85, fontWeight: 500, margin: 0 }}>{s.desc}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* RIGHT: sticky panel — grid track is fixed, perfectly smooth */}
-            <div
-              className="ba-split-right"
-              style={{
-                position: 'sticky',
-                top: '90px',
-                minWidth: 0,
-                zIndex: 5,
-              }}
-            >
-              <div
-                className="ba-slider-container"
-                onMouseMove={(e) => isDragging.current && handleSliderMove(e)}
-                onTouchMove={(e) => handleSliderMove(e)}
-                onMouseDown={() => { isDragging.current = true; }}
-                onMouseUp={() => { isDragging.current = false; }}
-                onMouseLeave={() => { isDragging.current = false; }}
-                style={{
-                  width: '100%',
-                  height: 'min(560px, 75vh)',
-                  position: 'relative',
-                  borderRadius: 40,
-                  overflow: 'hidden',
-                  boxShadow: 'var(--sh-xl)',
-                  background: 'var(--bg-elevated)',
-                  cursor: 'ew-resize',
-                  userSelect: 'none',
-                }}
-              >
-                {/* All image pairs layered, the active one fades in */}
-                {BEFORE_AFTER.map((item, bi) => (
-                  <div
-                    key={bi}
-                    className="ba-pair"
-                    style={{
-                      position: 'absolute', inset: 0, width: '100%', height: '100%',
-                      transition: 'opacity 0.8s cubic-bezier(0.4,0,0.2,1)',
-                      opacity: activeBA === bi ? 1 : 0,
-                      zIndex: activeBA === bi ? 2 : 1,
-                      pointerEvents: activeBA === bi ? 'auto' : 'none'
-                    }}
-                  >
-                    {/* BEFORE (Bottom layer) */}
-                    <div style={{ position: 'absolute', inset: 0 }}>
-                      <img src={item.before} alt="Before" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <div style={{ position: 'absolute', top: 24, left: 24, background: 'rgba(220,38,38,0.9)', color: '#fff', padding: '6px 18px', borderRadius: 99, fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.12em', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}>BEFORE</div>
-                    </div>
-
-                    {/* AFTER (Top layer with clip-path) */}
-                    <div style={{
-                      position: 'absolute', inset: 0,
-                      clipPath: `inset(0 0 0 ${sliderPos}%)`,
-                      transition: isDragging.current ? 'none' : 'clip-path 0.1s ease-out'
-                    }}>
-                      <img src={item.after} alt="After" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <div style={{ position: 'absolute', top: 24, right: 24, background: 'rgba(22,163,74,0.9)', color: '#fff', padding: '6px 18px', borderRadius: 99, fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.12em', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}>AFTER</div>
-                    </div>
-
-                    {/* SLIDER HANDLE */}
-                    <div style={{
-                      position: 'absolute', top: 0, bottom: 0, left: `${sliderPos}%`,
-                      width: 4, background: '#fff', transform: 'translateX(-50%)',
-                      zIndex: 10, pointerEvents: 'none', boxShadow: '0 0 20px rgba(0,0,0,0.3)'
-                    }}>
-                      <div style={{
-                        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                        width: 44, height: 44, background: '#fff', borderRadius: '50%',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)', color: 'var(--forest)',
-                        fontSize: '1.2rem', fontWeight: 'bold'
-                      }}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="m18 8 4 4-4 4M6 8l-4 4 4 4" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Info overlay */}
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)', padding: '80px 48px 48px', zIndex: 10, pointerEvents: 'none' }}>
-                  <div style={{ fontWeight: 900, color: '#fff', fontSize: '1.7rem', marginBottom: 6 }}>{BEFORE_AFTER[activeBA].label}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem', lineHeight: 1.6, fontWeight: 500, maxWidth: 600 }}>{BEFORE_AFTER[activeBA].desc}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        <div className="container mobile-only" style={{ paddingBottom: 60, position: 'relative', zIndex: 2 }}>
-          <MobileBeforeAfter items={BEFORE_AFTER.slice(0, 3)} />
-          <div style={{ marginTop: 24 }}>
-            {SERVICE_ITEMS.map((s, i) => (
-              <div key={i} style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 20, padding: '18px 16px', marginBottom: 12, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                <div style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 14, background: 'linear-gradient(135deg, var(--forest), #4a8c3f)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                  <s.Icon />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--forest)', marginBottom: 4 }}>{s.title}</h3>
-                  <p style={{ color: 'var(--text-2)', fontSize: '0.83rem', lineHeight: 1.65, margin: 0 }}>{s.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <ServicesAccordion />
         </div>
       </section>
 
@@ -593,7 +498,7 @@ export default function HomePage() {
         <div style={{ position: 'absolute', top: -80, right: -80, width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -60, left: -60, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div className="container">
-          <div className="section-header" style={{ textAlign: 'center', marginBottom: 'clamp(40px,6vw,80px)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 'clamp(40px,6vw,80px)' }}>
             <div className="section-divider-line" />
             <span className="overline overline-dot">Streamlined System</span>
             <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Booking to bloom in 3 steps</h2>
@@ -679,7 +584,7 @@ export default function HomePage() {
         <div style={{ position: 'absolute', top: -40, left: '10%', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -40, right: '8%', width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div className="container" style={{ position: 'relative' }}>
-          <div className="section-header" style={{ textAlign: 'center', marginBottom: 64 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 64 }}>
             <div className="section-divider-line" />
             <span className="overline overline-dot">Our Brand Story</span>
             <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Professional gardening made simple</h2>
@@ -809,7 +714,7 @@ export default function HomePage() {
       {/* ═══ TESTIMONIALS ═══ */}
       <section className="section trust-section" id="testimonials" style={{ zIndex: 11, paddingBottom: 100 }}>
         <div className="container">
-          <div className="section-header" style={{ textAlign: 'center', marginBottom: 52 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 52 }}>
             <div className="section-divider-line" />
             <span className="overline overline-dot">Social Proof</span>
             <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Voices from Noida Societies</h2>
@@ -878,7 +783,7 @@ export default function HomePage() {
             <div style={{ textAlign: 'center', marginBottom: 64 }}>
               <div className="section-divider-line" />
               <span className="overline overline-dot">Subscription Experience</span>
-              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, letterSpacing: '-0.02em' }}>Choose Your botanical <span style={{ color: 'var(--earth)', fontStyle: 'normal' }}>wellness journey</span></h2>
+              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, letterSpacing: '-0.02em' }}>Pick Your <span style={{ color: 'var(--earth)', fontStyle: 'normal' }}>Botanical Plan</span></h2>
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center', marginBottom: 64 }}>
