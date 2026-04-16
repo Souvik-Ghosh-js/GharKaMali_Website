@@ -60,11 +60,11 @@ export default function OrderDetailPage() {
   return (
     <>
       <Navbar />
-      <div style={{ minHeight: '100svh', background: 'var(--bg)', paddingTop: 'calc(var(--nav-h) + 60px)', paddingBottom: 100 }}>
+      <div className="order-details-main" style={{ minHeight: '100svh', background: 'var(--bg)', paddingTop: 'calc(var(--nav-h) + 60px)', paddingBottom: 100 }}>
         <div className="container">
           
           {/* Header row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40, flexWrap: 'wrap', gap: 24 }}>
+          <div className="order-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40, flexWrap: 'wrap', gap: 24 }}>
             <div>
               <Link href="/shop/orders" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', color: 'var(--text-muted)', textDecoration: 'none', marginBottom: 16, border: '1px solid var(--border)', padding: '6px 14px', borderRadius: 99, width: 'fit-content' }}>
                 <span style={{ transform: 'rotate(180deg)', display: 'flex' }}><IcArrow /></span> Back to All Orders
@@ -79,7 +79,7 @@ export default function OrderDetailPage() {
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '0.9rem', color: 'var(--text-faint)', marginBottom: 4 }}>Total Amount Paid</div>
-              <div style={{ fontSize: '2.4rem', fontWeight: 900, color: 'var(--gold-deep)', fontFamily: 'var(--font-display)', lineHeight: 1 }}>₹{Number(order.total_amount).toLocaleString('en-IN')}</div>
+              <div className="total-amt-display" style={{ fontSize: '2.4rem', fontWeight: 900, color: 'var(--gold-deep)', fontFamily: 'var(--font-display)', lineHeight: 1 }}>₹{Number(order.total_amount).toLocaleString('en-IN')}</div>
             </div>
           </div>
 
@@ -88,21 +88,21 @@ export default function OrderDetailPage() {
             {/* Left Column: Items */}
             <div>
               <div style={{ background: '#fff', borderRadius: 32, border: '1.5px solid var(--border)', overflow: 'hidden', boxShadow: 'var(--sh-sm)' }}>
-                <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div className="order-card-header" style={{ padding: '24px 32px', borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', gap: 12 }}>
                   <IcBox />
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--forest)' }}>Order Items ({order.items?.length || 0})</h3>
                 </div>
-                <div style={{ padding: '0 32px' }}>
+                <div className="order-card-body" style={{ padding: '0 32px' }}>
                   {order.items?.map((item: any, i: number) => (
                     <div key={item.id} className="order-item-row" style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '24px 0', borderBottom: i === order.items.length - 1 ? 'none' : '1px solid var(--border-light)' }}>
-                      <div style={{ width: 80, height: 80, borderRadius: 16, background: 'var(--bg)', flexShrink: 0, overflow: 'hidden', border: '1px solid var(--border)' }}>
+                      <div className="order-item-img" style={{ width: 80, height: 80, borderRadius: 16, background: 'var(--bg)', flexShrink: 0, overflow: 'hidden', border: '1px solid var(--border)' }}>
                         <img src={item.product?.thumbnail || item.product?.images?.[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => (e.currentTarget.style.display = 'none')} />
                       </div>
-                      <div style={{ flex: 1 }}>
+                      <div className="order-item-info" style={{ flex: 1 }}>
                         <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>{item.product?.name ?? 'Marketplace Item'}</h4>
                         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Quantity: {item.quantity}</p>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
+                      <div className="order-item-price" style={{ textAlign: 'right' }}>
                         <div style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '1.1rem' }}>₹{(item.quantity * Number(item.price)).toLocaleString('en-IN')}</div>
                         <div style={{ fontSize: '0.78rem', color: 'var(--text-faint)' }}>₹{Number(item.price).toLocaleString('en-IN')} each</div>
                       </div>
@@ -144,19 +144,21 @@ export default function OrderDetailPage() {
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--forest)', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
                   <IcTruck /> Shipping Status
                 </h3>
-                <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', padding: '0 40px' }}>
-                  <div style={{ position: 'absolute', top: 12, left: 'calc(40px + 12px)', right: 'calc(40px + 12px)', height: 2, background: 'var(--border)' }} />
-                  {['Pending', 'Processing', 'Shipped', 'Delivered'].map((step, i) => {
-                    const isDone = ['pending', 'processing', 'shipped', 'delivered'].indexOf(order.status) >= i;
-                    return (
-                      <div key={step} style={{ position: 'relative', zIndex: 2, textAlign: 'center', width: 80 }}>
-                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: isDone ? 'var(--forest)' : '#fff', border: `2px solid ${isDone ? 'var(--forest)' : 'var(--border)'}`, margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {isDone && <IcCheck />}
+                <div className="stepper-container" style={{ padding: '0' }}>
+                  <div className="stepper-inner" style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', padding: '0 40px' }}>
+                    <div style={{ position: 'absolute', top: 12, left: 'calc(40px + 12px)', right: 'calc(40px + 12px)', height: 2, background: 'var(--border)' }} />
+                    {['Pending', 'Processing', 'Shipped', 'Delivered'].map((step, i) => {
+                      const isDone = ['pending', 'processing', 'shipped', 'delivered'].indexOf(order.status) >= i;
+                      return (
+                        <div key={step} style={{ position: 'relative', zIndex: 2, textAlign: 'center', width: 80 }}>
+                          <div style={{ width: 24, height: 24, borderRadius: '50%', background: isDone ? 'var(--forest)' : '#fff', border: `2px solid ${isDone ? 'var(--forest)' : 'var(--border)'}`, margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {isDone && <IcCheck />}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: isDone ? 'var(--forest)' : 'var(--text-faint)' }}>{step}</div>
                         </div>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: isDone ? 'var(--forest)' : 'var(--text-faint)' }}>{step}</div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
@@ -165,19 +167,19 @@ export default function OrderDetailPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               
               {/* Payment Info */}
-              <div style={{ background: 'var(--bg-elevated)', borderRadius: 32, padding: 32, border: '1.5px solid var(--border-mid)' }}>
+              <div className="summary-card" style={{ background: 'var(--bg-elevated)', borderRadius: 32, padding: 32, border: '1.5px solid var(--border-mid)' }}>
                 <h4 style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 20 }}>Order Summary</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                  <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                     <span style={{ color: 'var(--text-muted)' }}>Subtotal</span>
                     <span style={{ fontWeight: 700 }}>₹{Number(order.total_amount).toLocaleString('en-IN')}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                  <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                     <span style={{ color: 'var(--text-muted)' }}>Shipping</span>
                     <span style={{ fontWeight: 700, color: 'var(--ok)' }}>FREE</span>
                   </div>
                   <div style={{ margin: '10px 0', borderTop: '1px dashed var(--border)' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 900, color: 'var(--forest)' }}>
+                  <div className="total-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 900, color: 'var(--forest)' }}>
                     <span>Total</span>
                     <span>₹{Number(order.total_amount).toLocaleString('en-IN')}</span>
                   </div>
@@ -197,7 +199,7 @@ export default function OrderDetailPage() {
               </div>
 
               {/* Delivery Address */}
-              <div style={{ background: '#fff', borderRadius: 32, padding: 32, border: '1.5px solid var(--border)', boxShadow: 'var(--sh-xs)' }}>
+              <div className="address-card" style={{ background: '#fff', borderRadius: 32, padding: 32, border: '1.5px solid var(--border)', boxShadow: 'var(--sh-xs)' }}>
                 <h4 style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Delivery Address</h4>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text)', lineHeight: 1.7, fontWeight: 500 }}>
                   {order.shipping_address}<br/>
@@ -211,7 +213,7 @@ export default function OrderDetailPage() {
               </div>
 
               {/* Support */}
-              <div style={{ background: 'var(--forest)', borderRadius: 32, padding: 32, textAlign: 'center', color: '#fff' }}>
+              <div className="support-card" style={{ background: 'var(--forest)', borderRadius: 32, padding: 32, textAlign: 'center', color: '#fff' }}>
                 <p style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: 20 }}>Have an issue with your order?</p>
                 <Link href="/complaints" className="btn btn-outline" style={{ background: '#fff', color: 'var(--forest)', border: 'none', width: '100%', justifyContent: 'center' }}>Contact Support</Link>
               </div>
@@ -223,10 +225,85 @@ export default function OrderDetailPage() {
       </div>
       <Footer />
       <style>{`
+        @media (max-width: 768px) {
+          .order-details-main {
+            padding-top: 140px !important;
+            padding-bottom: 120px !important;
+          }
+          .order-header-row {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+            margin-bottom: 24px !important;
+          }
+          .order-header-row > div:last-of-type {
+            text-align: left !important;
+            border-top: 1px dashed var(--border);
+            padding-top: 16px;
+            width: 100%;
+          }
+          .order-header-row h1 {
+            font-size: 1.8rem !important;
+          }
+          .total-amt-display {
+            font-size: 1.8rem !important;
+          }
+          .order-card-header {
+            padding: 16px 20px !important;
+          }
+          .order-card-body {
+            padding: 0 20px !important;
+          }
+          .order-item-row {
+            gap: 12px !important;
+            padding: 16px 0 !important;
+          }
+          .order-item-img {
+            width: 64px !important;
+            height: 64px !important;
+          }
+          .order-item-info h4 {
+            font-size: 0.95rem !important;
+          }
+          .order-item-price {
+            font-size: 0.9rem !important;
+          }
+          .stepper-container {
+            padding: 0 10px !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 12px !important;
+          }
+          .stepper-inner {
+             min-width: 440px !important;
+             padding: 10px 0 !important;
+          }
+          .order-detail-grid {
+             gap: 20px !important;
+          }
+          .summary-card, .address-card, .support-card {
+             padding: 24px !important;
+          }
+          .summary-row, .total-row {
+            width: 100% !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+          }
+          .total-row {
+            font-size: 1.25rem !important;
+            margin-top: 4px;
+          }
+        }
         @media (max-width: 1000px) {
           .order-detail-grid {
             grid-template-columns: 1fr !important;
           }
+        }
+        .truncate {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
       `}</style>
     </>

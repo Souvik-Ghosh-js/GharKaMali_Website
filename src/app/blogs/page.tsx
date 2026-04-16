@@ -31,7 +31,7 @@ export default function BlogsPage() {
     if (search) params.search = search;
     const t = setTimeout(() => {
       getBlogs(params).then((d: any) => {
-        const items = d?.items ?? (Array.isArray(d) ? d : []);
+        const items = d?.blogs ?? (Array.isArray(d) ? d : []);
         setBlogs(items);
         setHasMore(items.length === 9);
       }).catch(() => setBlogs([])).finally(() => setLoading(false));
@@ -45,7 +45,7 @@ export default function BlogsPage() {
     if (cat !== 'All') params.category = cat;
     if (search) params.search = search;
     const d: any = await getBlogs(params);
-    const items = d?.items ?? (Array.isArray(d) ? d : []);
+    const items = d?.blogs ?? (Array.isArray(d) ? d : []);
     setBlogs(prev => [...prev, ...items]);
     setHasMore(items.length === 9);
     setPage(next);

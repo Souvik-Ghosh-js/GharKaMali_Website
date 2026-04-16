@@ -104,7 +104,7 @@ export default function ProfilePage() {
   const initials = (user?.name ?? 'U')[0].toUpperCase();
 
   const statValues = {
-    wallet: `₹${(profile?.wallet_balance ?? 0).toLocaleString('en-IN')}`,
+    wallet: `₹${Number(profile?.wallet_balance ?? 0).toLocaleString('en-IN')}`,
     bookings: profile?.total_bookings ?? 0,
     rating: profile?.avg_rating_given ? `${Number(profile.avg_rating_given).toFixed(1)}/5` : '—',
   };
@@ -162,8 +162,8 @@ export default function ProfilePage() {
 
           {/* Profile form */}
           <div className="card profile-card" style={{ padding: 'clamp(20px,5vw,40px)', marginBottom: 28, borderRadius: 32 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 36 }}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.6rem', color: 'var(--forest)' }}>Personal Information</h2>
+            <div className="profile-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 36, gap: 16, flexWrap: 'wrap' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.6rem', color: 'var(--forest)', margin: 0 }}>Personal Information</h2>
               {!editing
                 ? <button onClick={() => setEditing(true)} className="btn btn-outline" style={{ padding: '10px 20px' }}>Edit Profile</button>
                 : <div style={{ display: 'flex', gap: 10 }}>
@@ -209,7 +209,7 @@ export default function ProfilePage() {
 
           {/* Address Management card */}
           <div className="card profile-card" style={{ padding: 'clamp(20px,5vw,40px)', marginBottom: 28, borderRadius: 32 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 36 }}>
+            <div className="profile-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 36, gap: 16, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(3,65,26,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)' }}>
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
@@ -306,6 +306,19 @@ export default function ProfilePage() {
         </div>
       </div>
       <Footer />
+      <style>{`
+        @media (max-width: 640px) {
+           .profile-header-row {
+              flex-direction: column !important;
+              align-items: flex-start !important;
+              gap: 12px !important;
+           }
+           .profile-header-row > div {
+              width: 100% !important;
+              justify-content: flex-start !important;
+           }
+        }
+      `}</style>
     </>
   );
 }

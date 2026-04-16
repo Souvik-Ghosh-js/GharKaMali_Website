@@ -302,13 +302,13 @@ export default function PlansPage() {
                 See how our professional gardeners deliver advanced care compared to regular service.
               </p>
             </div>
-            <div style={{ background:'#fff', borderRadius:24, overflow:'hidden', boxShadow:'var(--sh-lg)', border:'1px solid var(--border)' }}>
-              <table style={{ width:'100%', borderCollapse:'collapse' }}>
+            <div style={{ width:'100%', overflowX:'auto', WebkitOverflowScrolling:'touch' as any, borderRadius:24, boxShadow:'var(--sh-lg)', border:'1px solid var(--border)' }}>
+              <table style={{ width:'100%', borderCollapse:'collapse', minWidth:500 }}>
                 <thead>
                   <tr style={{ background:'var(--bg-sage)' }}>
-                    <th style={{ padding:'24px', textAlign:'left', fontWeight:800, color:'var(--forest)', fontSize:'1.1rem' }}>Feature</th>
-                    <th style={{ padding:'24px', textAlign:'center', fontWeight:800, color:'var(--forest)', fontSize:'1.1rem' }}>Normal Gardener</th>
-                    <th style={{ padding:'24px', textAlign:'center', fontWeight:800, color:'var(--gold)', fontSize:'1.1rem' }}>Professional Gardener</th>
+                    <th style={{ padding:'24px', textAlign:'left', fontWeight:800, color:'var(--forest)', fontSize:'1.1rem', whiteSpace: 'nowrap' }}>Feature</th>
+                    <th style={{ padding:'24px', textAlign:'center', fontWeight:800, color:'var(--forest)', fontSize:'1.1rem', whiteSpace: 'nowrap' }}>Normal Gardener</th>
+                    <th style={{ padding:'24px', textAlign:'center', fontWeight:800, color:'var(--gold)', fontSize:'1.1rem', whiteSpace: 'nowrap' }}>Professional Gardener</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -322,10 +322,10 @@ export default function PlansPage() {
                     { feature: 'Emergency support', normal: '✕', professional: '✓' },
                     { feature: 'Detailed visit reports', normal: '✕', professional: '✓' },
                   ].map((row, i) => (
-                    <tr key={i} style={{ borderTop:'1px solid var(--border)' }}>
-                      <td style={{ padding:'20px 24px', fontWeight:600, color:'var(--forest)' }}>{row.feature}</td>
-                      <td style={{ padding:'20px 24px', textAlign:'center', color: row.normal === '✓' ? 'var(--success)' : 'var(--text-2)' }}>{row.normal}</td>
-                      <td style={{ padding:'20px 24px', textAlign:'center', fontWeight:600, color: row.professional === '✓' ? 'var(--success)' : 'var(--forest)' }}>{row.professional}</td>
+                    <tr key={i} style={{ borderTop:'1px solid var(--border)', background: '#fff' }}>
+                      <td style={{ padding:'20px 24px', fontWeight:600, color:'var(--forest)', whiteSpace: 'nowrap' }}>{row.feature}</td>
+                      <td style={{ padding:'20px 24px', textAlign:'center', color: row.normal === '✓' ? 'var(--success)' : 'var(--text-2)', fontSize: '1.05rem' }}>{row.normal}</td>
+                      <td style={{ padding:'20px 24px', textAlign:'center', fontWeight:600, color: row.professional === '✓' ? 'var(--success)' : 'var(--forest)', fontSize: '1.05rem' }}>{row.professional}</td>
                     </tr>
                   ))}
                 </tbody>

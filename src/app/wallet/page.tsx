@@ -54,7 +54,7 @@ export default function WalletPage() {
     ? (txRaw as any).items
     : [];
   
-  const balance = (profile as any)?.wallet_balance ?? 0;
+  const balance = Number((profile as any)?.wallet_balance ?? 0);
   const finalAmount = custom ? parseInt(custom) || 0 : amount;
   
   const topupMut = useMutation({

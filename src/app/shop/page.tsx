@@ -202,42 +202,41 @@ function ShopPageInner() {
           </div>
         )}
 
-        <div className="container" style={{ paddingTop: 32, paddingBottom: 80 }}>
+        <div className="container" style={{ paddingTop: 'clamp(44px, 10vw, 72px)', paddingBottom: 80 }}>
           {/* Filter bar: Search + Category tabs + Sort */}
-          <div className="cat-tabs-row" style={{ display: 'flex', gap: 10, alignItems: 'center', paddingBottom: 8, marginBottom: 32, flexWrap: 'wrap', paddingTop: 8 }}>
-            {/* Search input */}
-            <div style={{ position: 'relative', flex: '0 0 auto', minWidth: 220 }}>
-              <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--forest)', opacity: 0.5 }}><IcSearch /></div>
-              <input type="text" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)}
-                style={{ width: '100%', padding: '10px 16px 10px 40px', background: '#fff', border: '2px solid var(--border)', borderRadius: 14, color: 'var(--forest)', fontSize: '0.85rem', fontFamily: 'var(--font-body)', fontWeight: 600, outline: 'none', boxSizing: 'border-box' }}
-                onFocus={e => e.target.style.borderColor = 'var(--forest)'}
-                onBlur={e => e.target.style.borderColor = 'var(--border)'}
-              />
+          <div className="cat-tabs-row" style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 32, flexWrap: 'wrap', marginTop: 'clamp(12px, 3vw, 24px)' }}>
+            {/* Row 1: Search + Sort */}
+            <div style={{ display: 'flex', gap: 10, flex: '1 1 100%', alignItems: 'center' }} className="search-sort-row">
+              <div style={{ position: 'relative', flex: 1 }}>
+                <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--forest)', opacity: 0.5 }}><IcSearch /></div>
+                <input type="text" placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)}
+                  style={{ width: '100%', padding: '12px 16px 12px 42px', background: '#fff', border: '1.5px solid var(--border)', borderRadius: 16, color: 'var(--forest)', fontSize: '0.9rem', fontFamily: 'var(--font-body)', fontWeight: 600, outline: 'none', boxSizing: 'border-box', boxShadow: 'var(--sh-xs)' }}
+                />
+              </div>
+              <select value={sort} onChange={e => setSort(e.target.value)}
+                style={{ flex: '0 0 auto', padding: '12px 16px', borderRadius: 16, border: '1.5px solid var(--border)', background: '#fff', color: 'var(--forest)', fontWeight: 700, fontSize: '0.85rem', fontFamily: 'var(--font-body)', cursor: 'pointer', outline: 'none', boxShadow: 'var(--sh-xs)' }}>
+                <option value="featured">Featured</option>
+                <option value="price_asc">₹ Low to High</option>
+                <option value="price_desc">₹ High to Low</option>
+                <option value="rating">Top Rated</option>
+              </select>
             </div>
-            {/* Category pills */}
-            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', flex: 1, scrollbarWidth: 'none' }}>
+
+            {/* Row 2: Category pills (Scrollable) */}
+            <div className="cat-pills-container" style={{ display: 'flex', gap: 8, overflowX: 'auto', width: '100%', paddingBottom: 4, scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
               {categories.map(c => {
                 const name = typeof c === 'string' ? c : c.name;
                 const Icon = CATEGORY_ICONS[name.toLowerCase()] || CATEGORY_ICONS['all'];
                 const isActive = cat === name;
                 return (
                   <button key={name} onClick={() => setCat(name)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 14, border: `2px solid ${isActive ? 'var(--forest)' : 'var(--border)'}`, background: isActive ? 'var(--forest)' : '#fff', color: isActive ? '#fff' : 'var(--forest)', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'var(--font-body)', whiteSpace: 'nowrap', transition: 'all 0.25s', flexShrink: 0, boxShadow: isActive ? 'var(--sh-sm)' : 'none' }}>
-                    <span>{Icon && <Icon />}</span>{name}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 99, border: `1.5px solid ${isActive ? 'var(--forest)' : 'var(--border)'}`, background: isActive ? 'var(--forest)' : '#fff', color: isActive ? '#fff' : 'var(--forest)', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'var(--font-body)', whiteSpace: 'nowrap', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', flexShrink: 0, boxShadow: isActive ? '0 8px 20px rgba(3,65,26,0.15)' : 'none' }}>
+                    <span style={{ display: 'flex', alignItems: 'center' }}>{Icon && <Icon />}</span>
+                    {name}
                   </button>
                 );
               })}
             </div>
-            {/* Sort dropdown */}
-            <select value={sort} onChange={e => setSort(e.target.value)}
-              style={{ flex: '0 0 auto', padding: '10px 16px', borderRadius: 14, border: '2px solid var(--border)', background: '#fff', color: 'var(--forest)', fontWeight: 700, fontSize: '0.82rem', fontFamily: 'var(--font-body)', cursor: 'pointer', outline: 'none' }}
-              onFocus={e => (e.target as HTMLSelectElement).style.borderColor = 'var(--forest)'}
-              onBlur={e => (e.target as HTMLSelectElement).style.borderColor = 'var(--border)'}>
-              <option value="featured">Featured</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="rating">Top Rated</option>
-            </select>
           </div>
 
           {/* Product Grid */}
@@ -315,7 +314,7 @@ function ShopPageInner() {
                     <div style={{ padding: '0 16px 16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                       <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 16 }}>
                          <div>
-                           <div style={{ fontWeight: 900, fontSize: '1.25rem', color: 'var(--forest)', lineHeight: 1 }}>₹{price.toLocaleString('en-IN')}</div>
+                           <div className="price-val" style={{ fontWeight: 900, fontSize: '1.25rem', color: 'var(--forest)', lineHeight: 1 }}>₹{price.toLocaleString('en-IN')}</div>
                            {mrp > price && <div style={{ fontSize: '0.7rem', color: 'var(--text-faint)', textDecoration: 'line-through', marginTop: 2 }}>₹{mrp.toLocaleString('en-IN')}</div>}
                          </div>
                          
@@ -360,13 +359,40 @@ function ShopPageInner() {
       <style jsx global>{`
         .product-tile { cursor: default; transition: box-shadow 0.3s ease, transform 0.3s ease; }
         .product-grid { animation: gridFadeIn 0.45s ease both; }
+        
+        /* Filter layout adjustments */
+        @media (min-width: 992px) {
+          .cat-tabs-row { flex-wrap: nowrap !important; gap: 20px !important; }
+          .search-sort-row { flex: 0 0 auto !important; width: auto !important; gap: 12px !important; order: 1; }
+          .cat-pills-container { flex: 1 !important; order: 2; border-left: 1px solid var(--border); padding-left: 20px !important; }
+          .search-sort-row > select { order: 2; }
+          .search-sort-row > div:first-child { order: 1; width: 240px; }
+        }
+
+        @media (max-width: 768px) {
+          .cat-tabs-row { gap: 16px !important; }
+          .search-sort-row { gap: 8px !important; }
+          .search-sort-row > div:first-child input { font-size: 0.82rem !important; }
+          .search-sort-row > select { font-size: 0.8rem !important; padding: 10px 12px !important; }
+          .product-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
+          .product-grid .product-tile { border-radius: 18px !important; }
+          .product-grid .product-tile Link > div:nth-child(2) { padding: 12px 12px 0 !important; }
+          .product-grid .product-tile h3 { font-size: 0.95rem !important; margin-bottom: 4px !important; height: 2.4em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+          .product-grid .product-tile Link > div:nth-child(2) > div:last-child { margin-bottom: 8px !important; gap: 4px !important; }
+          .product-grid .product-tile > div:last-child { padding: 0 12px 12px !important; }
+          .product-grid .product-tile > div:last-child > div { padding-top: 12px !important; }
+          .product-grid .product-tile .price-val { font-size: 1.1rem !important; }
+          .product-grid .product-tile button { padding: 6px 12px !important; font-size: 0.7rem !important; border-radius: 8px !important; }
+          .container { padding-left: 12px !important; padding-right: 12px !important; }
+          .product-tile Link > div:first-child { height: 160px !important; }
+        }
+
         @keyframes gridFadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
         @keyframes fade-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
-        @media(max-width:640px){ [style*="minmax(270px"]{grid-template-columns:1fr!important} }
-        @media(max-width:900px){ .cat-tabs-row { padding-top: 16px !important; } }
+        
         .skeleton{background:linear-gradient(90deg,var(--bg-elevated) 25%,var(--cream-dark) 50%,var(--bg-elevated) 75%);background-size:200% 100%;animation:shimmer 1.6s ease infinite;border-radius:8px}
         @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-        input::placeholder{color:rgba(255,255,255,0.3)}
+        input::placeholder{color:var(--text-faint); opacity: 0.6;}
       `}</style>
     </SmoothScrollProvider>
   );

@@ -864,71 +864,79 @@ function BookFlow() {
           ))}
         </form>
       )}
+
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes skeleton-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
         /* Common shared styles */
         .card { background: #fff; border: 1.5px solid var(--border); border-radius: 28px; box-shadow: var(--sh-sm); }
         .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.5s infinite; }
-        @keyframes skeleton-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
         /* Progress Bar Styles */
         .step-bar {
           position: sticky;
           top: var(--nav-h);
-          background: rgba(255, 255, 255, 0.85);
-          backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
-          padding: 16px 0;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          padding: 14px 0;
           z-index: 100;
           border-bottom: 1px solid var(--border-light);
           margin-bottom: 24px;
         }
-        .book-step-bar-container { display: flex; align-items: center; justify-content: center; width: 100%; gap: 6px; }
-        .step-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+        .book-step-bar-container { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 600px; margin: 0 auto; padding: 0 20px; }
+        .step-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; position: relative; }
         .step-circle {
-          width: 36px; height: 36px; border-radius: 50%; display: flex; alignItems: center; justifyContent: center;
-          background: var(--bg-elevated); color: var(--text-faint); border: 1.5px solid var(--border);
+          width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+          background: #fff; color: var(--text-faint); border: 2px solid var(--border);
           font-weight: 800; font-size: 0.85rem; transition: all 0.3s var(--ease);
+          position: relative; z-index: 2;
         }
-        .step-circle.active { background: var(--forest); color: #fff; border-color: var(--forest); box-shadow: 0 0 0 4px rgba(3,65,26,0.15); transform: translateY(-2px); }
+        .step-item.active .step-circle { background: var(--forest); color: #fff; border-color: var(--forest); box-shadow: 0 0 0 4px rgba(3,65,26,0.1); transform: scale(1.05); }
         .step-circle.done { background: var(--forest); color: #fff; border-color: var(--forest); }
-        .step-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sage); transition: color 0.3s; }
-        .step-circle.active + .step-label { color: var(--forest); }
-        .step-line { flex: 1; height: 1.5px; background: var(--border-light); margin: 0 4px; border-radius: 2px; position: relative; top: -11px; }
+        .step-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sage); transition: color 0.3s; font-weight: 700; margin-top: 2px; }
+        .step-item.active .step-label { color: var(--forest); font-weight: 900; }
+        .step-line { flex: 1; height: 2px; background: var(--border-light); margin: 0 -10px; border-radius: 2px; position: relative; top: -14px; z-index: 1; }
         .step-line.done { background: var(--forest); }
 
         /* Book page mobile overhaul */
         @media (max-width: 768px) {
-          .step-bar { padding: 12px 0; margin-bottom: 12px; }
-          .step-circle { width: 30px; height: 30px; font-size: 0.75rem; }
-          .step-label { font-size: 0.55rem; letter-spacing: 0.05em; display: none; } /* labels hide on very small */
-          .step-circle.active + .step-label { display: block; position: absolute; top: 100%; margin-top: 4px; white-space: nowrap; font-weight: 900; }
+          .step-bar { padding: 10px 0; margin-bottom: 16px; }
+          .step-circle { width: 28px; height: 28px; border-width: 1.5px; font-size: 0.75rem; }
+          .step-label { display: none; }
+          .step-item.active .step-label { 
+            display: block; position: absolute; top: 100%; margin-top: 6px; 
+            white-space: nowrap; font-size: 0.55rem; color: var(--forest); 
+            background: rgba(3,65,26,0.06); padding: 2px 10px; border-radius: 6px; 
+            border: 1px solid rgba(3,65,26,0.1);
+          }
           
           .book-plan-card { flex-direction: column !important; min-height: auto !important; border-radius: 24px !important; }
-          .book-plan-card-left { border-right: none !important; border-bottom: 1px solid var(--border-light); padding: 24px 20px !important; gap: 16px !important; }
-          .book-plan-card-mid { padding: 20px !important; flex: 1 !important; text-align: left !important; }
-          .book-plan-card-select { width: 100% !important; min-width: 0 !important; border-left: none !important; border-top: 1px solid var(--border-light) !important; min-height: 52px !important; padding: 12px !important; }
+          .book-plan-card-left { border-right: none !important; border-bottom: 1px solid var(--border-light); padding: 20px 18px !important; gap: 14px !important; }
+          .book-plan-card-mid { padding: 18px !important; flex: 1 !important; text-align: left !important; }
+          .book-plan-card-select { width: 100% !important; min-width: 0 !important; border-left: none !important; border-top: 1px solid var(--border-light) !important; min-height: 48px !important; padding: 10px !important; }
           
-          .book-grid-split { grid-template-columns: 1fr !important; gap: 28px !important; }
-          .time-slots-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
-          .book-plan-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; margin-bottom: 24px !important; }
-          .book-plan-header h2 { font-size: 1.6rem !important; }
-          .addr-row { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .book-grid-split { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .time-slots-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+          .book-plan-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; margin-bottom: 20px !important; }
+          .book-plan-header h2 { font-size: 1.55rem !important; line-height: 1.2 !important; }
+          .addr-row { grid-template-columns: 1fr !important; gap: 10px !important; }
           
-          .book-plan-footer { flex-direction: column !important; gap: 20px !important; align-items: stretch !important; text-align: center !important; padding: 20px 16px !important; }
-          .book-plan-footer > div { justify-content: center !important; flex-wrap: wrap !important; }
+          .book-plan-footer { flex-direction: column !important; gap: 16px !important; align-items: stretch !important; text-align: center !important; padding: 16px !important; border-radius: 20px !important; }
+          .book-plan-footer > div { justify-content: center !important; flex-wrap: wrap !important; gap: 12px !important; }
           
-          .container { padding: 24px 16px 120px !important; }
+          .container { padding: 20px 16px 120px !important; }
           
           /* Confirmation adjustments */
-          .card { padding: 20px !important; }
-          .book-plan-card-left h3 { fontSize: 1.35rem !important; }
-          .step-line { top: -11px; margin: 0 2px; }
+          .card { border-radius: 24px !important; padding: 20px !important; }
+          .book-plan-card-left h3 { fontSize: 1.3rem !important; }
+          .step-line { top: -14px; margin: 0; }
         }
 
         @media (min-width: 480px) {
           .step-label { display: block; }
-          .step-circle.active + .step-label { position: static; margin-top: 0; }
+          .step-item.active .step-label { position: static; margin-top: 2px; background: none; border: none; padding: 0; }
         }
       `}</style>
     </>

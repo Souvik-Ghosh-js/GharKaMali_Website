@@ -199,7 +199,7 @@ export default function CartDrawer() {
                   <div style={{ width: 80, height: 80, borderRadius: 24, background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', marginBottom: 20, border: '1px solid var(--border)' }}><IcLeaf /></div>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.2rem', marginBottom: 8, color: 'var(--forest)' }}>Your cart is empty</div>
                   <p style={{ fontSize: '0.84rem', color: 'var(--sage)', lineHeight: 1.7, marginBottom: 24 }}>Add plants, tools & fertilizers from our garden shop</p>
-                  <button onClick={closeCart} className="btn btn-primary btn-sm">Browse Market <IcArrow /></button>
+                  <Link href="/shop" onClick={closeCart} className="btn btn-primary btn-sm">Browse Market <IcArrow /></Link>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -282,7 +282,7 @@ export default function CartDrawer() {
                 <button onClick={() => setStep('address')} className="btn btn-primary w-full" style={{ justifyContent: 'center', padding: '16px', fontWeight: 800 }}>
                   Checkout Now <IcArrow />
                 </button>
-                <button onClick={closeCart} className="btn btn-outline w-full" style={{ justifyContent: 'center', marginTop: 12, opacity: 0.9 }}>Continue Shopping</button>
+                <Link href="/shop" onClick={closeCart} className="btn btn-outline w-full" style={{ justifyContent: 'center', marginTop: 12, opacity: 0.9, textDecoration: 'none', display: 'flex', alignItems: 'center' }}>Continue Shopping</Link>
               </div>
             )}
           </>
