@@ -132,17 +132,17 @@ export default function Footer() {
         }}>
 
           {/* Brand column */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 20 }}>
               <Link href="/">
                 <img src="/logo-dark.png" alt="GharKaMali" style={{ width: 120, height: 120, objectFit: 'contain' }} />
               </Link>
             </div>
-            <p style={{ color: 'var(--sage)', fontSize: '0.9rem', lineHeight: 1.8, marginBottom: 24, maxWidth: 280 }}>
+            <p style={{ color: 'var(--sage)', fontSize: '0.9rem', lineHeight: 1.8, marginBottom: 24, maxWidth: 280, margin: '0 auto 24px auto' }}>
               Professional plant care made simple. Certified plant experts, modern tracking, and guaranteed growth.
             </p>
             {/* Socials */}
-            <div className="footer-social-row" style={{ display: 'flex', flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'nowrap' }}>
+            <div className="footer-social-row" style={{ display: 'flex', flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'nowrap', justifyContent: 'center' }}>
               {[
                 { Icon: IcInsta, href: '#', label: 'Instagram' },
                 { Icon: IcYT, href: '#', label: 'YouTube' },
