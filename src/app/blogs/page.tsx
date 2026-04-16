@@ -111,15 +111,26 @@ export default function BlogsPage() {
         <div className="container" style={{ position: 'relative', zIndex: 1, paddingBottom: 80 }}>
           {/* Category Tabs */}
           {cats.length > 1 && (
-            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, marginBottom: 40, scrollbarWidth: 'none' }}>
-              {cats.map(c => (
-                <button key={c} onClick={() => setCat(c)} style={{
-                  color: cat === c ? '#fff' : 'var(--forest)',
-                  fontWeight: 700, fontSize: '0.82rem', fontFamily: 'var(--font-body)',
-                  border: `1.5px solid ${cat === c ? 'var(--forest)' : 'var(--border)'}`,
-                  transition: 'all 0.2s ease',
-                }}>{c}</button>
-              ))}
+            <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 16, marginBottom: 40, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+              {cats.map(c => {
+                const active = cat === c;
+                return (
+                  <button key={c} onClick={() => setCat(c)} style={{
+                    padding: '10px 24px',
+                    borderRadius: 99,
+                    background: active ? 'var(--forest)' : '#fff',
+                    color: active ? '#fff' : 'var(--forest)',
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    fontFamily: 'var(--font-body)',
+                    border: `1.5px solid ${active ? 'var(--forest)' : 'var(--border)'}`,
+                    transition: 'all 0.3s var(--ease)',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    boxShadow: active ? '0 8px 16px rgba(3,65,26,0.15)' : 'none'
+                  }}>{c}</button>
+                );
+              })}
             </div>
           )}
 
@@ -188,9 +199,6 @@ export default function BlogsPage() {
         </div>
       </div>
       <Footer/>
-      <style jsx global>{`
-        @keyframes shimmer { 0%,100%{opacity:0.5} 50%{opacity:0.8} }
-      `}</style>
     </>
   );
 }

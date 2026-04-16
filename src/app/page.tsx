@@ -190,21 +190,21 @@ const ServicesAccordion = () => {
               }}
             >
               {/* Background Image */}
-              <img 
-                src={transformation.after} 
-                alt={s.title} 
-                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0, filter: isActive ? 'none' : 'grayscale(30%) brightness(0.8)' }} 
+              <img
+                src={transformation.after}
+                alt={s.title}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0, filter: isActive ? 'none' : 'grayscale(30%) brightness(0.8)' }}
               />
-              
+
               {/* Gradient Overlay */}
               <div style={{ position: 'absolute', inset: 0, background: isActive ? 'linear-gradient(to top, rgba(3,65,26,0.95) 0%, rgba(3,65,26,0.4) 40%, transparent 100%)' : 'rgba(3,65,26,0.6)', transition: 'background 0.6s' }} />
 
               {/* Icon Overlay for inactive tabs */}
-              <div style={{ 
-                position: 'absolute', 
+              <div style={{
+                position: 'absolute',
                 bottom: 40,
-                left: '50%', 
-                transform: 'translateX(-50%)', 
+                left: '50%',
+                transform: 'translateX(-50%)',
                 transition: 'all 0.6s ease',
                 display: isActive ? 'none' : 'flex',
                 flexDirection: 'column',
@@ -217,9 +217,9 @@ const ServicesAccordion = () => {
               </div>
 
               {/* Active Content */}
-              <div style={{ 
-                position: 'absolute', 
-                bottom: 0, left: 0, right: 0, 
+              <div style={{
+                position: 'absolute',
+                bottom: 0, left: 0, right: 0,
                 padding: '40px',
                 color: '#fff',
                 opacity: isActive ? 1 : 0,
@@ -231,13 +231,13 @@ const ServicesAccordion = () => {
                   {transformation.label}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                   <div style={{ color: '#fff', width: 64, height: 64, flexShrink: 0, borderRadius: '20px', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(237,207,135,0.3)' }}>
-                     <s.Icon />
-                   </div>
-                   <div>
-                     <h3 style={{ fontSize: '1.8rem', fontWeight: 900, margin: '0 0 8px 0', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>{s.title}</h3>
-                     <p style={{ fontSize: '1rem', fontWeight: 500, margin: 0, opacity: 0.9, maxWidth: 500, lineHeight: 1.6 }}>{s.desc}</p>
-                   </div>
+                  <div style={{ color: '#fff', width: 64, height: 64, flexShrink: 0, borderRadius: '20px', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(237,207,135,0.3)' }}>
+                    <s.Icon />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.8rem', fontWeight: 900, margin: '0 0 8px 0', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>{s.title}</h3>
+                    <p style={{ fontSize: '1rem', fontWeight: 500, margin: 0, opacity: 0.9, maxWidth: 500, lineHeight: 1.6 }}>{s.desc}</p>
+                  </div>
                 </div>
               </div>
 
@@ -252,22 +252,22 @@ const ServicesAccordion = () => {
           const transformation = BEFORE_AFTER[i] || BEFORE_AFTER[0];
           return (
             <div key={i} style={{ borderRadius: 28, overflow: 'hidden', position: 'relative', boxShadow: 'var(--sh-md)', background: '#fff' }}>
-               <div style={{ height: 220, position: 'relative' }}>
-                 <img src={transformation.after} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(3,65,26,0.9) 0%, transparent 100%)' }} />
-                 <div style={{ position: 'absolute', bottom: 20, left: 20, display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.2)', padding: '6px 14px', borderRadius: 99, fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#fff', backdropFilter: 'blur(8px)' }}>
-                    {transformation.label}
-                  </div>
-               </div>
-               <div style={{ padding: 24, display: 'flex', gap: 16 }}>
-                 <div style={{ color: '#fff', width: 50, height: 50, flexShrink: 0, borderRadius: '16px', background: 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <s.Icon />
-                 </div>
-                 <div>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--forest)', margin: '0 0 6px 0' }}>{s.title}</h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-2)', margin: 0, lineHeight: 1.6 }}>{s.desc}</p>
-                 </div>
-               </div>
+              <div style={{ height: 220, position: 'relative' }}>
+                <img src={transformation.after} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(3,65,26,0.9) 0%, transparent 100%)' }} />
+                <div style={{ position: 'absolute', bottom: 20, left: 20, display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.2)', padding: '6px 14px', borderRadius: 99, fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#fff', backdropFilter: 'blur(8px)' }}>
+                  {transformation.label}
+                </div>
+              </div>
+              <div style={{ padding: 24, display: 'flex', gap: 16 }}>
+                <div style={{ color: '#fff', width: 50, height: 50, flexShrink: 0, borderRadius: '16px', background: 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <s.Icon />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--forest)', margin: '0 0 6px 0' }}>{s.title}</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-2)', margin: 0, lineHeight: 1.6 }}>{s.desc}</p>
+                </div>
+              </div>
             </div>
           )
         })}
@@ -284,37 +284,81 @@ const HOW_STEPS = [
 
 const WA_URL = 'https://wa.me/919876543210?text=Hi%20GharKaMali!%20I%20want%20to%20book%20a%20gardener%20visit%20for%20my%20home.';
 
-/* ── HERO BACKGROUND — static image on both devices, Three.js layered on desktop ── */
-const HeroBackground = () => (
-  <>
-    {/* Video Background */}
-    <div style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', background: '#000' }}>
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
-      >
-        <source src="/bg.mp4" type="video/mp4" />
-      </video>
+/* ── HERO SLIDESHOW ── */
+const HeroSlideshow = () => {
+  const images = [
+    'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1600&h=900&fit=crop',
+    'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=1600&h=900&fit=crop',
+    'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1600&h=900&fit=crop',
+    'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&h=900&fit=crop'
+  ];
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    const it = setInterval(() => setIdx(i => (i + 1) % images.length), 5000);
+    return () => clearInterval(it);
+  }, [images.length]);
+
+  return (
+    <>
+      <div style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', background: '#000' }}>
+        {images.map((img, i) => (
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: `url(${img})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              opacity: i === idx ? 0.7 : 0,
+              transition: 'opacity 1.5s ease-in-out',
+              transform: i === idx ? 'scale(1.05)' : 'scale(1)',
+              transitionDelay: i === idx ? '0s' : '0s',
+            }}
+          />
+        ))}
+      </div>
+
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 1,
+        background: 'radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.75) 100%)',
+        pointerEvents: 'none',
+      }} />
+
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 2,
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 40%, rgba(0,0,0,0.6) 100%)',
+        pointerEvents: 'none',
+      }} />
+    </>
+  );
+};
+
+/* ── MARQUEE ── */
+const Marquee = () => {
+  const items = [
+    { text: 'Trusted by 1,000+ Plant Parents', Icon: IcShield },
+    { text: 'Background Verified Experts', Icon: IcShield },
+    { text: '2-Day Intensive Training', Icon: IcScissors },
+    { text: 'Certified Realistic Care', Icon: IcLeaf },
+    { text: 'Serving Noida & Greater Noida', Icon: IcMap },
+  ];
+  return (
+    <div style={{ background: 'var(--forest)', padding: '20px 0', overflow: 'hidden', borderTop: '1px solid rgba(255,255,255,0.1)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+      <div className="marquee-container" style={{ maskImage: 'none', gap: '40px' }}>
+        <div className="marquee-scroller" style={{ gap: '60px', animationDuration: '30s' }}>
+          {[...items, ...items, ...items].map((item, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', whiteSpace: 'nowrap' }}>
+              <span style={{ color: 'var(--gold)' }}><item.Icon /></span>
+              <span style={{ fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
-
-    {/* Netflix-style overlay for contrast (vignette + base darkness) */}
-    <div style={{
-      position: 'absolute', inset: 0, zIndex: 1,
-      background: 'radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.85) 100%)',
-      pointerEvents: 'none',
-    }} />
-
-    {/* Secondary Gradient overlay specifically for text readability at center/bottom */}
-    <div style={{
-      position: 'absolute', inset: 0, zIndex: 2,
-      background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 40%, rgba(0,0,0,0.8) 100%)',
-      pointerEvents: 'none',
-    }} />
-  </>
-);
+  );
+};
 
 /* BASlider removed — images now change via GSAP scroll */
 
@@ -401,8 +445,8 @@ export default function HomePage() {
       <Navbar transparent />
 
       {/* ═══ HERO ═══ */}
-      <section className="hero" id="hero" style={{ position: 'relative', overflow: 'hidden', background: 'var(--cream)', zIndex: 5, isolation: 'isolate' }}>
-        <HeroBackground />
+      <section className="hero s-reveal" id="hero" style={{ position: 'relative', overflow: 'hidden', background: '#000', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <HeroSlideshow />
 
         <div className="container" style={{ position: 'relative', zIndex: 5 }}>
           <div className="hero-content-box" style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center', paddingTop: '160px', paddingBottom: '100px' }}>
@@ -437,17 +481,6 @@ export default function HomePage() {
               </a>
             </div>
 
-            <div className="hero-trust-line" style={{ display: 'inline-flex', alignItems: 'center', gap: 14, background: 'rgba(255,255,255,0.85)', border: '1px solid var(--border-mid)', borderRadius: 99, padding: '12px 24px', boxShadow: 'var(--sh-sm)', marginBottom: 24 }}>
-              <div style={{ display: 'flex' }}>
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--forest-light)', border: '2px solid #fff', marginLeft: i > 1 ? -10 : 0, position: 'relative', zIndex: 10 - i }} />
-                ))}
-              </div>
-              <div style={{ fontSize: '0.88rem', color: 'var(--forest)', fontWeight: 700 }}>
-                Trusted by <span style={{ color: 'var(--earth)' }}>1,000+ Plant Parents</span> in Noida & Greater Noida
-              </div>
-            </div>
-
             <div className="hero-stats" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginTop: 40, opacity: 1, position: 'relative', zIndex: 10 }}>
               {[
                 { num: 1200, suffix: '+', label: 'Visits Done' },
@@ -467,135 +500,154 @@ export default function HomePage() {
         </div>
       </section>
 
+      <Marquee />
 
 
-      {/* ═══ NEW: INTERACTIVE SERVICES SHOWCASE ═══ */}
-      <section id="services" style={{ position: 'relative', zIndex: 10, padding: 'clamp(48px,6vw,96px) 0 clamp(64px,10vw,120px)' }}>
-        <video autoPlay loop muted playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.15 }}>
-          <source src="/bg.mp4" type="video/mp4" />
-        </video>
-        <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(135deg, rgba(255,249,225,0.95) 0%, rgba(235,250,240,0.92) 50%, rgba(255,249,225,0.95) 100%)', pointerEvents: 'none' }} />
-        
-        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
-          {/* Heading */}
-          <div style={{ textAlign: 'center', marginBottom: 'clamp(32px,5vw,64px)' }}>
-            <div className="section-divider-line" />
-            <span className="overline overline-dot">Our Expertise</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, marginBottom: 14 }}>Premium Care Services</h2>
-            <p style={{ color: 'var(--text-2)', fontSize: 'clamp(0.9rem,1.4vw,1.05rem)', fontWeight: 500, maxWidth: 540, margin: '0 auto', lineHeight: 1.75 }}>
-              Expert solutions tailored for every plant. Hover to explore our services and view realistic transformations.
-            </p>
+
+      {/* ═══ PROFESSIONAL GARDENING MADE SIMPLE ═══ */}
+      <section className="section s-reveal" style={{ background: '#fff', overflow: 'hidden' }}>
+        <div className="container">
+          <div className="prof-gardening-grid">
+            <div className="prof-gardening-content s-reveal s-reveal-d1">
+              <span className="overline" style={{ color: 'var(--earth)' }}>Service Excellence</span>
+              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, textAlign: 'left', width: 'auto' }}>Professional gardening <br /> made <span style={{ color: 'var(--earth)' }}>simple.</span></h2>
+              <p style={{ color: 'var(--text-2)', fontSize: '1.1rem', marginTop: 24, lineHeight: 1.8, maxWidth: 500, fontWeight: 500 }}>
+                We bring the expertise of certified horticulturists to your doorstep. From regular maintenance to complete transformations, we ensure your green space stays vibrant and healthy through science-backed protocols.
+              </p>
+
+              <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {[
+                  'Personalized plant care plans',
+                  'Organic and sustainable practices',
+                  'Transparent pricing with no hidden costs',
+                  'Expert advice for every plant species'
+                ].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, color: 'var(--forest)', fontWeight: 700 }}>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', boxShadow: 'var(--sh-sm)' }}>✓</div>
+                    {item}
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 44 }}>
+                <Link href="/book" className="btn btn-primary btn-lg">Book Professional Visit</Link>
+              </div>
+            </div>
+
+            <div className="prof-gardening-visual s-reveal s-reveal-d2" style={{ position: 'relative' }}>
+              <div style={{ position: 'relative', borderRadius: 32, overflow: 'hidden', boxShadow: 'var(--sh-xl)', border: '8px solid #fff', transform: 'rotate(1.5deg)' }}>
+                <img src="https://images.unsplash.com/photo-1598902108854-10e335adac99?w=1200&h=800&fit=crop" alt="Balcony Transformation" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                <div style={{ position: 'absolute', top: 20, left: 20, background: 'rgba(3,65,26,0.85)', color: '#fff', padding: '8px 20px', borderRadius: 99, fontSize: '0.75rem', fontWeight: 800, backdropFilter: 'blur(12px)', boxShadow: 'var(--sh-sm)' }}>TRANSFORMATION COMPLETE</div>
+              </div>
+
+              {/* Floating Badge */}
+              <div style={{ position: 'absolute', bottom: -30, right: -10, background: 'var(--forest)', color: '#fff', padding: '24px', borderRadius: '40px 40px 0 40px', boxShadow: 'var(--sh-lg)', textAlign: 'center', width: 150, height: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, transform: 'rotate(-4deg)' }}>
+                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--gold)' }}>4.9/5</div>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 }}>User Satisfaction</div>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <ServicesAccordion />
+        {/* Certification Ticker */}
+        <div className="s-reveal s-reveal-d3" style={{ marginTop: 100, background: 'var(--bg-elevated)', padding: '28px 0', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', position: 'relative' }}>
+          <div className="marquee-container" style={{ maskImage: 'none' }}>
+            <div className="marquee-scroller" style={{ animationDuration: '25s', gap: '80px' }}>
+              {[...Array(6)].map((_, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>2 Days Intensive Training</span>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
+                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>Background Verified Experts</span>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
+                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>Eco-friendly Solutions</span>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
 
-      {/* ═══ PLANT UTILITIES CAROUSEL ═══ */}
-      <section style={{ padding: 'clamp(48px,6vw,96px) 0', background: 'var(--bg-sage)' }}>
+      {/* ═══ PLANT UTILITIES ═══ */}
+      <section className="section s-reveal" style={{ background: 'var(--bg-sage)' }}>
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: 'clamp(32px,5vw,64px)' }}>
+          <div style={{ textAlign: 'center', marginBottom: 'clamp(48px,6vw,80px)' }}>
             <div className="section-divider-line" />
-            <span className="overline overline-dot">Plant Care Tips</span>
+            <span className="overline overline-dot">Proactive Maintenance</span>
             <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Plant Utilities</h2>
-            <p style={{ color: 'var(--text-2)', fontSize: '1.05rem', maxWidth: 540, margin: '12px auto 0', lineHeight: 1.7 }}>
-              Essential tips and tools for healthy plant growth.
+            <p style={{ color: 'var(--text-2)', fontSize: '1.05rem', maxWidth: 540, margin: '14px auto 0', lineHeight: 1.7, fontWeight: 500 }}>
+              Essential protocols maintained by our experts for every plant in your care.
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', scrollSnapType: 'x mandatory', paddingBottom: '1rem' }}>
-            {[
-              { title: 'Watering Guide', desc: 'Know when and how much to water your plants.', icon: '💧' },
-              { title: 'Fertilizer Tips', desc: 'Choose the right fertilizer for optimal growth.', icon: '🌱' },
-              { title: 'Pest Control', desc: 'Identify and treat common plant pests.', icon: '🐛' },
-              { title: 'Pruning Techniques', desc: 'Learn proper pruning for healthy plants.', icon: '✂️' },
-              { title: 'Soil Health', desc: 'Maintain soil quality for better plant health.', icon: '🌿' },
-            ].map((item, i) => (
-              <div key={i} style={{ minWidth: 280, background: '#fff', borderRadius: 16, padding: '1.5rem', boxShadow: 'var(--sh-sm)', scrollSnapAlign: 'start' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>{item.icon}</div>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--forest)', marginBottom: '0.5rem' }}>{item.title}</h3>
-                <p style={{ color: 'var(--text-2)', fontSize: '0.9rem', lineHeight: 1.6 }}>{item.desc}</p>
+
+        {/* Utilities Grid - Precise 3-2 Layout */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(6, 1fr)',
+          gap: '30px',
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '20px'
+        }}>
+          {[
+            { title: 'Watering Strategy', desc: 'Precision moisture monitoring for every species.', Icon: IcDroplet },
+            { title: 'Organic Nutrition', desc: 'Premium fertilizers for lush green growth.', Icon: IcLeaf },
+            { title: 'Pest Screening', desc: 'Proactive detection of infestations and diseases.', Icon: IcShield },
+            { title: 'Growth Pruning', desc: 'Shaping plants for better health and aesthetics.', Icon: IcScissors },
+            { title: 'Soil Restoration', desc: 'Revitalizing soil health with organic amendments.', Icon: IcMap },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className="utility-card"
+              style={{
+                background: '#fff',
+                padding: '45px 30px',
+                border: '1.5px solid var(--border)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                borderRadius: 28,
+                boxShadow: 'var(--sh-sm)',
+                transition: 'all 0.3s ease-out',
+                cursor: 'pointer',
+              }}
+            >
+              <div style={{ color: 'var(--forest)', width: 64, height: 64, borderRadius: '20px', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, border: '1px solid var(--border-gold)' }}>
+                <item.Icon />
               </div>
-            ))}
-          </div>
+              <h3 style={{ fontSize: '1.3rem', color: 'var(--forest)', fontWeight: 800, marginBottom: 12 }}>{item.title}</h3>
+              <p style={{ color: 'var(--sage)', fontSize: '0.9rem', lineHeight: 1.6, fontWeight: 500 }}>{item.desc}</p>
+            </div>
+          ))}
         </div>
-      </section>
 
-
-      {/* ═══ CERTIFIED GREENERY SECTION ═══ */}
-      <section style={{ padding: 'clamp(48px,6vw,96px) 0', background: '#fff' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: 'clamp(32px,5vw,64px)' }}>
-            <div className="section-divider-line" />
-            <span className="overline overline-dot">Certified Greenery</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Expert Plant Care Blogs</h2>
-            <p style={{ color: 'var(--text-2)', fontSize: '1.05rem', maxWidth: 540, margin: '12px auto 0', lineHeight: 1.7 }}>
-              Learn from our certified plant experts. Discover tips, case studies, and plant care guides.
-            </p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-            {blogs?.slice(0, 3).map((blog: any) => (
-              <Link key={blog.id} href={`/blogs/${blog.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--sh-sm)', transition: 'transform 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                  <img src={blog.featured_image || '/placeholder.jpg'} alt={blog.title} style={{ width: '100%', height: 200, objectFit: 'cover' }} />
-                  <div style={{ padding: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--forest)', marginBottom: '0.5rem' }}>{blog.title}</h3>
-                    <p style={{ color: 'var(--text-2)', fontSize: '0.9rem', lineHeight: 1.6 }}>{blog.excerpt || blog.content?.substring(0, 100) + '...'}</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-          <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-            <Link href="/blogs" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', background: 'var(--forest)', color: '#fff', borderRadius: 99, textDecoration: 'none', fontWeight: 600 }}>
-              View All Blogs <IcArrow />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-
-      {/* ═══ REVIEWS / TESTIMONIALS ═══ */}
-      <section style={{ padding: 'clamp(48px,6vw,96px) 0', background: 'var(--bg-sage)' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: 'clamp(32px,5vw,64px)' }}>
-            <div className="section-divider-line" />
-            <span className="overline overline-dot">Customer Reviews</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>What Our Customers Say</h2>
-            <p style={{ color: 'var(--text-2)', fontSize: '1.05rem', maxWidth: 540, margin: '12px auto 0', lineHeight: 1.7 }}>
-              Real feedback from satisfied plant parents.
-            </p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-            {[
-              { name: 'Priya Sharma', location: 'Noida', rating: 5, review: 'Amazing service! My plants have never looked better. The gardener was professional and knowledgeable.' },
-              { name: 'Rahul Verma', location: 'Greater Noida', rating: 5, review: 'Very punctual and thorough. They even gave me tips on plant care. Highly recommended!' },
-              { name: 'Anjali Gupta', location: 'Delhi NCR', rating: 5, review: 'Great experience. The before and after photos show the difference. Will book again.' },
-            ].map((review, i) => (
-              <div key={i} style={{ background: '#fff', borderRadius: 16, padding: '1.5rem', boxShadow: 'var(--sh-sm)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                  <Stars />
-                  <span style={{ fontSize: '0.9rem', color: 'var(--text-2)' }}>{review.rating}.0</span>
-                </div>
-                <p style={{ color: 'var(--text)', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '1rem' }}>"{review.review}"</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700 }}>
-                    {review.name[0]}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 600, color: 'var(--forest)' }}>{review.name}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>{review.location}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <style jsx>{`
+          .utility-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 32px rgba(3, 65, 26, 0.1) !important;
+            border-color: var(--gold) !important;
+          }
+          @media (min-width: 1025px) {
+            .utility-card:nth-child(1), .utility-card:nth-child(2), .utility-card:nth-child(3) { grid-column: span 2; }
+            .utility-card:nth-child(4) { grid-column: 2 / span 2; }
+            .utility-card:nth-child(5) { grid-column: 4 / span 2; }
+          }
+          @media (max-width: 1024px) {
+            div { grid-template-columns: repeat(2, 1fr) !important; padding: 10px !important; }
+            .utility-card { grid-column: span 1 !important; padding: 30px 20px !important; }
+          }
+          @media (max-width: 768px) {
+            div { grid-template-columns: 1fr !important; }
+          }
+        `}</style>
         </div>
       </section>
 
 
       {/* ═══ HOW IT WORKS — horizontal GSAP-style stack-expand ═══ */}
-      <section className="section sec-sage" style={{ position: 'relative', zIndex: 11, overflow: 'hidden', padding: 'clamp(56px,9vw,130px) 0 clamp(72px,10vw,140px)' }}>
+      <section className="section s-reveal" style={{ position: 'relative', zIndex: 11, overflow: 'hidden', padding: 'clamp(56px,9vw,130px) 0 clamp(72px,10vw,140px)' }}>
         {/* Subtle radial blob decorations */}
         <div style={{ position: 'absolute', top: -80, right: -80, width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -60, left: -60, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -681,7 +733,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══ BRAND STORY ═══ */}
-      <section className="section brand-story-section sec-cream" id="brand-story" style={{ position: 'relative', zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)', borderBottom: '1px solid rgba(3,65,26,0.06)', padding: 'clamp(64px,8vw,120px) 0 clamp(80px,12vw,160px)' }}>
+      <section className="section brand-story-section s-reveal" id="brand-story" style={{ position: 'relative', zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)', borderBottom: '1px solid rgba(3,65,26,0.06)', padding: 'clamp(64px,8vw,120px) 0 clamp(80px,12vw,160px)' }}>
         {/* Decorative blobs */}
         <div style={{ position: 'absolute', top: -40, left: '10%', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -40, right: '8%', width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -749,7 +801,7 @@ export default function HomePage() {
 
       {/* ═══ SHOP PREVIEW ═══ */}
       {shopProducts?.length > 0 && (
-        <section className="section sec-white" style={{ position: 'relative', zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)' }}>
+        <section className="section s-reveal" style={{ position: 'relative', zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)' }}>
           <div className="container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 52, flexWrap: 'wrap', gap: 20 }}>
               <div style={{ maxWidth: 540 }}>
@@ -783,7 +835,7 @@ export default function HomePage() {
         </section>
       )}
       {/* ═══ FINAL CTA ═══ */}
-      <section className="section final-cta" id="cta" style={{ borderTop: '1px solid rgba(3,65,26,0.07)', padding: 'clamp(56px,8vw,120px) 0' }}>
+      <section className="section final-cta s-reveal" id="cta" style={{ borderTop: '1px solid rgba(3,65,26,0.07)', padding: 'clamp(56px,8vw,120px) 0' }}>
         {/* Light gardening video background */}
         <video autoPlay loop muted playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.18 }}>
           <source src="/bg.mp4" type="video/mp4" />
@@ -814,13 +866,12 @@ export default function HomePage() {
         </div>
       </section>
       {/* ═══ TESTIMONIALS ═══ */}
-      <section className="section trust-section" id="testimonials" style={{ zIndex: 11, paddingBottom: 100 }}>
+      <section className="section trust-section s-reveal" id="testimonials" style={{ zIndex: 11, paddingBottom: 100 }}>
         <div className="container">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 52 }}>
             <div className="section-divider-line" />
             <span className="overline overline-dot">Social Proof</span>
             <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Voices from Noida Societies</h2>
-            <p style={{ color: 'var(--text-2)', marginTop: 12, fontSize: '0.9rem', opacity: 0.6 }}>Hover to pause</p>
           </div>
         </div>
         {/* Infinite Marquee — duplicated for seamless loop */}
@@ -850,7 +901,7 @@ export default function HomePage() {
 
       {/* ═══ BLOG JOURNAL ═══ */}
       {blogs?.length > 0 && (
-        <section className="section sec-white" style={{ position: 'relative', zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)' }}>
+        <section className="section s-reveal" style={{ position: 'relative', zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)' }}>
           <div className="container">
             <div style={{ textAlign: 'center', marginBottom: 52 }}>
               <div className="section-divider-line" />
@@ -880,7 +931,7 @@ export default function HomePage() {
 
       {/* ═══ PLANS PREVIEW ═══ */}
       {plans.length > 0 && (
-        <section className="section sec-sage" style={{ zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)', paddingBottom: 120 }}>
+        <section className="section s-reveal" style={{ zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)', paddingBottom: 120 }}>
           <div className="container">
             <div style={{ textAlign: 'center', marginBottom: 64 }}>
               <div className="section-divider-line" />
@@ -941,194 +992,6 @@ export default function HomePage() {
         <IcWhatsApp />
         <div className="whatsapp-tooltip">Need Help? Chat with Us</div>
       </a>
-
-      <style jsx global>{`
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.7;transform:scale(1.3)} }
-        @keyframes leafFloat0 { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-20px) rotate(12deg)} }
-        @keyframes leafFloat1 { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-15px) rotate(-8deg)} }
-        @keyframes leafFloat2 { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-25px) rotate(15deg)} }
-        @keyframes leafFloat3 { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-18px) rotate(-10deg)} }
-        @keyframes orbDrift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(40px,-30px) scale(1.08)} }
-        @keyframes orbDrift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-30px,25px) scale(1.06)} }
-        @keyframes orbDrift3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(20px,-40px) scale(0.94)} }
-        @keyframes leafFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 33%{transform:translateY(-12px) rotate(8deg)} 66%{transform:translateY(-6px) rotate(-5deg)} }
-        
-        .section-no-gap { padding-top: 0 !important; }
-        @media (max-width: 768px) {
-          .hero-content-box { padding-top: 0 !important; padding-bottom: 0 !important; }
-          .hero-title { margin-bottom: 32px !important; gap: 4px !important; }
-          .hero-subtitle { margin-bottom: 30px !important; }
-          .hero-cta-row { margin-bottom: 24px !important; gap: 12px !important; }
-          .hero-stats { margin-top: 40px !important; }
-          .ba-split-section { overflow-x: hidden; }
-        }
-        .plans-carousel-track::-webkit-scrollbar { height: 4px; }
-        .plans-carousel-track::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 99px; }
-
-        /* 3D Button Base Styles */
-        .btn-3d-plant {
-          position: relative;
-          transform-style: preserve-3d;
-          will-change: transform;
-          transition: transform 0.18s ease, box-shadow 0.18s ease !important;
-        }
-        .btn-3d-plant:hover {
-          transform: perspective(600px) translateY(-4px) !important;
-          box-shadow: 0 20px 50px rgba(3,65,26,0.25), 0 8px 20px rgba(3,65,26,0.15) !important;
-        }
-        .btn-3d-plant:active {
-          transform: perspective(600px) translateY(-1px) !important;
-        }
-        .btn-leaf-deco {
-          animation: leafFloat 2.5s ease-in-out infinite;
-          opacity: 0;
-          transition: opacity 0.3s;
-          pointer-events: none;
-        }
-        .btn-3d-plant:hover .btn-leaf-deco {
-          opacity: 1;
-        }
-
-        /* Hero SVG path animations */
-        .hero-svg-path-1 {
-          stroke-dasharray: 2000;
-          stroke-dashoffset: 2000;
-          animation: drawPath 4s ease forwards 0.5s;
-        }
-        .hero-svg-path-2 {
-          stroke-dasharray: 2000;
-          stroke-dashoffset: 2000;
-          animation: drawPath 5s ease forwards 1s;
-        }
-        .hero-svg-circle {
-          stroke-dasharray: 754;
-          stroke-dashoffset: 754;
-          animation: drawPath 3s ease forwards 0.8s;
-        }
-        @keyframes drawPath {
-          to { stroke-dashoffset: 0; }
-        }
-        
-        /* Hero bg grid */
-        .hero-bg-grid {
-          position: absolute;
-          inset: 0;
-          background-image: radial-gradient(circle, rgba(3,65,26,0.12) 1px, transparent 1px);
-          background-size: 48px 48px;
-        }
-
-        /* Brand Story Styles */
-        .brand-story-grid {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-          gap: 60px;
-          align-items: start;
-        }
-        .values-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 24px;
-        }
-        .value-card {
-          padding: 24px;
-          background: #fff;
-          border-radius: 20px;
-          border: 1px solid var(--border-gold);
-          box-shadow: var(--sh-sm);
-          transition: all 0.3s ease;
-        }
-        .value-card:hover {
-          transform: translateY(-5px);
-          box-shadow: var(--sh-md);
-          border-color: var(--gold);
-        }
-        .journey-card {
-          background: #fff;
-          padding: 48px;
-          border-radius: 40px;
-          border: 1.5px solid var(--border-gold);
-          position: relative;
-          overflow: hidden;
-          box-shadow: var(--sh-md);
-        }
-        .journey-card-deco {
-          position: absolute;
-          top: -20px;
-          right: -20px;
-          width: 120px;
-          height: 120px;
-          background: var(--bg-elevated);
-          border-radius: 50%;
-          z-index: 0;
-        }
-        .journey-milestone {
-          font-weight: 700;
-          color: #02270f;
-          background: linear-gradient(135deg, #e8f5e0, #f0fae8);
-          padding: 24px;
-          border-radius: 20px;
-          border-left: 5px solid var(--earth);
-          margin-top: 24px;
-          font-size: 1rem;
-          line-height: 1.75;
-        }
-
-        @media (max-width: 991px) {
-          .brand-story-grid {
-            grid-template-columns: 1fr;
-            gap: 40px;
-          }
-        }
-        @media (max-width: 576px) {
-          .values-grid {
-            grid-template-columns: 1fr;
-          }
-          .journey-card {
-            padding: 28px 20px;
-            border-radius: 28px;
-          }
-          .journey-milestone {
-            padding: 18px;
-          }
-        }
-        /* Typewriter Animation CSS */
-        .typewriter-container {
-          margin: 0 auto;
-          line-height: 1.4;
-          width: 100%;
-        }
-        .typewriter-gradient {
-          font-size: clamp(1.6rem, 3.5vw, 3rem);
-          font-weight: 800;
-          background: linear-gradient(90deg, #ffffff, #fcd34d, #ffffff);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-size: 200% auto;
-          animation: floatGradient 5s linear infinite;
-          display: inline-block;
-          min-height: 1.25em;
-          filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
-        }
-        @keyframes floatGradient {
-          to { background-position: 200% center; }
-        }
-        .steps-row {
-          display: flex;
-          gap: 0;
-        }
-
-        /* Responsive Breakpoints */
-        @media (max-width: 768px) {
-          .steps-row { flex-direction: column !important; gap: 20px !important; margin-bottom: 24px; padding: 0 16px; }
-          .step-card-wrap { padding: 0 !important; }
-          .typewriter-gradient { white-space: pre-wrap !important; width: 100%; }
-          .mobile-steps-flex { display: flex !important; flex-direction: column; gap: 20px; }
-        }
-        @media (min-width: 769px) {
-          .typewriter-gradient { white-space: normal; }
-        }
-      `}</style>
     </SmoothScrollProvider>
   );
 }

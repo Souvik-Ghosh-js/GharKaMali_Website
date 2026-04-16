@@ -196,6 +196,17 @@ export function useGSAPAnimations() {
         });
       }
 
+      // ── GENERIC SCROLL REVEALS (AOS Style) ─────────────────────────────
+      const reveals = document.querySelectorAll('.s-reveal');
+      reveals.forEach((el) => {
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 88%',
+          onEnter: () => el.classList.add('in-view'),
+          once: true
+        });
+      });
+
       setTimeout(() => ScrollTrigger.refresh(), 1500);
     };
 

@@ -12,6 +12,8 @@ const IcArrow = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none
 const IcCheck = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>;
 const IcX = () => <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--err)" strokeWidth="3.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
 const IcShield = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+const IcChevronLeft = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>;
+const IcChevronRight = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
 
 const COMPARE_FEATURES = [
   { label: 'Certified & verified plant expert', basic: true, standard: true, premium: true },
@@ -225,6 +227,19 @@ export default function PlansPage() {
   const plans: any[] = (plansRaw as any[]) ?? [];
   const subPlans = plans.filter((p:any) => p.plan_type === 'subscription');
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const tableRef1 = useRef<HTMLDivElement>(null);
+  const tableRef2 = useRef<HTMLDivElement>(null);
+
+  const [colIdx1, setColIdx1] = useState(0); // For first table
+  const [colIdx2, setColIdx2] = useState(0); // For second table
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobileView(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current; if(!canvas) return;
@@ -302,15 +317,21 @@ export default function PlansPage() {
                 See how our professional gardeners deliver advanced care compared to regular service.
               </p>
             </div>
-            <div style={{ width:'100%', overflowX:'auto', WebkitOverflowScrolling:'touch' as any, borderRadius:24, boxShadow:'var(--sh-lg)', border:'1px solid var(--border)' }}>
-              <table style={{ width:'100%', borderCollapse:'collapse', minWidth:500 }}>
-                <thead>
-                  <tr style={{ background:'var(--bg-sage)' }}>
-                    <th style={{ padding:'24px', textAlign:'left', fontWeight:800, color:'var(--forest)', fontSize:'1.1rem', whiteSpace: 'nowrap' }}>Feature</th>
-                    <th style={{ padding:'24px', textAlign:'center', fontWeight:800, color:'var(--forest)', fontSize:'1.1rem', whiteSpace: 'nowrap' }}>Normal Gardener</th>
-                    <th style={{ padding:'24px', textAlign:'center', fontWeight:800, color:'var(--gold)', fontSize:'1.1rem', whiteSpace: 'nowrap' }}>Professional Gardener</th>
-                  </tr>
-                </thead>
+            <div style={{ position: 'relative' }}>
+              <div style={{ position: 'absolute', top: 0, bottom: 0, left: -20, right: -20, pointerEvents: 'none', zIndex: 100 }}>
+                <button className="floating-nav-btn" onClick={() => setColIdx1(prev => Math.max(0, prev - 1))} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx1 === 0 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronLeft /></button>
+                <button className="floating-nav-btn" onClick={() => setColIdx1(prev => Math.min(1, prev + 1))} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx1 === 1 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronRight /></button>
+              </div>
+              
+              <div ref={tableRef1} className="no-scrollbar" style={{ width:'100%', overflowX:'auto', WebkitOverflowScrolling:'touch' as any, borderRadius:24, boxShadow:'var(--sh-lg)', border:'1px solid var(--border)', position: 'relative' }}>
+                <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                  <thead>
+                    <tr style={{ background:'var(--bg-sage)' }}>
+                      <th className="sticky-col" style={{ padding:'24px', textAlign:'left', fontWeight:800, color:'var(--forest)', fontSize:'clamp(0.85rem, 2vw, 1.1rem)', whiteSpace: 'normal', position: 'sticky', left: 0, background: 'var(--bg-sage)', zIndex: 12 }}>Feature</th>
+                      {(!isMobileView || colIdx1 === 0) && <th style={{ padding:'24px', textAlign:'center', fontWeight:800, color:'var(--forest)', fontSize:'clamp(0.8rem, 2vw, 1.1rem)', whiteSpace: 'normal', position: 'sticky', top: 0, background: 'var(--bg-sage)', zIndex: 11 }}>Normal Gardener</th>}
+                      {(!isMobileView || colIdx1 === 1) && <th style={{ padding:'24px', textAlign:'center', fontWeight:800, color:'var(--gold)', fontSize:'clamp(0.8rem, 2vw, 1.1rem)', whiteSpace: 'normal', position: 'sticky', top: 0, background: 'var(--bg-sage)', zIndex: 11 }}>Professional Gardener</th>}
+                    </tr>
+                  </thead>
                 <tbody>
                   {[
                     { feature: 'Plant health assessment', normal: '✕', professional: '✓' },
@@ -323,15 +344,16 @@ export default function PlansPage() {
                     { feature: 'Detailed visit reports', normal: '✕', professional: '✓' },
                   ].map((row, i) => (
                     <tr key={i} style={{ borderTop:'1px solid var(--border)', background: '#fff' }}>
-                      <td style={{ padding:'20px 24px', fontWeight:600, color:'var(--forest)', whiteSpace: 'nowrap' }}>{row.feature}</td>
-                      <td style={{ padding:'20px 24px', textAlign:'center', color: row.normal === '✓' ? 'var(--success)' : 'var(--text-2)', fontSize: '1.05rem' }}>{row.normal}</td>
-                      <td style={{ padding:'20px 24px', textAlign:'center', fontWeight:600, color: row.professional === '✓' ? 'var(--success)' : 'var(--forest)', fontSize: '1.05rem' }}>{row.professional}</td>
+                      <td className="sticky-col" style={{ padding:'20px 24px', fontWeight:600, color:'var(--forest)', whiteSpace: 'normal', position: 'sticky', left: 0, background: '#fff', zIndex: 5, maxWidth: '200px' }}>{row.feature}</td>
+                      {(!isMobileView || colIdx1 === 0) && <td style={{ padding:'20px 24px', textAlign:'center', color: row.normal === '✓' ? 'var(--success)' : 'var(--text-2)', fontSize: '1.05rem', whiteSpace: 'normal' }}>{row.normal}</td>}
+                      {(!isMobileView || colIdx1 === 1) && <td style={{ padding:'20px 24px', textAlign:'center', fontWeight:600, color: row.professional === '✓' ? 'var(--success)' : 'var(--forest)', fontSize: '1.05rem', whiteSpace: 'normal' }}>{row.professional}</td>}
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
+        </div>
 
           {/* Comparison table */}
           {subPlans.length >= 2 && (
@@ -340,28 +362,34 @@ export default function PlansPage() {
                 <span className="overline">Feature Breakdown</span>
                 <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 8 }}>Compare Exclusive Benefits</h2>
               </div>
-              {/* Scrollable wrapper — proper horizontal scroll on mobile */}
-              <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any, borderRadius: 32 }}>
-                <table className="plans-compare-table" style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
-                  <thead>
-                    <tr style={{ background: 'var(--forest)' }}>
-                      <th style={{ padding: '20px 24px', textAlign: 'left', color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', whiteSpace: 'nowrap' }}>Feature</th>
-                      {subPlans.slice(0, 3).map((p: any) => (
-                        <th key={p.id || p.name} style={{ padding: '20px 24px', textAlign: 'center', color: 'var(--gold)', fontSize: '1rem', fontWeight: 900, whiteSpace: 'nowrap' }}>{p.name}</th>
-                      ))}
-                    </tr>
-                  </thead>
+              <div style={{ position: 'relative' }}>
+                <div style={{ position: 'absolute', top: 0, bottom: 0, left: -20, right: -20, pointerEvents: 'none', zIndex: 100 }}>
+                  <button className="floating-nav-btn" onClick={() => setColIdx2(prev => Math.max(0, prev - 1))} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx2 === 0 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronLeft /></button>
+                  <button className="floating-nav-btn" onClick={() => setColIdx2(prev => Math.min(subPlans.length - 1, prev + 1))} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx2 === subPlans.length - 1 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronRight /></button>
+                </div>
+                
+                <div ref={tableRef2} className="no-scrollbar" style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling:'touch' as any, borderRadius: 32, position: 'relative' }}>
+                  <table className="plans-compare-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--forest)' }}>
+                        <th className="sticky-col" style={{ padding: '20px 24px', textAlign: 'left', color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', whiteSpace: 'normal', position: 'sticky', left: 0, background: 'var(--forest)', zIndex: 12 }}>Feature</th>
+                        {subPlans.slice(0, 3).map((p: any, j: number) => (
+                          (!isMobileView || colIdx2 === j) && <th key={p.id || p.name} style={{ padding: '20px 24px', textAlign: 'center', color: 'var(--gold)', fontSize: 'clamp(0.8rem, 2vw, 1rem)', fontWeight: 900, whiteSpace: 'normal', position: 'sticky', top: 0, background: 'var(--forest)', zIndex: 11 }}>{p.name}</th>
+                        ))}
+                      </tr>
+                    </thead>
                   <tbody>
                     {COMPARE_FEATURES.map((f, i) => (
                       <tr key={f.label} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'rgba(3,65,26,0.01)' : '#fff' }}>
-                        <td style={{ padding: '16px 24px', fontSize: '0.9rem', color: 'var(--forest)', fontWeight: 700, whiteSpace: 'nowrap' }}>{f.label}</td>
+                        <td className="sticky-col" style={{ padding: '16px 24px', fontSize: '0.9rem', color: 'var(--forest)', fontWeight: 700, whiteSpace: 'normal', position: 'sticky', left: 0, background: i % 2 === 0 ? '#f9fbf9' : '#fff', zIndex: 5, maxWidth: '220px' }}>{f.label}</td>
                         {[f.basic, f.standard, f.premium].slice(0, subPlans.length).map((v, j) => (
-                          <td key={j} style={{ padding: '16px 20px', textAlign: 'center' }}><CheckCell val={v}/></td>
+                          (!isMobileView || colIdx2 === j) && <td key={j} style={{ padding: '16px 20px', textAlign: 'center', whiteSpace: 'normal' }}><CheckCell val={v}/></td>
                         ))}
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                  </table>
+                </div>
               </div>
             </div>
           )}
