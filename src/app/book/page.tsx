@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
@@ -31,11 +31,12 @@ const STEP_ICONS = [StepIcMap, StepIcPlan, StepIcPlus, StepIcCal, StepIcOk];
 function BookFlow() {
   const router = useRouter();
   const params = useSearchParams();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user, updateUser } = useAuth();
   const { addService } = useCart();
   const preselect = params.get('plan') ? parseInt(params.get('plan')!) : 0;
 
   const [step, setStep] = useState<Step>('location');
+  const [maxStep, setMaxStep] = useState<number>(0);
   const [coordMode, setCoordMode] = useState<'auto' | 'manual'>('auto');
   const [checking, setChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -48,8 +49,33 @@ function BookFlow() {
     auto_renew: true, notes: '', preferred_gardener_id: 0
   });
 
+  // Structured address sub-fields — combined into form.address
+  const [addrFields, setAddrFields] = useState({ roomNo: '', building: '', area: '', city: '', state: 'Uttar Pradesh', pincode: '' });
+  const updateAddr = (patch: Partial<typeof addrFields>) => {
+    const next = { ...addrFields, ...patch };
+    setAddrFields(next);
+    const parts = [next.roomNo, next.building, next.area, next.city, next.state, next.pincode].filter(Boolean);
+    setForm(f => ({ ...f, address: parts.join(', ') }));
+  };
+
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // Section refs for smooth-scroll flow
+  const locationRef = useRef<HTMLDivElement>(null);
+  const planRef = useRef<HTMLDivElement>(null);
+  const addonsRef = useRef<HTMLDivElement>(null);
+  const scheduleRef = useRef<HTMLDivElement>(null);
+  const confirmRef = useRef<HTMLDivElement>(null);
+  const sectionRefs: Record<Step, React.RefObject<HTMLDivElement>> = {
+    location: locationRef, plan: planRef, addons: addonsRef, schedule: scheduleRef, confirm: confirmRef,
+  };
+  const scrollToStep = (s: Step) => {
+    setStep(s);
+    setTimeout(() => {
+      sectionRefs[s].current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
+  };
 
   useEffect(() => { if (!isLoading && !isAuthenticated) router.replace('/login?redirect=/book'); }, [isAuthenticated, isLoading, router]);
 
@@ -105,8 +131,15 @@ function BookFlow() {
   }, [plans, typeFilter, form.plan_id]);
 
   const addons: any[] = (addonsRaw as any[]) ?? [];
-  const selectedPlan = plans.find((p: any) => p.id === form.plan_id);
+  const selectedPlan = plansRaw ? (plansRaw as any[]).find((p: any) => p.id === form.plan_id) : null;
+  const isSubscription = selectedPlan?.plan_type?.toLowerCase() === 'subscription';
+  
+  const visibleSteps = preselect > 0 ? STEPS.filter(s => s !== 'plan') : STEPS;
   const stepIdx = STEPS.indexOf(step);
+  const visibleStepIdx = visibleSteps.indexOf(step);
+  
+  const isScheduleComplete = selectedPlan?.plan_type === 'subscription' || !!form.scheduled_date;
+  const confirmLocked = !form.plan_id || !isScheduleComplete;
 
   const doCheck = async (lat: number, lng: number) => {
     setChecking(true);
@@ -116,12 +149,19 @@ function BookFlow() {
         const z = res.zones?.[0] ?? res.zone;
         setZone(z); setForm(f => ({ ...f, lat, lng }));
         toast.success(`We serve ${z?.name ?? 'your area'}`);
-        // If it's a specific on-demand request, we ALWAYS show the plan details step
-        // Otherwise, if a plan was pre-selected (e.g. from the plans page), we can skip to addons
-        if (typeFilter === 'on-demand') {
-          setStep('plan');
+        if (user) {
+          updateUser({ address: [addrFields.roomNo, addrFields.building, addrFields.area, addrFields.city, addrFields.state, addrFields.pincode].filter(Boolean).join(', ') });
+        }
+        // If a plan is pre-selected, skip to addons directly
+        if (preselect > 0) {
+          setMaxStep(s => Math.max(s, 2));
+          scrollToStep('addons');
+        } else if (typeFilter === 'on-demand') {
+          setMaxStep(s => Math.max(s, 1));
+          scrollToStep('plan');
         } else {
-          setStep(form.plan_id ? 'addons' : 'plan');
+          setMaxStep(s => Math.max(s, form.plan_id ? 2 : 1));
+          scrollToStep(form.plan_id ? 'addons' : 'plan');
         }
       } else { toast.error('Sorry, we don\'t serve this location yet.'); }
     } catch { toast.error('Could not verify location. Please try again.'); }
@@ -129,7 +169,11 @@ function BookFlow() {
   };
 
   const tryLocation = async () => {
-    if (!form.address.trim()) { toast.error('Please enter your service address'); return; }
+    if (!addrFields.roomNo.trim() || !addrFields.building.trim() || !addrFields.city.trim() || !addrFields.pincode.trim()) {
+      toast.error('Please fill Room/Flat No., Building, City and Pincode');
+      return;
+    }
+    if (addrFields.pincode.length !== 6) { toast.error('Please enter a valid 6-digit pincode'); return; }
     if (coordMode === 'manual') {
       if (!form.lat || !form.lng) { toast.error('Please enter both latitude and longitude'); return; }
       await doCheck(form.lat, form.lng); return;
@@ -171,7 +215,7 @@ function BookFlow() {
       let subscriptionId = null;
       let amount = total;
 
-      if (selectedPlan.plan_type === 'subscription') {
+      if (isSubscription) {
         const sub: any = await createSubscription({
           plan_id: form.plan_id,
           zone_id: zone.id,
@@ -243,6 +287,7 @@ function BookFlow() {
       icon: 'plant',
       bookingDetails: {
         plan_id: form.plan_id,
+        plan_type: selectedPlan.plan_type,
         zone_id: zone.id,
         scheduled_date: form.scheduled_date,
         scheduled_time: form.scheduled_time,
@@ -252,7 +297,9 @@ function BookFlow() {
         plant_count: form.plant_count,
         addons: form.addons,
         notes: form.notes,
-        price: total
+        price: total,
+        auto_renew: form.auto_renew,
+        preferred_gardener_id: form.preferred_gardener_id || null
       }
     });
 
@@ -294,22 +341,22 @@ function BookFlow() {
         <div className="step-bar">
           <div className="container">
             <div className="book-step-bar-container" style={{ display: 'flex', alignItems: 'center' }}>
-              {STEPS.map((s, i) => {
-                const done = i < stepIdx, active = i === stepIdx;
+              {visibleSteps.map((s, i) => {
+                const sIdx = STEPS.indexOf(s);
+                const done = sIdx < stepIdx, active = sIdx === stepIdx;
+                const locked = sIdx > maxStep;
                 return (
-                  <div key={s} style={{ display: 'flex', alignItems: 'center', flex: i < STEPS.length - 1 ? 1 : 'none' }}>
-                    <div className="step-item">
+                  <div key={s} style={{ display: 'flex', alignItems: 'center', flex: i < visibleSteps.length - 1 ? 1 : 'none' }}>
+                    <button onClick={() => !locked && scrollToStep(s)} disabled={locked}
+                      className="step-item" style={{ background: 'none', border: 'none', cursor: locked ? 'not-allowed' : 'pointer', opacity: locked ? 0.5 : 1, padding: 0 }}>
                       <div className={`step-circle ${done ? 'done' : active ? 'active' : 'pending'}`}>
                         {done ? <StepIcOk /> : <div style={{ transform: 'scale(1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {(() => {
-                            const Icon = STEP_ICONS[i];
-                            return <Icon />;
-                          })()}
+                          {(() => { const Ic = STEP_ICONS[sIdx]; return <Ic />; })()}
                         </div>}
                       </div>
-                      <span className={`step-label ${active ? 'active' : ''}`}>{LABELS[i]}</span>
-                    </div>
-                    {i < STEPS.length - 1 && <div className="step-connector" style={{ background: done ? 'var(--forest)' : 'var(--border)' }} />}
+                      <span className="step-label" style={{ fontWeight: active ? 800 : 700 }}>{LABELS[sIdx]}</span>
+                    </button>
+                    {i < visibleSteps.length - 1 && <div className={`step-line ${done ? 'done' : ''}`} />}
                   </div>
                 );
               })}
@@ -317,20 +364,72 @@ function BookFlow() {
           </div>
         </div>
 
-        <div className="container" style={{ padding: '40px clamp(20px,4vw,48px) 80px', position: 'relative', zIndex: 10 }}>
+        <div className="container" style={{ padding: '40px clamp(20px,4vw,48px) 80px', position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 48 }}>
           {/* ── LOCATION ── */}
-          {step === 'location' && (
+          <div ref={locationRef} style={{ scrollMarginTop: 'calc(var(--nav-h) + 60px)' }}>
             <div style={{ animation: 'slide-up 0.4s var(--ease)' }}>
               <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2rem', marginBottom: 6, letterSpacing: '-0.02em', color: 'var(--forest)' }}>Where do you need us?</h2>
               <p style={{ color: 'var(--sage)', marginBottom: 32, fontSize: '1rem', fontWeight: 500 }}>We'll instantly check if your area is serviceable</p>
               <div className="card" style={{ padding: 36, borderRadius: 28 }}>
                 <div className="form-group">
                   <label className="form-label">Service Address *</label>
-                  <textarea rows={3} placeholder="House/Flat No., Street, Area, City, Pincode" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-                    style={{ width: '100%', minHeight: 100, resize: 'vertical', background: '#fff', border: '1px solid var(--border-mid)', borderRadius: 18, padding: '18px', color: 'var(--forest)', outline: 'none', transition: 'all 0.3s var(--ease)', fontSize: '1rem', fontWeight: 500 }}
-                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--forest)'; e.currentTarget.style.boxShadow = '0 0 0 4px var(--border)'; }}
-                    onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-mid)'; e.currentTarget.style.boxShadow = 'none'; }}
-                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }} className="addr-row">
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--sage)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Room / Flat No. *</label>
+                        <input type="text" placeholder="e.g. B-204" value={addrFields.roomNo} onChange={e => updateAddr({ roomNo: e.target.value })}
+                          style={{ width: '100%', background: '#fff', border: '1px solid var(--border-mid)', borderRadius: 14, padding: '13px 16px', color: 'var(--forest)', outline: 'none', fontWeight: 600, fontSize: '0.95rem', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+                          onFocus={e => e.currentTarget.style.borderColor = 'var(--forest)'}
+                          onBlur={e => e.currentTarget.style.borderColor = 'var(--border-mid)'} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--sage)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Block / Building / Society *</label>
+                        <input type="text" placeholder="e.g. ATS Pristine, Tower C" value={addrFields.building} onChange={e => updateAddr({ building: e.target.value })}
+                          style={{ width: '100%', background: '#fff', border: '1px solid var(--border-mid)', borderRadius: 14, padding: '13px 16px', color: 'var(--forest)', outline: 'none', fontWeight: 600, fontSize: '0.95rem', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+                          onFocus={e => e.currentTarget.style.borderColor = 'var(--forest)'}
+                          onBlur={e => e.currentTarget.style.borderColor = 'var(--border-mid)'} />
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--sage)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Area / Landmark</label>
+                      <input type="text" placeholder="e.g. Sector 150, near Expressway Metro" value={addrFields.area} onChange={e => updateAddr({ area: e.target.value })}
+                        style={{ width: '100%', background: '#fff', border: '1px solid var(--border-mid)', borderRadius: 14, padding: '13px 16px', color: 'var(--forest)', outline: 'none', fontWeight: 600, fontSize: '0.95rem', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+                        onFocus={e => e.currentTarget.style.borderColor = 'var(--forest)'}
+                        onBlur={e => e.currentTarget.style.borderColor = 'var(--border-mid)'} />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1fr', gap: 12 }} className="addr-row">
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--sage)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>City *</label>
+                        <input type="text" placeholder="e.g. Greater Noida" value={addrFields.city} onChange={e => updateAddr({ city: e.target.value })}
+                          style={{ width: '100%', background: '#fff', border: '1px solid var(--border-mid)', borderRadius: 14, padding: '13px 16px', color: 'var(--forest)', outline: 'none', fontWeight: 600, fontSize: '0.95rem', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+                          onFocus={e => e.currentTarget.style.borderColor = 'var(--forest)'}
+                          onBlur={e => e.currentTarget.style.borderColor = 'var(--border-mid)'} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--sage)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>State *</label>
+                        <select value={addrFields.state} onChange={e => updateAddr({ state: e.target.value })}
+                          style={{ width: '100%', background: '#fff', border: '1px solid var(--border-mid)', borderRadius: 14, padding: '13px 16px', color: 'var(--forest)', outline: 'none', fontWeight: 600, fontSize: '0.95rem', boxSizing: 'border-box', appearance: 'none', cursor: 'pointer', transition: 'border-color 0.2s' }}
+                          onFocus={e => e.currentTarget.style.borderColor = 'var(--forest)'}
+                          onBlur={e => e.currentTarget.style.borderColor = 'var(--border-mid)'}>
+                          {['Uttar Pradesh','Delhi','Haryana','Rajasthan','Maharashtra','Karnataka','Tamil Nadu','West Bengal','Gujarat','Telangana','Punjab','Madhya Pradesh','Bihar','Odisha','Kerala','Other'].map(s => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--sage)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Pincode *</label>
+                        <input type="text" inputMode="numeric" maxLength={6} placeholder="201301" value={addrFields.pincode} onChange={e => updateAddr({ pincode: e.target.value.replace(/\D/g, '') })}
+                          style={{ width: '100%', background: '#fff', border: '1px solid var(--border-mid)', borderRadius: 14, padding: '13px 16px', color: 'var(--forest)', outline: 'none', fontWeight: 600, fontSize: '0.95rem', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+                          onFocus={e => e.currentTarget.style.borderColor = 'var(--forest)'}
+                          onBlur={e => e.currentTarget.style.borderColor = 'var(--border-mid)'} />
+                      </div>
+                    </div>
+                    {form.address.trim() && (
+                      <div style={{ padding: '10px 14px', background: 'rgba(3,65,26,0.04)', borderRadius: 12, border: '1px dashed var(--forest-mid)', fontSize: '0.82rem', color: 'var(--forest)', fontWeight: 600, lineHeight: 1.5 }}>
+                        📍 {form.address}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 {/* Coordinate mode toggle */}
                 <div style={{ display: 'flex', background: 'var(--bg-elevated)', borderRadius: 16, padding: 5, marginBottom: 20, gap: 4, border: '1px solid var(--border)' }}>
@@ -366,132 +465,129 @@ function BookFlow() {
                 </button>
               </div>
             </div>
-          )}
+          </div>
 
           {/* ── PLAN ── */}
-          {step === 'plan' && (
-            <div style={{ animation: 'slide-up 0.4s var(--ease)' }}>
-              <button onClick={() => setStep('location')} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'var(--font-body)', marginBottom: 16, padding: 0 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg> Back
-              </button>
-              <div className="book-plan-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
-                <div>
-                  <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2rem', marginBottom: 4, letterSpacing: '-0.02em', color: 'var(--forest)' }}>
-                    {selectedPlan?.plan_type === 'subscription' ? 'Choose your plan' : 'Your On-demand Visit'}
-                  </h2>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 16px', background: 'var(--bg-elevated)', borderRadius: 99, fontSize: '0.82rem', fontWeight: 800, color: 'var(--forest)', border: '1px solid var(--border)' }}>
-                    {zone?.name ?? 'Your Area'}
-                  </div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20, position: 'relative', zIndex: 10 }}>
-                {plans.length === 0 ? Array(3).fill(null).map((_, i) => <div key={i} className="card skeleton" style={{ height: 140, borderRadius: 28 }} />) :
-                  plans.map((plan: any) => {
-                    const sel = form.plan_id === plan.id;
-                    let displayPrice = plan.price ?? 0;
-                    if (plan.plan_type !== 'subscription' && zone?.base_price != null) {
-                      displayPrice = parseFloat(zone.base_price);
-                    }
-                    return (
-                      <div key={plan.id} className="book-plan-card" onClick={() => setForm(f => ({ ...f, plan_id: plan.id }))}
-                        style={{
-                          borderRadius: 32,
-                          border: `2.5px solid ${sel ? 'var(--forest)' : 'var(--border)'}`,
-                          background: sel ? 'var(--bg-elevated)' : '#fff',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                          overflow: 'hidden',
-                          boxShadow: sel ? 'var(--sh-md)' : 'var(--sh-xs)',
-                          transform: sel ? 'translateX(8px)' : 'translateX(0)',
-                          zIndex: sel ? 2 : 1,
-                          position: 'relative',
-                          display: 'flex',
-                          flexDirection: 'row',
-                          alignItems: 'stretch',
-                          minHeight: 160
-                        }}>
-
-                        {plan.is_best_value === 1 && (
-                          <div style={{ position: 'absolute', top: 0, left: 0, background: 'var(--gold)', color: '#fff', fontSize: '0.65rem', fontWeight: 900, padding: '4px 16px', borderBottomRightRadius: 12, textTransform: 'uppercase', letterSpacing: '0.1em', zIndex: 10 }}>
-                            Best Value
-                          </div>
-                        )}
-
-                        {/* Left Info: Name & Price */}
-                        <div className="book-plan-card-left" style={{ padding: '40px 32px', display: 'flex', flex: '1.2', flexDirection: 'row', alignItems: 'center', gap: 32, borderRight: '1px solid var(--border-light)' }}>
-                          <div style={{ flex: 1 }}>
-                            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.6rem', marginBottom: 8, color: 'var(--forest)', letterSpacing: '-0.02em' }}>{plan.name}</h3>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--sage)' }}>
-                              {plan.plan_summary || `Up to ${plan.max_plants} Healthy Plants`}
-                            </div>
-                          </div>
-
-                          <div style={{ textAlign: 'right', minWidth: 140 }}>
-                            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', color: 'var(--forest)', lineHeight: 1 }}>
-                              <span style={{ fontSize: '1rem', fontWeight: 700, marginTop: 6 }}>₹</span>
-                              <span style={{ fontSize: '3rem', fontWeight: 900, fontFamily: 'var(--font-display)' }}>{displayPrice.toLocaleString('en-IN')}</span>
-                            </div>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 4 }}>
-                              {plan.price_subtitle || (plan.plan_type === 'subscription' ? 'Per Month' : 'Per Visit')}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Middle: Features Checklist */}
-                        <div className="book-plan-card-mid" style={{ padding: '32px 40px', flex: '2', display: 'flex', flexWrap: 'wrap', alignContent: 'center', gap: '12px 24px', background: sel ? 'rgba(11,61,46,0.02)' : 'transparent' }}>
-                          {(Array.isArray(plan.features) ? plan.features.slice(0, 4) : []).map((feat: string, i: number) => (
-                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, width: 'calc(50% - 12px)' }}>
-                              <span style={{ color: 'var(--ok)', flexShrink: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg></span>
-                              {feat}
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Right: Select Indicator */}
-                        <div className="book-plan-card-select" style={{ minWidth: 64, minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid var(--border-light)', background: sel ? 'var(--forest)' : 'var(--bg-elevated)', transition: 'all 0.3s', padding: '12px 16px' }}>
-                          <div style={{
-                            width: 36, height: 36, borderRadius: '50%', minWidth: 36, minHeight: 36,
-                            background: sel ? '#fff' : 'transparent',
-                            border: `2px solid ${sel ? '#fff' : 'var(--border-mid)'}`,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: sel ? 'var(--forest)' : 'var(--text-faint)',
-                            flexShrink: 0,
-                          }}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 32, padding: '24px', background: 'rgba(3,65,26,0.03)', borderRadius: 24, border: '1.5px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                  <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--forest)' }}>Number of Plants:</span>
-                  <div style={{ background: '#fff', borderRadius: 99, padding: '6px 8px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <button onClick={() => setForm(f => ({ ...f, plant_count: Math.max(1, f.plant_count - 1) }))} style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', background: 'var(--bg-elevated)', color: 'var(--forest)', cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>−</button>
-                    <span style={{ fontWeight: 900, fontSize: '1.4rem', minWidth: 32, textAlign: 'center', color: 'var(--forest)', fontFamily: 'var(--font-display)' }}>{form.plant_count}</span>
-                    <button onClick={() => setForm(f => ({ ...f, plant_count: f.plant_count + 1 }))} style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', background: 'var(--forest)', cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900 }}>+</button>
-                  </div>
-                  {zone?.price_per_plant > 0 && form.plant_count > (zone.min_plants || 1) && (
-                    <div style={{ fontSize: '0.85rem', color: 'var(--gold-deep)', fontWeight: 700 }}>
-                      +₹{zone.price_per_plant}/extra plant
+          {preselect === 0 && (
+            <div ref={planRef} style={{ scrollMarginTop: 'calc(var(--nav-h) + 60px)', opacity: maxStep >= 1 ? 1 : 0.45, pointerEvents: maxStep >= 1 ? 'auto' : 'none', transition: 'opacity 0.3s' }}>
+              <div style={{ animation: 'slide-up 0.4s var(--ease)' }}>
+                {!zone && <div style={{ marginBottom: 12, padding: '10px 14px', background: 'rgba(3,65,26,0.05)', border: '1px dashed var(--forest-mid)', borderRadius: 12, fontSize: '0.8rem', color: 'var(--forest)', fontWeight: 600 }}>🔒 Complete step 1 (Location) to unlock your plan options</div>}
+                <div className="book-plan-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
+                  <div>
+                    <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2rem', marginBottom: 4, letterSpacing: '-0.02em', color: 'var(--forest)' }}>
+                      {isSubscription ? 'Choose your plan' : 'Your On-demand Visit'}
+                    </h2>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 16px', background: 'var(--bg-elevated)', borderRadius: 99, fontSize: '0.82rem', fontWeight: 800, color: 'var(--forest)', border: '1px solid var(--border)' }}>
+                      {zone?.name ?? 'Your Area'}
                     </div>
-                  )}
+                  </div>
                 </div>
-                <button onClick={() => setStep('addons')} disabled={!form.plan_id}
-                  className="btn btn-primary btn-lg" style={{ opacity: !form.plan_id ? .5 : 1, padding: '16px 40px' }}>
-                  Continue →
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20, position: 'relative', zIndex: 10 }}>
+                  {plans.length === 0 ? Array(3).fill(null).map((_, i) => <div key={i} className="card skeleton" style={{ height: 140, borderRadius: 28 }} />) :
+                    plans.map((plan: any) => {
+                      const sel = form.plan_id === plan.id;
+                      let displayPrice = plan.price ?? 0;
+                      if (plan.plan_type !== 'subscription' && zone?.base_price != null) {
+                        displayPrice = parseFloat(zone.base_price);
+                      }
+                      return (
+                        <div key={plan.id} className="book-plan-card" onClick={() => setForm(f => ({ ...f, plan_id: plan.id }))}
+                          style={{
+                            borderRadius: 32,
+                            border: `2.5px solid ${sel ? 'var(--forest)' : 'var(--border)'}`,
+                            background: sel ? 'var(--bg-elevated)' : '#fff',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            overflow: 'hidden',
+                            boxShadow: sel ? 'var(--sh-md)' : 'var(--sh-xs)',
+                            transform: sel ? 'translateX(8px)' : 'translateX(0)',
+                            zIndex: sel ? 2 : 1,
+                            position: 'relative',
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'stretch',
+                            minHeight: 160
+                          }}>
+
+                          {plan.is_best_value === 1 && (
+                            <div style={{ position: 'absolute', top: 0, left: 0, background: 'var(--gold)', color: '#fff', fontSize: '0.65rem', fontWeight: 900, padding: '4px 16px', borderBottomRightRadius: 12, textTransform: 'uppercase', letterSpacing: '0.1em', zIndex: 10 }}>
+                              Best Value
+                            </div>
+                          )}
+
+                          {/* Left Info: Name & Price */}
+                          <div className="book-plan-card-left" style={{ padding: '40px 32px', display: 'flex', flex: '1.2', flexDirection: 'row', alignItems: 'center', gap: 32, borderRight: '1px solid var(--border-light)' }}>
+                            <div style={{ flex: 1 }}>
+                              <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.6rem', marginBottom: 8, color: 'var(--forest)', letterSpacing: '-0.02em' }}>{plan.name}</h3>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--sage)' }}>
+                                {plan.plan_summary || `Up to ${plan.max_plants} Healthy Plants`}
+                              </div>
+                            </div>
+
+                            <div style={{ textAlign: 'right', minWidth: 140 }}>
+                              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', color: 'var(--forest)', lineHeight: 1 }}>
+                                <span style={{ fontSize: '1rem', fontWeight: 700, marginTop: 6 }}>₹</span>
+                                <span style={{ fontSize: '3rem', fontWeight: 900, fontFamily: 'var(--font-display)' }}>{displayPrice.toLocaleString('en-IN')}</span>
+                              </div>
+                              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 4 }}>
+                                {plan.price_subtitle || (plan.plan_type === 'subscription' ? 'Per Month' : 'Per Visit')}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Middle: Features Checklist */}
+                          <div className="book-plan-card-mid" style={{ padding: '32px 40px', flex: '2', display: 'flex', flexWrap: 'wrap', alignContent: 'center', gap: '12px 24px', background: sel ? 'rgba(11,61,46,0.02)' : 'transparent' }}>
+                            {(Array.isArray(plan.features) ? plan.features.slice(0, 4) : []).map((feat: string, i: number) => (
+                              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, width: 'calc(50% - 12px)' }}>
+                                <span style={{ color: 'var(--ok)', flexShrink: 0 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg></span>
+                                {feat}
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Right: Select Indicator */}
+                          <div className="book-plan-card-select" style={{ minWidth: 64, minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid var(--border-light)', background: sel ? 'var(--forest)' : 'var(--bg-elevated)', transition: 'all 0.3s', padding: '12px 16px' }}>
+                            <div style={{
+                              width: 36, height: 36, borderRadius: '50%', minWidth: 36, minHeight: 36,
+                              background: sel ? '#fff' : 'transparent',
+                              border: `2px solid ${sel ? '#fff' : 'var(--border-mid)'}`,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: sel ? 'var(--forest)' : 'var(--text-faint)',
+                              flexShrink: 0,
+                            }}>
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+                <div className="book-plan-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 32, padding: '24px', background: 'rgba(3,65,26,0.03)', borderRadius: 24, border: '1.5px solid var(--border)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                    <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--forest)' }}>Number of Plants:</span>
+                    <div style={{ background: '#fff', borderRadius: 99, padding: '6px 8px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <button onClick={() => setForm(f => ({ ...f, plant_count: Math.max(1, f.plant_count - 1) }))} style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', background: 'var(--bg-elevated)', color: 'var(--forest)', cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>−</button>
+                      <span style={{ fontWeight: 900, fontSize: '1.4rem', minWidth: 32, textAlign: 'center', color: 'var(--forest)', fontFamily: 'var(--font-display)' }}>{form.plant_count}</span>
+                      <button onClick={() => setForm(f => ({ ...f, plant_count: f.plant_count + 1 }))} style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', background: 'var(--forest)', cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900 }}>+</button>
+                    </div>
+                    {zone?.price_per_plant > 0 && form.plant_count > (zone.min_plants || 1) && (
+                      <div style={{ fontSize: '0.85rem', color: 'var(--gold-deep)', fontWeight: 700 }}>
+                        +₹{zone.price_per_plant}/extra plant
+                      </div>
+                    )}
+                  </div>
+                  <button onClick={() => { setMaxStep(s => Math.max(s, 2)); scrollToStep('addons'); }} disabled={!form.plan_id}
+                    className="btn btn-primary btn-lg" style={{ opacity: !form.plan_id ? .5 : 1, padding: '16px 40px' }}>
+                    Continue →
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
           {/* ── ADD-ONS ── */}
-          {step === 'addons' && (
+          <div ref={addonsRef} style={{ scrollMarginTop: 'calc(var(--nav-h) + 60px)', opacity: maxStep >= 2 ? 1 : 0.45, pointerEvents: maxStep >= 2 ? 'auto' : 'none', transition: 'opacity 0.3s' }}>
             <div style={{ animation: 'slide-up 0.4s var(--ease)' }}>
-              <button onClick={() => setStep('plan')} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'var(--font-body)', marginBottom: 16, padding: 0 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg> Back
-              </button>
               <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2rem', marginBottom: 6, letterSpacing: '-0.02em', color: 'var(--forest)' }}>Enhance your visit</h2>
               <p style={{ color: 'var(--sage)', marginBottom: 28, fontSize: '1rem', fontWeight: 500 }}>Optional extras to get the most from your gardener's time</p>
               {addons.length === 0 ? <p style={{ color: 'var(--sage)', padding: '24px 0' }}>No add-ons available currently.</p> : (
@@ -538,18 +634,15 @@ function BookFlow() {
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <button onClick={() => setStep('schedule')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', cursor: 'pointer', fontWeight: 500 }}>Skip for now</button>
-                <button onClick={() => setStep('schedule')} className="btn btn-primary">Continue ({form.addons.length} selected) →</button>
+                <button onClick={() => { setMaxStep(s => Math.max(s, 3)); scrollToStep('schedule'); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', cursor: 'pointer', fontWeight: 500 }}>Skip for now</button>
+                <button onClick={() => { setMaxStep(s => Math.max(s, 3)); scrollToStep('schedule'); }} className="btn btn-primary">Continue ({form.addons.length} selected) →</button>
               </div>
             </div>
-          )}
+          </div>
 
           {/* ── SCHEDULE ── */}
-          {step === 'schedule' && (
+          <div ref={scheduleRef} style={{ scrollMarginTop: 'calc(var(--nav-h) + 60px)', opacity: maxStep >= 3 ? 1 : 0.45, pointerEvents: maxStep >= 3 ? 'auto' : 'none', transition: 'opacity 0.3s' }}>
             <div style={{ animation: 'slide-up 0.4s var(--ease)' }}>
-              <button onClick={() => setStep('addons')} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'var(--font-body)', marginBottom: 16, padding: 0 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg> Back
-              </button>
               <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2rem', marginBottom: 6, letterSpacing: '-0.02em', color: 'var(--forest)' }}>
                 {selectedPlan?.plan_type === 'subscription' ? 'Confirm your subscription' : 'When should we come?'}
               </h2>
@@ -652,21 +745,18 @@ function BookFlow() {
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
-                <button onClick={() => setStep('confirm')} disabled={selectedPlan?.plan_type !== 'subscription' && !form.scheduled_date}
+                <button onClick={() => { setMaxStep(s => Math.max(s, 4)); scrollToStep('confirm'); }} disabled={selectedPlan?.plan_type !== 'subscription' && !form.scheduled_date}
                   className="btn btn-primary" style={{ opacity: (selectedPlan?.plan_type !== 'subscription' && !form.scheduled_date) ? .5 : 1 }}>
                   Review & Confirm →
                 </button>
               </div>
             </div>
-          )}
+          </div>
 
           {/* ── CONFIRM ── */}
-          {step === 'confirm' && (
+          <div ref={confirmRef} style={{ scrollMarginTop: 'calc(var(--nav-h) + 60px)', opacity: maxStep >= 4 ? 1 : 0.45, pointerEvents: maxStep >= 4 ? 'auto' : 'none', transition: 'opacity 0.3s' }}>
             <div style={{ animation: 'slide-up 0.4s var(--ease)' }}>
-              <button onClick={() => setStep('schedule')} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'var(--font-body)', marginBottom: 16, padding: 0 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg> Back
-              </button>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '2rem', marginBottom: 28, letterSpacing: '-0.02em' }}>Review your booking</h2>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '2rem', marginBottom: 28, letterSpacing: '-0.02em', color: 'var(--forest)' }}>Review your booking</h2>
               <div className="book-grid-split" style={{ display: 'grid', gridTemplateColumns: '1fr min(320px, 100%)', gap: 24 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {/* Location */}
@@ -727,26 +817,30 @@ function BookFlow() {
                       </span>
                     </div>
                     {/* Market Upsell */}
-                    <div style={{ background: 'rgba(212,163,115,0.08)', border: '1.5px dashed var(--gold)', borderRadius: 20, padding: '16px 20px', marginBottom: 20 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold-deep)" strokeWidth="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
-                        <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--gold-deep)' }}>Professional Tip</span>
+                    {!isSubscription && (
+                      <div style={{ background: 'rgba(212,163,115,0.08)', border: '1.5px dashed var(--gold)', borderRadius: 20, padding: '16px 20px', marginBottom: 20 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold-deep)" strokeWidth="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
+                          <span style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--gold-deep)' }}>Professional Tip</span>
+                        </div>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--sage)', fontWeight: 600, lineHeight: 1.5, marginBottom: 12 }}>
+                          Garden needs more life? Pick fresh organic plants from our marketplace and have them delivered before your visit!
+                        </p>
+                        <button onClick={() => router.push('/shop')} style={{ background: 'var(--gold-deep)', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 99, fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s' }}
+                          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
+                          Visit Marketplace →
+                        </button>
                       </div>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--sage)', fontWeight: 600, lineHeight: 1.5, marginBottom: 12 }}>
-                        Garden needs more life? Pick fresh organic plants from our marketplace and have them delivered before your visit!
-                      </p>
-                      <button onClick={() => router.push('/shop')} style={{ background: 'var(--gold-deep)', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 99, fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s' }}
-                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                        Visit Marketplace →
-                      </button>
-                    </div>
+                    )}
 
-                    <button onClick={handleAddToCart}
-                      className="btn btn-outline w-full" style={{ justifyContent: 'center', padding: '14px', marginBottom: 12, borderColor: 'var(--forest)', color: 'var(--forest)', fontWeight: 800 }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
-                      Add to Cart & Shop Plants
-                    </button>
+                    {!isSubscription && (
+                      <button onClick={handleAddToCart}
+                        className="btn btn-outline w-full" style={{ justifyContent: 'center', padding: '14px', marginBottom: 12, borderColor: 'var(--forest)', color: 'var(--forest)', fontWeight: 800 }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
+                        Add to Cart & Shop Plants
+                      </button>
+                    )}
 
                     <button onClick={handleSubmit} disabled={submitting}
                       className="btn btn-primary w-full" style={{ justifyContent: 'center', padding: '16px', opacity: submitting ? .7 : 1 }}>
@@ -757,7 +851,7 @@ function BookFlow() {
                 </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
       <Footer />
@@ -772,15 +866,69 @@ function BookFlow() {
       )}
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        /* Book page mobile fixes */
+        /* Common shared styles */
+        .card { background: #fff; border: 1.5px solid var(--border); border-radius: 28px; box-shadow: var(--sh-sm); }
+        .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.5s infinite; }
+        @keyframes skeleton-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* Progress Bar Styles */
+        .step-bar {
+          position: sticky;
+          top: var(--nav-h);
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          padding: 16px 0;
+          z-index: 100;
+          border-bottom: 1px solid var(--border-light);
+          margin-bottom: 24px;
+        }
+        .book-step-bar-container { display: flex; align-items: center; justify-content: center; width: 100%; gap: 6px; }
+        .step-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+        .step-circle {
+          width: 36px; height: 36px; border-radius: 50%; display: flex; alignItems: center; justifyContent: center;
+          background: var(--bg-elevated); color: var(--text-faint); border: 1.5px solid var(--border);
+          font-weight: 800; font-size: 0.85rem; transition: all 0.3s var(--ease);
+        }
+        .step-circle.active { background: var(--forest); color: #fff; border-color: var(--forest); box-shadow: 0 0 0 4px rgba(3,65,26,0.15); transform: translateY(-2px); }
+        .step-circle.done { background: var(--forest); color: #fff; border-color: var(--forest); }
+        .step-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sage); transition: color 0.3s; }
+        .step-circle.active + .step-label { color: var(--forest); }
+        .step-line { flex: 1; height: 1.5px; background: var(--border-light); margin: 0 4px; border-radius: 2px; position: relative; top: -11px; }
+        .step-line.done { background: var(--forest); }
+
+        /* Book page mobile overhaul */
         @media (max-width: 768px) {
-          .book-plan-card { flex-direction: column !important; min-height: auto !important; }
-          .book-plan-card-left { border-right: none !important; border-bottom: 1px solid var(--border-light); padding: 20px 18px !important; flex-direction: column !important; gap: 10px !important; }
-          .book-plan-card-mid { padding: 16px 18px !important; flex: 1 !important; }
-          .book-plan-card-select { width: 100% !important; min-width: 0 !important; border-left: none !important; border-top: 1px solid var(--border-light) !important; min-height: 52px !important; padding: 10px !important; }
-          .book-grid-split { grid-template-columns: 1fr !important; }
-          .time-slots-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .book-plan-header { flex-direction: column !important; align-items: flex-start !important; gap: 14px !important; }
+          .step-bar { padding: 12px 0; margin-bottom: 12px; }
+          .step-circle { width: 30px; height: 30px; font-size: 0.75rem; }
+          .step-label { font-size: 0.55rem; letter-spacing: 0.05em; display: none; } /* labels hide on very small */
+          .step-circle.active + .step-label { display: block; position: absolute; top: 100%; margin-top: 4px; white-space: nowrap; font-weight: 900; }
+          
+          .book-plan-card { flex-direction: column !important; min-height: auto !important; border-radius: 24px !important; }
+          .book-plan-card-left { border-right: none !important; border-bottom: 1px solid var(--border-light); padding: 24px 20px !important; gap: 16px !important; }
+          .book-plan-card-mid { padding: 20px !important; flex: 1 !important; text-align: left !important; }
+          .book-plan-card-select { width: 100% !important; min-width: 0 !important; border-left: none !important; border-top: 1px solid var(--border-light) !important; min-height: 52px !important; padding: 12px !important; }
+          
+          .book-grid-split { grid-template-columns: 1fr !important; gap: 28px !important; }
+          .time-slots-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+          .book-plan-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; margin-bottom: 24px !important; }
+          .book-plan-header h2 { font-size: 1.6rem !important; }
+          .addr-row { grid-template-columns: 1fr !important; gap: 12px !important; }
+          
+          .book-plan-footer { flex-direction: column !important; gap: 20px !important; align-items: stretch !important; text-align: center !important; padding: 20px 16px !important; }
+          .book-plan-footer > div { justify-content: center !important; flex-wrap: wrap !important; }
+          
+          .container { padding: 24px 16px 120px !important; }
+          
+          /* Confirmation adjustments */
+          .card { padding: 20px !important; }
+          .book-plan-card-left h3 { fontSize: 1.35rem !important; }
+          .step-line { top: -11px; margin: 0 2px; }
+        }
+
+        @media (min-width: 480px) {
+          .step-label { display: block; }
+          .step-circle.active + .step-label { position: static; margin-top: 0; }
         }
       `}</style>
     </>

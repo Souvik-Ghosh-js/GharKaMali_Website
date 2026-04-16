@@ -31,6 +31,20 @@ export default function ProfilePage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [imgFile, setImgFile] = useState<File | null>(null);
 
+  // Address fields
+  const [addrF, setAddrF] = useState({ roomNo: '', building: '', city: '', state: 'Uttar Pradesh', pincode: '' });
+  const [editingAddr, setEditingAddr] = useState(false);
+
+  const parseAddress = (full: string) => {
+    if (!full) return;
+    const parts = full.split(',').map(s => s.trim());
+    if (parts.length >= 5) {
+      setAddrF({ roomNo: parts[0], building: parts[1], city: parts[2], state: parts[3], pincode: parts[4] });
+    } else {
+      setAddrF(prev => ({ ...prev, building: full }));
+    }
+  };
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) router.replace('/login?redirect=/profile');
   }, [isAuthenticated, isLoading, router]);
@@ -39,7 +53,11 @@ export default function ProfilePage() {
   const profile: any = profileRaw;
 
   useEffect(() => {
-    if (profile) { setName(profile.name ?? ''); setEmail(profile.email ?? ''); }
+    if (profile) {
+      setName(profile.name ?? '');
+      setEmail(profile.email ?? '');
+      if (profile.address) parseAddress(profile.address);
+    }
   }, [profile]);
 
   const saveMut = useMutation({
@@ -48,12 +66,25 @@ export default function ProfilePage() {
       if (name.trim()) fd.append('name', name.trim());
       if (email.trim()) fd.append('email', email.trim());
       if (imgFile) fd.append('profile_image', imgFile);
+
+      // Add address to the profile update
+      const fullAddr = [addrF.roomNo, addrF.building, addrF.city, addrF.state, addrF.pincode].filter(Boolean).join(', ');
+      if (fullAddr.trim()) fd.append('address', fullAddr.trim());
+
       return updateProfile(fd);
     },
     onSuccess: (res: any) => {
       toast.success('Profile updated successfully');
-      updateUser({ name: res?.name ?? name, email: res?.email ?? email, profile_image: res?.profile_image ?? user?.profile_image });
-      setEditing(false); setImgFile(null); setPreview(null);
+      updateUser({
+        name: res?.name ?? name,
+        email: res?.email ?? email,
+        profile_image: res?.profile_image ?? user?.profile_image,
+        address: res?.address ?? [addrF.roomNo, addrF.building, addrF.city, addrF.state, addrF.pincode].filter(Boolean).join(', ')
+      });
+      setEditing(false);
+      setEditingAddr(false);
+      setImgFile(null);
+      setPreview(null);
       refetch();
     },
     onError: (e: any) => toast.error(e.message),
@@ -172,6 +203,86 @@ export default function ProfilePage() {
                     <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--forest)', textAlign: 'right', wordBreak: 'break-all' }}>{row.value}</span>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Address Management card */}
+          <div className="card profile-card" style={{ padding: 'clamp(20px,5vw,40px)', marginBottom: 28, borderRadius: 32 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 36 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(3,65,26,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)' }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                </div>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.6rem', color: 'var(--forest)', margin: 0 }}>Saved Address</h2>
+              </div>
+              {!editingAddr
+                ? <button onClick={() => setEditingAddr(true)} className="btn btn-outline" style={{ padding: '10px 20px' }}>Edit Address</button>
+                : <div style={{ display: 'flex', gap: 10 }}>
+                    <button onClick={() => { setEditingAddr(false); if(profile?.address) parseAddress(profile.address); }} className="btn btn-outline">Cancel</button>
+                    <button onClick={() => saveMut.mutate()} disabled={saveMut.isPending || !addrF.building} className="btn btn-primary" style={{ boxShadow: 'var(--sh-md)' }}>
+                      {saveMut.isPending ? 'Saving…' : 'Save Address'}
+                    </button>
+                  </div>
+              }
+            </div>
+
+            {editingAddr ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Room / Flat No. *</label>
+                    <input className="form-input" value={addrF.roomNo} onChange={e => setAddrF({ ...addrF, roomNo: e.target.value })} placeholder="e.g. B-204" />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Block / Building / Society *</label>
+                    <input className="form-input" value={addrF.building} onChange={e => setAddrF({ ...addrF, building: e.target.value })} placeholder="e.g. ATS Pristine" />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">City *</label>
+                    <input className="form-input" value={addrF.city} onChange={e => setAddrF({ ...addrF, city: e.target.value })} placeholder="e.g. Noida" />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Pincode *</label>
+                    <input className="form-input" value={addrF.pincode} onChange={e => setAddrF({ ...addrF, pincode: e.target.value.replace(/\D/g,'') })} placeholder="e.g. 201301" maxLength={6} />
+                  </div>
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">State *</label>
+                  <select className="form-input" value={addrF.state} onChange={e => setAddrF({ ...addrF, state: e.target.value })} style={{ cursor: 'pointer' }}>
+                    {['Uttar Pradesh','Delhi','Haryana','Rajasthan','Maharashtra','Karnataka','Tamil Nadu','West Bengal','Gujarat','Telangana','Other'].map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            ) : (
+              <div style={{ background: 'rgba(3,65,26,0.03)', border: '1px dashed var(--border)', borderRadius: 20, padding: 24 }}>
+                {profile?.address ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {[
+                      { label: 'Room / Flat', value: addrF.roomNo },
+                      { label: 'Building / Locality', value: addrF.building },
+                      { label: 'City', value: addrF.city },
+                      { label: 'State', value: addrF.state },
+                      { label: 'Pincode', value: addrF.pincode },
+                    ].filter(r => r.value).map((row, i, arr) => (
+                      <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: i < arr.length - 1 ? 8 : 0, borderBottom: i < arr.length - 1 ? '1px solid rgba(3,65,26,0.08)' : 'none' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--sage)', fontWeight: 600 }}>{row.label}</span>
+                        <span style={{ fontSize: '0.9rem', color: 'var(--forest)', fontWeight: 800 }}>{row.value}</span>
+                      </div>
+                    ))}
+                    <div style={{ marginTop: 8, paddingTop: 12, borderTop: '2px solid #fff', fontSize: '0.95rem', color: 'var(--forest)', fontWeight: 700 }}>
+                      📍 {profile.address}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', color: 'var(--sage)', padding: '10px 0' }}>
+                    No address saved. Add one to speed up your bookings!
+                  </div>
+                )}
               </div>
             )}
           </div>

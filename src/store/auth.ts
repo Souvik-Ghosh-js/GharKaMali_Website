@@ -1,7 +1,7 @@
 'use client';
 import { create } from 'zustand';
 
-interface User { id:number; name:string; phone:string; email?:string; role:string; wallet_balance?:number; profile_image?:string; referral_code?:string; }
+interface User { id:number; name:string; phone:string; email?:string; role:string; wallet_balance?:number; profile_image?:string; referral_code?:string; address?:string; }
 
 interface AuthState {
   user: User | null; token: string | null; isAuthenticated: boolean; isLoading: boolean;

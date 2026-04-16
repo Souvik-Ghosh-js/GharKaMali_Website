@@ -174,13 +174,15 @@ export default function BookingDetailPage() {
 
   return (
     <>
-      <Navbar />
-      <div style={{ background:'var(--bg)', paddingTop:'var(--nav-h)', minHeight:'100svh' }}>
+      <Navbar transparent />
+      <div style={{ background:'var(--bg)', minHeight:'100svh', position:'relative' }}>
         {/* Header */}
-        <div style={{ background:'linear-gradient(135deg, var(--forest), var(--forest-mid))', padding:'48px 0 80px', position:'relative', overflow:'hidden' }}>
+        <div style={{ background:'linear-gradient(135deg, var(--forest), var(--forest-mid))', padding:'140px 0 80px', position:'relative', overflow:'hidden' }}>
+          {/* Subtle dark tint at top for navbar contrast */}
+          <div style={{ position:'absolute', top:0, left:0, right:0, height:100, background:'linear-gradient(to bottom, rgba(0,0,0,0.15), transparent)', zIndex:1 }} />
           <div style={{ position:'absolute', inset:0, backgroundImage:'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)', backgroundSize:'50px 50px', pointerEvents:'none' }} />
-          <div className="container">
-            <Link href="/bookings" style={{ display:'inline-flex', alignItems:'center', gap:6, color:'rgba(255,255,255,0.6)', fontSize:'0.82rem', fontWeight:500, textDecoration:'none', marginBottom:16 }}>
+          <div className="container" style={{ position:'relative', zIndex:2 }}>
+            <Link href="/bookings" style={{ display:'inline-flex', alignItems:'center', gap:6, color:'rgba(255,255,255,0.7)', fontSize:'0.82rem', fontWeight:500, textDecoration:'none', marginBottom:16 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg> All Bookings
             </Link>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:16 }}>

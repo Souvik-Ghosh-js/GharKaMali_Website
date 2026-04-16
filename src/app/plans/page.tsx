@@ -293,6 +293,46 @@ export default function PlansPage() {
             <a href="https://wa.me/919876543210" className="btn btn-primary" style={{ padding:'18px 36px', borderRadius:18, fontWeight:900 }}>Discuss with Concierge</a>
           </div>
 
+          {/* Professional vs Normal Gardener Comparison */}
+          <div style={{ marginTop: 100 }}>
+            <div style={{ textAlign:'center', marginBottom:52 }}>
+              <span className="overline">Expertise Matters</span>
+              <h2 className="display-2" style={{ color:'var(--forest)', marginTop:12 }}>Professional vs Normal Gardener</h2>
+              <p style={{ color:'var(--text-2)', fontSize:'1.05rem', maxWidth:540, margin:'12px auto 0', lineHeight:1.7 }}>
+                See how our professional gardeners deliver advanced care compared to regular service.
+              </p>
+            </div>
+            <div style={{ background:'#fff', borderRadius:24, overflow:'hidden', boxShadow:'var(--sh-lg)', border:'1px solid var(--border)' }}>
+              <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                <thead>
+                  <tr style={{ background:'var(--bg-sage)' }}>
+                    <th style={{ padding:'24px', textAlign:'left', fontWeight:800, color:'var(--forest)', fontSize:'1.1rem' }}>Feature</th>
+                    <th style={{ padding:'24px', textAlign:'center', fontWeight:800, color:'var(--forest)', fontSize:'1.1rem' }}>Normal Gardener</th>
+                    <th style={{ padding:'24px', textAlign:'center', fontWeight:800, color:'var(--gold)', fontSize:'1.1rem' }}>Professional Gardener</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { feature: 'Plant health assessment', normal: '✕', professional: '✓' },
+                    { feature: 'Soil testing & analysis', normal: '✕', professional: '✓' },
+                    { feature: 'Pest & disease management', normal: 'Basic', professional: 'Advanced' },
+                    { feature: 'Fertilization program', normal: 'Basic', professional: 'Advanced' },
+                    { feature: 'Seasonal care planning', normal: '✕', professional: '✓' },
+                    { feature: 'Pruning & trimming', normal: '✓', professional: '✓' },
+                    { feature: 'Emergency support', normal: '✕', professional: '✓' },
+                    { feature: 'Detailed visit reports', normal: '✕', professional: '✓' },
+                  ].map((row, i) => (
+                    <tr key={i} style={{ borderTop:'1px solid var(--border)' }}>
+                      <td style={{ padding:'20px 24px', fontWeight:600, color:'var(--forest)' }}>{row.feature}</td>
+                      <td style={{ padding:'20px 24px', textAlign:'center', color: row.normal === '✓' ? 'var(--success)' : 'var(--text-2)' }}>{row.normal}</td>
+                      <td style={{ padding:'20px 24px', textAlign:'center', fontWeight:600, color: row.professional === '✓' ? 'var(--success)' : 'var(--forest)' }}>{row.professional}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           {/* Comparison table */}
           {subPlans.length >= 2 && (
             <div style={{ marginTop: 100 }}>

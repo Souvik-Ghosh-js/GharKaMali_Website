@@ -326,7 +326,7 @@ export default function HomePage() {
   const { data: taglinesRaw } = useQuery({ queryKey: ['taglines'], queryFn: getTaglines });
 
   const plans: any[] = (plansRaw as any[]) ?? [];
-  const blogs: any[] = (blogsRaw as any)?.items ?? (blogsRaw as any[]) ?? [];
+  const blogs: any[] = (blogsRaw as any)?.items ?? (Array.isArray(blogsRaw) ? blogsRaw : []);
   const shopProducts: any[] = (shopRaw as any) ?? [];
 
   const taglineItems = (taglinesRaw as any[]) ?? [];
@@ -488,6 +488,108 @@ export default function HomePage() {
           </div>
 
           <ServicesAccordion />
+        </div>
+      </section>
+
+
+      {/* ═══ PLANT UTILITIES CAROUSEL ═══ */}
+      <section style={{ padding: 'clamp(48px,6vw,96px) 0', background: 'var(--bg-sage)' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: 'clamp(32px,5vw,64px)' }}>
+            <div className="section-divider-line" />
+            <span className="overline overline-dot">Plant Care Tips</span>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Plant Utilities</h2>
+            <p style={{ color: 'var(--text-2)', fontSize: '1.05rem', maxWidth: 540, margin: '12px auto 0', lineHeight: 1.7 }}>
+              Essential tips and tools for healthy plant growth.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', scrollSnapType: 'x mandatory', paddingBottom: '1rem' }}>
+            {[
+              { title: 'Watering Guide', desc: 'Know when and how much to water your plants.', icon: '💧' },
+              { title: 'Fertilizer Tips', desc: 'Choose the right fertilizer for optimal growth.', icon: '🌱' },
+              { title: 'Pest Control', desc: 'Identify and treat common plant pests.', icon: '🐛' },
+              { title: 'Pruning Techniques', desc: 'Learn proper pruning for healthy plants.', icon: '✂️' },
+              { title: 'Soil Health', desc: 'Maintain soil quality for better plant health.', icon: '🌿' },
+            ].map((item, i) => (
+              <div key={i} style={{ minWidth: 280, background: '#fff', borderRadius: 16, padding: '1.5rem', boxShadow: 'var(--sh-sm)', scrollSnapAlign: 'start' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>{item.icon}</div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--forest)', marginBottom: '0.5rem' }}>{item.title}</h3>
+                <p style={{ color: 'var(--text-2)', fontSize: '0.9rem', lineHeight: 1.6 }}>{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
+      {/* ═══ CERTIFIED GREENERY SECTION ═══ */}
+      <section style={{ padding: 'clamp(48px,6vw,96px) 0', background: '#fff' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: 'clamp(32px,5vw,64px)' }}>
+            <div className="section-divider-line" />
+            <span className="overline overline-dot">Certified Greenery</span>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Expert Plant Care Blogs</h2>
+            <p style={{ color: 'var(--text-2)', fontSize: '1.05rem', maxWidth: 540, margin: '12px auto 0', lineHeight: 1.7 }}>
+              Learn from our certified plant experts. Discover tips, case studies, and plant care guides.
+            </p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+            {blogs?.slice(0, 3).map((blog: any) => (
+              <Link key={blog.id} href={`/blogs/${blog.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--sh-sm)', transition: 'transform 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                  <img src={blog.featured_image || '/placeholder.jpg'} alt={blog.title} style={{ width: '100%', height: 200, objectFit: 'cover' }} />
+                  <div style={{ padding: '1.5rem' }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--forest)', marginBottom: '0.5rem' }}>{blog.title}</h3>
+                    <p style={{ color: 'var(--text-2)', fontSize: '0.9rem', lineHeight: 1.6 }}>{blog.excerpt || blog.content?.substring(0, 100) + '...'}</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+            <Link href="/blogs" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', background: 'var(--forest)', color: '#fff', borderRadius: 99, textDecoration: 'none', fontWeight: 600 }}>
+              View All Blogs <IcArrow />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+
+      {/* ═══ REVIEWS / TESTIMONIALS ═══ */}
+      <section style={{ padding: 'clamp(48px,6vw,96px) 0', background: 'var(--bg-sage)' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: 'clamp(32px,5vw,64px)' }}>
+            <div className="section-divider-line" />
+            <span className="overline overline-dot">Customer Reviews</span>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>What Our Customers Say</h2>
+            <p style={{ color: 'var(--text-2)', fontSize: '1.05rem', maxWidth: 540, margin: '12px auto 0', lineHeight: 1.7 }}>
+              Real feedback from satisfied plant parents.
+            </p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+            {[
+              { name: 'Priya Sharma', location: 'Noida', rating: 5, review: 'Amazing service! My plants have never looked better. The gardener was professional and knowledgeable.' },
+              { name: 'Rahul Verma', location: 'Greater Noida', rating: 5, review: 'Very punctual and thorough. They even gave me tips on plant care. Highly recommended!' },
+              { name: 'Anjali Gupta', location: 'Delhi NCR', rating: 5, review: 'Great experience. The before and after photos show the difference. Will book again.' },
+            ].map((review, i) => (
+              <div key={i} style={{ background: '#fff', borderRadius: 16, padding: '1.5rem', boxShadow: 'var(--sh-sm)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <Stars />
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-2)' }}>{review.rating}.0</span>
+                </div>
+                <p style={{ color: 'var(--text)', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '1rem' }}>"{review.review}"</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700 }}>
+                    {review.name[0]}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, color: 'var(--forest)' }}>{review.name}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-2)' }}>{review.location}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

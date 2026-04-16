@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '@/store/cart';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -30,13 +30,25 @@ type CheckoutStep = 'cart' | 'address' | 'processing' | 'success';
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQty, totalItems, totalPrice, clearCart, wantsMali } = useCart();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [step, setStep] = useState<CheckoutStep>('cart');
+  const [addrF, setAddrF] = useState({ roomNo: '', building: '', city: '', state: 'Uttar Pradesh', pincode: '' });
   const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [pincode, setPincode] = useState('');
+  const buildAddress = (f: typeof addrF) => [f.roomNo, f.building, f.city, f.state, f.pincode].filter(Boolean).join(', ');
+  const updateAddrF = (patch: Partial<typeof addrF>) => {
+    const next = { ...addrF, ...patch };
+    setAddrF(next);
+    setAddress(buildAddress(next));
+  };
   const [orderNum, setOrderNum] = useState('');
   const [maliBooked, setMaliBooked] = useState<any>(null);
+  const [useSavedAddress, setUseSavedAddress] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && user?.address) {
+       setUseSavedAddress(true);
+    }
+  }, [isOpen, user?.address]);
 
   if (!isOpen) return null;
 
@@ -48,9 +60,27 @@ export default function CartDrawer() {
       toast.error('Please login to place an order');
       return;
     }
-    if (!address.trim()) {
-      toast.error('Please enter a delivery address');
-      return;
+
+    let finalAddress = address;
+    let finalCity = addrF.city;
+    let finalPincode = addrF.pincode;
+
+    if (useSavedAddress && user.address) {
+      finalAddress = user.address;
+      const parts = user.address.split(', ');
+      if (parts.length >= 2) {
+        finalPincode = parts[parts.length - 1];
+        finalCity = parts.length >= 3 ? parts[parts.length - 3] : parts[0]; 
+      }
+    } else {
+      if (!addrF.roomNo.trim() || !addrF.building.trim() || !addrF.city.trim() || !addrF.pincode.trim()) {
+        toast.error('Please fill in all address fields');
+        return;
+      }
+      if (addrF.pincode.length !== 6) { toast.error('Please enter a valid 6-digit pincode'); return; }
+      if (user) {
+         updateUser({ address: finalAddress });
+      }
     }
 
     setStep('processing');
@@ -66,27 +96,44 @@ export default function CartDrawer() {
       if (productItems.length > 0) {
         orderResponse = await createOrder({
           items: productItems.map(i => ({ product_id: i.id, quantity: i.qty })),
-          shipping_address: address,
-          shipping_city: city,
-          shipping_pincode: pincode
+          shipping_address: finalAddress,
+          shipping_city: finalCity,
+          shipping_pincode: finalPincode
         });
         setOrderNum(orderResponse?.order_number || orderResponse?.txnid || 'GKM-ORD-' + Date.now());
       }
 
-      // 2. Process Service Bookings if services exist
+      // 2. Process Service Bookings/Subscriptions if services exist
       if (serviceItems.length > 0) {
-        const { createBooking } = await import('@/lib/api');
+        const { createBooking, createSubscription } = await import('@/lib/api');
         for (const svc of serviceItems) {
-          const res = await createBooking({
-            zone_id: svc.bookingDetails?.zone_id!,
-            scheduled_date: svc.bookingDetails?.scheduled_date!,
-            scheduled_time: svc.bookingDetails?.scheduled_time,
-            service_address: svc.bookingDetails?.service_address || address,
-            service_latitude: svc.bookingDetails?.service_latitude || 0,
-            service_longitude: svc.bookingDetails?.service_longitude || 0,
-            plant_count: svc.bookingDetails?.plant_count || 1,
-            customer_notes: svc.bookingDetails?.notes || 'Booked via cart'
-          });
+          const isSub = svc.bookingDetails?.plan_type?.toLowerCase() === 'subscription';
+          let res: any;
+          
+          if (isSub) {
+            res = await createSubscription({
+              plan_id: svc.bookingDetails?.plan_id,
+              zone_id: svc.bookingDetails?.zone_id!,
+              service_address: svc.bookingDetails?.service_address || finalAddress,
+              service_latitude: svc.bookingDetails?.service_latitude || 0,
+              service_longitude: svc.bookingDetails?.service_longitude || 0,
+              plant_count: svc.bookingDetails?.plant_count || 1,
+              preferred_gardener_id: svc.bookingDetails?.preferred_gardener_id || null,
+              auto_renew: svc.bookingDetails?.auto_renew ?? true
+            });
+          } else {
+            res = await createBooking({
+              zone_id: svc.bookingDetails?.zone_id!,
+              scheduled_date: svc.bookingDetails?.scheduled_date!,
+              scheduled_time: svc.bookingDetails?.scheduled_time,
+              service_address: svc.bookingDetails?.service_address || finalAddress,
+              service_latitude: svc.bookingDetails?.service_latitude || 0,
+              service_longitude: svc.bookingDetails?.service_longitude || 0,
+              plant_count: svc.bookingDetails?.plant_count || 1,
+              preferred_gardener_id: svc.bookingDetails?.preferred_gardener_id || null,
+              customer_notes: svc.bookingDetails?.notes || 'Booked via cart'
+            });
+          }
           bookingResponses.push(res);
         }
         
@@ -110,9 +157,8 @@ export default function CartDrawer() {
     closeCart();
     setTimeout(() => {
       setStep('cart');
+      setAddrF({ roomNo: '', building: '', city: '', state: 'Uttar Pradesh', pincode: '' });
       setAddress('');
-      setCity('');
-      setPincode('');
       setOrderNum('');
       setMaliBooked(null);
     }, 400);
@@ -250,39 +296,86 @@ export default function CartDrawer() {
                 <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--forest)', marginBottom: 4 }}>Order Summary</div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--sage)', fontWeight: 600 }}>{total} items · <strong style={{ color: 'var(--forest)' }}>₹{price.toLocaleString('en-IN')}</strong> total</div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+                {useSavedAddress && user?.address ? (
+                  <div style={{ padding: '20px', background: 'rgba(3,65,26,0.03)', borderRadius: 16, border: '1px dashed var(--forest-mid)', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                      <span style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--forest)' }}>Delivery Address</span>
+                      <button onClick={() => setUseSavedAddress(false)} style={{ background: 'none', border: 'none', color: 'var(--gold-deep)', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>Edit</button>
+                    </div>
+                    <div style={{ fontSize: '0.88rem', color: 'var(--sage)', lineHeight: 1.5, fontWeight: 600 }}>
+                      📍 {user.address}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Row 1: Room + Building */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div>
+                    <label style={{ display: 'block', fontWeight: 700, fontSize: '0.78rem', marginBottom: 6, color: 'var(--forest)' }}>Room / Flat No. *</label>
+                    <input value={addrF.roomNo} onChange={e => updateAddrF({ roomNo: e.target.value })} placeholder="e.g. B-204"
+                      style={{ width: '100%', padding: '11px 13px', borderRadius: 11, border: '1.5px solid var(--border)', fontFamily: 'var(--font-body)', fontSize: '0.88rem', background: '#fff', outline: 'none', color: 'var(--forest)', boxSizing: 'border-box', fontWeight: 600, transition: 'border-color 0.2s' }}
+                      onFocus={e => e.target.style.borderColor = 'var(--forest)'}
+                      onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontWeight: 700, fontSize: '0.78rem', marginBottom: 6, color: 'var(--forest)' }}>Block / Building *</label>
+                    <input value={addrF.building} onChange={e => updateAddrF({ building: e.target.value })} placeholder="e.g. ATS Pristine"
+                      style={{ width: '100%', padding: '11px 13px', borderRadius: 11, border: '1.5px solid var(--border)', fontFamily: 'var(--font-body)', fontSize: '0.88rem', background: '#fff', outline: 'none', color: 'var(--forest)', boxSizing: 'border-box', fontWeight: 600, transition: 'border-color 0.2s' }}
+                      onFocus={e => e.target.style.borderColor = 'var(--forest)'}
+                      onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+                  </div>
+                </div>
+
+                {/* Row 2: City + Pincode */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div>
+                    <label style={{ display: 'block', fontWeight: 700, fontSize: '0.78rem', marginBottom: 6, color: 'var(--forest)' }}>City *</label>
+                    <input value={addrF.city} onChange={e => updateAddrF({ city: e.target.value })} placeholder="e.g. Noida"
+                      style={{ width: '100%', padding: '11px 13px', borderRadius: 11, border: '1.5px solid var(--border)', fontFamily: 'var(--font-body)', fontSize: '0.88rem', background: '#fff', outline: 'none', color: 'var(--forest)', boxSizing: 'border-box', fontWeight: 600, transition: 'border-color 0.2s' }}
+                      onFocus={e => e.target.style.borderColor = 'var(--forest)'}
+                      onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontWeight: 700, fontSize: '0.78rem', marginBottom: 6, color: 'var(--forest)' }}>Pincode *</label>
+                    <input value={addrF.pincode} onChange={e => updateAddrF({ pincode: e.target.value.replace(/\D/g,'') })} placeholder="e.g. 201301" inputMode="numeric" maxLength={6}
+                      style={{ width: '100%', padding: '11px 13px', borderRadius: 11, border: '1.5px solid var(--border)', fontFamily: 'var(--font-body)', fontSize: '0.88rem', background: '#fff', outline: 'none', color: 'var(--forest)', boxSizing: 'border-box', fontWeight: 600, transition: 'border-color 0.2s' }}
+                      onFocus={e => e.target.style.borderColor = 'var(--forest)'}
+                      onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+                  </div>
+                </div>
+
+                {/* Row 3: State (full width) */}
                 <div>
-                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', marginBottom: 8, color: 'var(--forest)' }}>Delivery Address *</label>
-                  <textarea value={address} onChange={e => setAddress(e.target.value)} rows={3}
-                    placeholder="House/Flat No, Street, Colony..."
-                    style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1.5px solid var(--border)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', background: '#fff', outline: 'none', resize: 'none', color: 'var(--forest)', boxSizing: 'border-box', transition: 'border-color 0.2s', boxShadow: 'var(--sh-xs)' }}
-                    onFocus={e => e.target.style.borderColor = 'var(--gold)'}
-                    onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+                  <label style={{ display: 'block', fontWeight: 700, fontSize: '0.78rem', marginBottom: 6, color: 'var(--forest)' }}>State *</label>
+                  <select value={addrF.state} onChange={e => updateAddrF({ state: e.target.value })}
+                    style={{ width: '100%', padding: '11px 13px', borderRadius: 11, border: '1.5px solid var(--border)', fontFamily: 'var(--font-body)', fontSize: '0.88rem', background: '#fff', outline: 'none', color: 'var(--forest)', boxSizing: 'border-box', fontWeight: 600, appearance: 'none', cursor: 'pointer', transition: 'border-color 0.2s' }}
+                    onFocus={e => e.currentTarget.style.borderColor = 'var(--forest)'}
+                    onBlur={e => e.currentTarget.style.borderColor = 'var(--border)'}>
+                    {['Uttar Pradesh','Delhi','Haryana','Rajasthan','Maharashtra','Karnataka','Tamil Nadu','West Bengal','Gujarat','Telangana','Other'].map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div>
-                    <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', marginBottom: 8, color: 'var(--forest)' }}>City</label>
-                    <input value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Noida"
-                      style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--border)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', background: '#fff', outline: 'none', color: 'var(--forest)', boxSizing: 'border-box', boxShadow: 'var(--sh-xs)' }}
-                      onFocus={e => e.target.style.borderColor = 'var(--gold)'}
-                      onBlur={e => e.target.style.borderColor = 'var(--border)'} />
+
+                {/* Address preview */}
+                {address.trim() && (
+                  <div style={{ padding: '9px 13px', background: 'rgba(3,65,26,0.04)', borderRadius: 10, border: '1px dashed var(--forest-mid)', fontSize: '0.78rem', color: 'var(--forest)', fontWeight: 600, lineHeight: 1.5 }}>
+                    📍 {address}
                   </div>
-                  <div>
-                    <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', marginBottom: 8, color: 'var(--forest)' }}>Pincode</label>
-                    <input value={pincode} onChange={e => setPincode(e.target.value)} placeholder="e.g. 201301"
-                      style={{ width: '100%', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--border)', fontFamily: 'var(--font-body)', fontSize: '0.9rem', background: '#fff', outline: 'none', color: 'var(--forest)', boxSizing: 'border-box', boxShadow: 'var(--sh-xs)' }}
-                      onFocus={e => e.target.style.borderColor = 'var(--gold)'}
-                      onBlur={e => e.target.style.borderColor = 'var(--border)'} />
-                  </div>
-                </div>
-                <div style={{ padding: 14, background: 'var(--bg-elevated)', borderRadius: 12, border: '1px solid var(--border-gold)', fontSize: '0.8rem', color: 'var(--sage)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                  <strong style={{ color: 'var(--forest)' }}>Secure checkout.</strong> Instantly processed securely via 256-bit encryption. Payment simulated for demo.
+                )}
+                </>
+                )}
+
+                <div style={{ padding: 12, background: 'var(--bg-elevated)', borderRadius: 10, border: '1px solid var(--border-gold)', fontSize: '0.78rem', color: 'var(--sage)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  <strong style={{ color: 'var(--forest)' }}>Secure checkout.</strong> 256-bit encrypted payment processing.
                 </div>
               </div>
             </div>
             <div className="cart-footer" style={{ borderTop: '1px solid var(--border)' }}>
-              <button onClick={handleCheckout} disabled={!address.trim()} className="btn btn-primary w-full" style={{ justifyContent: 'center', padding: '14px', opacity: !address.trim() ? 0.5 : 1 }}>
+              <button onClick={handleCheckout} disabled={!useSavedAddress && !address.trim()} className="btn btn-primary w-full" style={{ justifyContent: 'center', padding: '14px', opacity: (!useSavedAddress && !address.trim()) ? 0.5 : 1 }}>
                 Complete Purchase · ₹{price.toLocaleString('en-IN')} <IcArrow />
               </button>
               <button onClick={() => setStep('cart')} className="btn btn-outline w-full btn-sm" style={{ justifyContent: 'center', marginTop: 10 }}>← Back to Cart</button>

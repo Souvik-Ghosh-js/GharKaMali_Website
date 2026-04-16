@@ -14,6 +14,7 @@ export interface CartItem {
   type?: 'product' | 'service';
   bookingDetails?: {
     plan_id?: number;
+    plan_type?: string;
     zone_id?: number;
     scheduled_date?: string;
     scheduled_time?: string;
@@ -24,6 +25,8 @@ export interface CartItem {
     addons?: { addon_id: number; quantity: number }[];
     notes?: string;
     price?: number;
+    auto_renew?: boolean;
+    preferred_gardener_id?: number;
   };
 }
 

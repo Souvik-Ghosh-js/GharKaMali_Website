@@ -48,6 +48,7 @@ export default function SubscriptionsPage() {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [payuData, setPayuData] = useState<any>(null);
+  const [viewingDetails, setViewingDetails] = useState<any>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) router.replace('/login?redirect=/subscriptions');
@@ -187,7 +188,7 @@ export default function SubscriptionsPage() {
                 const isPaused = sub.status === 'paused';
                 return (
                   <div key={sub.id} className="card" style={{ padding: 0, border: `2px solid ${isActive ? 'var(--gold)' : 'var(--border)'}`, overflow: 'hidden', boxShadow: isActive ? 'var(--sh-md)' : 'none', animation: `fade-up 0.5s var(--ease) ${i * 80}ms both`, borderRadius: 28, display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ background: isActive ? 'var(--bg-elevated)' : 'transparent', padding: 'clamp(16px,3vw,28px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, flex: 1 }}>
+                    <div onClick={() => setViewingDetails(sub)} style={{ cursor: 'pointer', background: isActive ? 'var(--bg-elevated)' : 'transparent', padding: 'clamp(16px,3vw,28px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, flex: 1 }}>
                       {/* Left: Plan Info */}
                       <div style={{ flex: 1, minWidth: 200 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
@@ -230,24 +231,27 @@ export default function SubscriptionsPage() {
                           <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Paid Amount</div>
                           <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--forest)' }}>₹{sub.amount_paid?.toLocaleString('en-IN') || sub.plan?.price?.toLocaleString('en-IN')}</div>
                         </div>
-                        {sub.payment_id && (
-                          <div>
-                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Payment ID</div>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', fontFamily: 'monospace' }}>{sub.payment_id}</div>
-                          </div>
-                        )}
                         <div>
-                          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Purchased On</div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--forest)' }}>{new Date(sub.created_at || sub.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Assignee</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--forest)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                             <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>📍</div>
+                             {sub.service_city || 'Assigned Area'}
+                          </div>
+                        </div>
+                        <div>
+                           <div onClick={(e) => { e.stopPropagation(); setViewingDetails(sub); }} style={{ color: 'var(--forest)', fontSize: '0.75rem', fontWeight: 800, textDecoration: 'underline', cursor: 'pointer', marginTop: 16 }}>
+                              View Scheduled Visits →
+                           </div>
                         </div>
                       </div>
 
                       {/* Right: Actions */}
-                      <div className="subs-action-row" style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+                      <div className="subs-action-row" style={{ display: 'flex', gap: 10, flexShrink: 0, marginTop: 16 }}>
                         {isActive && (
                           <>
                             {(sub.scheduled_visits_count || 0) < (sub.plan?.visits_per_month || 0) && (
-                              <button onClick={() => {
+                              <button onClick={(e) => {
+                                e.stopPropagation();
                                 setSchedulingSub(sub);
                                 setSelectedDates([]);
                                 const sd = new Date(sub.start_date);
@@ -257,21 +261,21 @@ export default function SubscriptionsPage() {
                                 Schedule
                               </button>
                             )}
-                            <button onClick={() => setConfirm({ type: 'pause', id: sub.id })} className="btn btn-outline btn-sm" style={{ padding: '10px 18px', fontSize: '0.75rem' }}>
+                            <button onClick={(e) => { e.stopPropagation(); setConfirm({ type: 'pause', id: sub.id }); }} className="btn btn-outline btn-sm" style={{ padding: '10px 18px', fontSize: '0.75rem' }}>
                               Pause
                             </button>
-                            <button onClick={() => setConfirm({ type: 'cancel', id: sub.id })} className="btn btn-outline btn-sm" style={{ padding: '10px 18px', fontSize: '0.75rem', borderColor: '#FCA5A5', color: '#DC2626' }}>
+                            <button onClick={(e) => { e.stopPropagation(); setConfirm({ type: 'cancel', id: sub.id }); }} className="btn btn-outline btn-sm" style={{ padding: '10px 18px', fontSize: '0.75rem', borderColor: '#FCA5A5', color: '#DC2626' }}>
                               Cancel
                             </button>
                           </>
                         )}
                         {sub.status === 'pending' && (
-                          <button onClick={() => handlePayment(sub)} disabled={acting} className="btn btn-primary btn-sm" style={{ padding: '8px 24px' }}>
+                          <button onClick={(e) => { e.stopPropagation(); handlePayment(sub); }} disabled={acting} className="btn btn-primary btn-sm" style={{ padding: '8px 24px' }}>
                             {acting ? '...' : '💳 Complete Payment'}
                           </button>
                         )}
                         {isPaused && (
-                          <button onClick={() => setConfirm({ type: 'resume', id: sub.id })} className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <button onClick={(e) => { e.stopPropagation(); setConfirm({ type: 'resume', id: sub.id }); }} className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                             <IcPlay /> Resume
                           </button>
                         )}
@@ -468,6 +472,108 @@ export default function SubscriptionsPage() {
           </div>
         );
       })()}
+
+      {/* Backdrop */}
+      <div className={`drawer-backdrop ${viewingDetails ? 'active' : ''}`} onClick={() => setViewingDetails(null)} />
+
+      <div className={`drawer ${viewingDetails ? 'open' : ''}`} style={{ width: 'min(100%, 500px)', borderLeft: '1px solid var(--border)' }}>
+        {viewingDetails && (
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '36px 24px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', position: 'sticky', top: 0, zIndex: 10 }}>
+              <div>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.4rem', color: 'var(--forest)', margin: 0 }}>Subscription Details</h3>
+                <p style={{ margin: '4px 0 0', color: 'var(--sage)', fontSize: '0.8rem', fontWeight: 600 }}>{viewingDetails.plan?.name} Plan</p>
+              </div>
+              <button onClick={() => setViewingDetails(null)} style={{ border: 'none', background: 'var(--bg-elevated)', width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--forest)' }}>
+                <IcX />
+              </button>
+            </div>
+
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+              {/* Scheduled Visits Section */}
+              <div style={{ marginBottom: 32 }}>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--forest)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <IcCal /> Scheduled Visits
+                </h4>
+                {viewingDetails.bookings && viewingDetails.bookings.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {viewingDetails.bookings.sort((a,b) => new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime()).map(b => (
+                      <div key={b.id} style={{ display: 'flex', gap: 16, padding: '14px', borderRadius: 16, background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--sh-xs)' }}>
+                        <div style={{ textAlign: 'center', minWidth: 50, borderRight: '1.5px solid var(--border)', paddingRight: 10 }}>
+                          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--sage)', textTransform: 'uppercase' }}>{new Date(b.scheduled_date).toLocaleDateString('en-IN', { month: 'short' })}</div>
+                          <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--forest)' }}>{new Date(b.scheduled_date).getDate()}</div>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                             <Link href={`/bookings/${b.id}`} style={{ textDecoration: 'none' }}>
+                                <span className="hover-underline" style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--forest-mid)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>#{b.booking_number}</span>
+                             </Link>
+                             <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '3px 8px', borderRadius: 99, background: 'var(--bg-elevated)', color: 'var(--sage)', textTransform: 'uppercase' }}>{b.status}</span>
+                          </div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--forest)', marginBottom: 4 }}>
+                             {b.gardener ? (
+                               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                  <img src={b.gardener.profile_image || 'https://via.placeholder.com/32'} alt={b.gardener.name} style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                                  <span>Assigned: {b.gardener.name}</span>
+                               </div>
+                             ) : (
+                               <span style={{ color: 'var(--sage)', fontStyle: 'italic' }}>Pending Gardener Assignment</span>
+                             )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ padding: '24px', textAlign: 'center', borderRadius: 16, border: '1.5px dashed var(--border)', color: 'var(--sage)' }}>
+                    No visits scheduled yet. Click &quot;Schedule&quot; on the card to pick dates.
+                  </div>
+                )}
+              </div>
+
+              {/* Service Info Section */}
+              <div style={{ padding: '20px', background: 'var(--bg-elevated)', borderRadius: 20, border: '1px solid var(--border)' }}>
+                <h4 style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--forest)', marginBottom: 12 }}>Service Details</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Service Address</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--forest)', lineHeight: 1.5 }}>{viewingDetails.service_address}</div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                    <div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Plants Count</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--forest)' }}>{viewingDetails.plant_count} Plants</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Plan Duration</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--forest)' }}>{viewingDetails.plan?.duration_days} Days</div>
+                    </div>
+                  </div>
+                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14 }}>
+                     <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Auto-Renew</div>
+                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', fontWeight: 700, color: viewingDetails.auto_renew ? 'var(--forest)' : 'var(--sage)' }}>
+                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: viewingDetails.auto_renew ? '#16A34A' : '#9CA3AF' }} />
+                        {viewingDetails.auto_renew ? 'Enabled' : 'Disabled'}
+                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: '16px 24px 32px', borderTop: '1px solid var(--border)', background: '#fff', display: 'flex', gap: 12 }}>
+              {viewingDetails.status === 'active' && (
+                <>
+                   <button onClick={() => { setConfirm({ type: 'pause', id: viewingDetails.id }); }} className="btn btn-outline" style={{ flex: 1, padding: '12px' }}>Pause</button>
+                   <button onClick={() => { setConfirm({ type: 'cancel', id: viewingDetails.id }); }} className="btn btn-outline" style={{ flex: 1, padding: '12px', borderColor: '#FCA5A5', color: '#DC2626' }}>Cancel</button>
+                </>
+              )}
+              {viewingDetails.status === 'paused' && (
+                 <button onClick={() => { setConfirm({ type: 'resume', id: viewingDetails.id }); }} className="btn btn-primary w-full" style={{ padding: '12px' }}>Resume Plan</button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       <Footer />
       

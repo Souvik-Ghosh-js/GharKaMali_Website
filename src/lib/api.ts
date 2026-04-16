@@ -12,15 +12,28 @@ export class ApiError extends Error {
   }
 }
 
-async function req<T = any>(path: string, opts: RequestInit & { auth?: boolean } = {}): Promise<T> {
-  const { auth = true, ...rest } = opts;
+async function req<T = any>(path: string, opts: RequestInit & { auth?: boolean; timeout?: number } = {}): Promise<T> {
+  const { auth = true, timeout = 30000, ...rest } = opts; // 30 second default timeout
   const headers: Record<string, string> = { ...(rest.headers as any) };
   if (auth) { const t = getToken(); if (t) headers['Authorization'] = `Bearer ${t}`; }
   if (!(rest.body instanceof FormData)) headers['Content-Type'] = 'application/json';
-  const res = await fetch(`${API_BASE}${path}`, { ...rest, headers });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new ApiError(json?.message || `Error ${res.status}`, res.status, json);
-  return (json?.data ?? json) as T;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const res = await fetch(`${API_BASE}${path}`, { ...rest, headers, signal: controller.signal });
+    clearTimeout(timeoutId);
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new ApiError(json?.message || `Error ${res.status}`, res.status, json);
+    return (json?.data ?? json) as T;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new ApiError('Request timed out. Please try again.', 408);
+    }
+    throw error;
+  }
 }
 
 export const qs = (p?: Record<string, any>) => {
