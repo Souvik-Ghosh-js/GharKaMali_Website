@@ -59,9 +59,9 @@ const TypeWriter = ({ words, style, className }: { words: string[]; style?: Reac
         ...style,
       }}
     >
-      <span ref={contentRef} style={{ 
-        fontSize: '1.2rem', 
-        color: 'var(--gold)', 
+      <span ref={contentRef} style={{
+        fontSize: '1.2rem',
+        color: 'var(--gold)',
         fontWeight: 700,
         fontStyle: 'italic',
         opacity: 1,
@@ -69,13 +69,13 @@ const TypeWriter = ({ words, style, className }: { words: string[]; style?: Reac
       }}>
         {text}
       </span>
-      <span style={{ 
-        animation: 'blink 0.9s step-end infinite', 
-        opacity: 0.8, 
-        fontWeight: 300, 
-        color: 'var(--gold)', 
-        fontSize: '1.2rem', 
-        marginLeft: '4px' 
+      <span style={{
+        animation: 'blink 0.9s step-end infinite',
+        opacity: 0.8,
+        fontWeight: 300,
+        color: 'var(--gold)',
+        fontSize: '1.2rem',
+        marginLeft: '4px'
       }}>|</span>
     </div>
   );
@@ -517,16 +517,8 @@ export default function HomePage() {
         <HeroSlideshow />
 
         <div className="container" style={{ position: 'relative', zIndex: 5 }}>
-          <div className="hero-split-layout" style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 0.75fr)', 
-            gap: 'clamp(30px, 5vw, 80px)', 
-            alignItems: 'center', 
-            paddingTop: 'clamp(80px, 10vh, 140px)', 
-            paddingBottom: '60px',
-            textAlign: 'left'
-          }}>
-            
+          <div className="hero-split-layout">
+
             <div className="hero-left-col">
               <div className="hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderRadius: 99, padding: '8px 20px', marginBottom: 32, fontSize: '0.78rem', fontWeight: 700, color: '#fff' }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80', animation: 'pulse 2s ease infinite', display: 'inline-block' }} />
@@ -537,10 +529,10 @@ export default function HomePage() {
               <div style={{ marginBottom: 20, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {/* Row 1: Typewriter */}
                 <TypeWriter words={dynamicWords} />
-                
+
                 {/* Row 2: Brand + Tag */}
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
-                  <span className="typewriter-gradient" style={{ 
+                  <span className="typewriter-gradient" style={{
                     fontSize: 'clamp(2.8rem, 6vw, 4.2rem)',
                     fontWeight: 900,
                     letterSpacing: '-0.03em',
@@ -550,9 +542,9 @@ export default function HomePage() {
                   }}>
                     GharKaMali
                   </span>
-                  <span style={{ 
-                    fontSize: '1.2rem', 
-                    color: 'rgba(255,255,255,0.8)', 
+                  <span style={{
+                    fontSize: '1.2rem',
+                    color: 'rgba(255,255,255,0.8)',
                     fontWeight: 700,
                     letterSpacing: '0.02em',
                     fontStyle: 'italic'
@@ -578,27 +570,43 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="hero-right-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div className="hero-right-col" style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '10px',
+              width: '100%',
+              maxWidth: '340px',
+            }}>
               {[
                 { num: 1200, suffix: '+', label: 'Visits Done' },
                 { num: 25, suffix: '+', label: 'Certified Experts' },
                 { num: 4.9, suffix: '★', label: 'Avg Rating' },
                 { num: 55, suffix: '+', label: 'Societies' },
               ].map(s => (
-                <div key={s.label} className="hero-stat-card" style={{ 
-                  background: 'rgba(255,255,255,0.05)', 
-                  backdropFilter: 'blur(16px)',
-                  border: '1.5px solid rgba(255,255,255,0.15)', 
-                  borderRadius: 24, 
-                  padding: '32px 24px', 
+                <div key={s.label} className="hero-stat-card" style={{
+                  background: 'rgba(255,255,255,0.12)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: '16px',
+                  padding: '16px 12px',
                   textAlign: 'center',
-                  boxShadow: '0 12px 40px rgba(0,0,0,0.2)',
-                  transition: 'transform 0.3s ease'
+                  backdropFilter: 'blur(8px)',
                 }}>
-                  <div style={{ fontSize: 'clamp(1.8rem, 2.5vw, 2.6rem)', fontWeight: 900, color: '#fff', lineHeight: 1.1, marginBottom: 6 }}>
+                  <div className="stat-num" style={{
+                    fontSize: 'clamp(1.3rem, 2vw, 1.8rem)',
+                    fontWeight: 900,
+                    color: '#fff',
+                    lineHeight: 1.1,
+                    marginBottom: 4,
+                  }}>
                     {s.label === 'Avg Rating' ? `4.9★` : <Counter end={s.num} suffix={s.suffix} />}
                   </div>
-                  <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.label}</div>
+                  <div style={{
+                    fontSize: '0.62rem',
+                    color: 'rgba(255,255,255,0.6)',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                  }}>{s.label}</div>
                 </div>
               ))}
             </div>
@@ -849,7 +857,7 @@ export default function HomePage() {
         <div style={{ position: 'absolute', top: -40, left: '10%', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -40, right: '8%', width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div className="container" style={{ position: 'relative' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 64 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 32 }}>
             <div className="section-divider-line" />
             <span className="overline overline-dot">Our Brand Story</span>
             <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Professional gardening made simple</h2>
@@ -858,8 +866,8 @@ export default function HomePage() {
           <div className="brand-story-grid">
             {/* Left Column: Vision & Values */}
             <div className="brand-story-left">
-              <div style={{ marginBottom: 48 }}>
-                <h3 style={{ color: 'var(--forest)', fontSize: '1.8rem', fontWeight: 900, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ color: 'var(--forest)', fontSize: '1.6rem', fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ color: 'var(--earth)' }}><IcSun /></span> Our Vision
                 </h3>
                 <p style={{ color: 'var(--text-2)', lineHeight: 1.8, fontSize: '1.05rem', fontWeight: 500 }}>
@@ -868,7 +876,7 @@ export default function HomePage() {
               </div>
 
               <div>
-                <h3 style={{ color: 'var(--forest)', fontSize: '1.8rem', fontWeight: 900, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <h3 style={{ color: 'var(--forest)', fontSize: '1.6rem', fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ color: 'var(--earth)' }}><IcShield /></span> Our Values
                 </h3>
                 <div className="values-grid">
@@ -879,7 +887,7 @@ export default function HomePage() {
                     { title: 'Sustainability', desc: 'Encouraging greener homes and healthier living spaces.' }
                   ].map((v, i) => (
                     <div key={i} className="value-card">
-                      <div style={{ fontWeight: 800, color: 'var(--forest)', marginBottom: 6, fontSize: '1rem' }}>{v.title}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--forest)', marginBottom: 6, fontSize: '1rem' }}>{v.title}</div>
                       <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', lineHeight: 1.6, margin: 0 }}>{v.desc}</p>
                     </div>
                   ))}
@@ -893,24 +901,17 @@ export default function HomePage() {
               <div className="journey-card-deco" />
 
               <div style={{ position: 'relative', zIndex: 1 }}>
-                <h3 style={{ color: 'var(--forest)', fontSize: '1.8rem', fontWeight: 900, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <h3 style={{ color: 'var(--forest)', fontSize: '1.6rem', fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ color: 'var(--earth)' }}><IcLeaf /></span> From Scratch
                 </h3>
-                <div style={{ color: 'var(--text-2)', lineHeight: 1.8, fontSize: '0.95rem', fontWeight: 500 }}>
-                  <p style={{ marginBottom: 20 }}>Every journey begins with a small problem. We noticed that many people love plants but taking care of them is not always easy. Busy schedules, lack of plant care knowledge, and difficulty finding a reliable plant expert often lead to plants slowly losing their health.</p>
-                  <p style={{ marginBottom: 20 }}>This everyday problem sparked the idea of GharKaMali – a reliable and trustworthy platform for plant care. The journey was not easy. There were many challenges, rejections, and countless sleepless nights while building the right team, creating systems, and solving day-to-day problems.</p>
-                  <p style={{ marginBottom: 20 }}>Step by step, the belief in the vision kept growing stronger. What started as a simple idea gradually became a dream to build something that could truly help people and contribute positively to society.</p>
+                <div style={{ color: 'var(--text-2)', lineHeight: 1.7, fontSize: '0.9rem', fontWeight: 400 }}>
+                  <p style={{ marginBottom: 12 }}>Every journey begins with a small problem. We noticed that many people love plants but taking care of them is not always easy. Busy schedules, lack of plant care knowledge, and difficulty finding a reliable plant expert often lead to plants slowly losing their health.</p>
+                  <p style={{ marginBottom: 12 }}>This everyday problem sparked the idea of GharKaMali – a reliable and trustworthy platform for plant care. The journey was not easy. There were many challenges, rejections, and countless sleepless nights while building the right team, creating systems, and solving day-to-day problems.</p>
+                  <p style={{ marginBottom: 12 }}>Step by step, the belief in the vision kept growing stronger. What started as a simple idea gradually became a dream to build something that could truly help people and contribute positively to society.</p>
                   <p className="journey-milestone" style={{
-                    color: 'var(--text)',
-                    fontWeight: 500,
-                    fontSize: '1rem',
-                    borderLeft: '4px solid var(--gold)',
-                    paddingLeft: '20px',
-                    marginTop: '24px',
-                    backgroundColor: 'var(--bg-elevated)',
-                    padding: '24px',
-                    borderRadius: '16px',
-                    boxShadow: 'var(--sh-sm)',
+                    color: '#011208',
+                    fontWeight: 400,
+                    fontSize: '0.95rem',
                     lineHeight: 1.7
                   }}>
                     Today, we are proud to share an important milestone – the GharKaMali website is now live, serving homes in Noida and Greater Noida West. And this is just the beginning of our journey to help homes keep their plants healthy and green.
