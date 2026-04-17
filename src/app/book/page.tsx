@@ -36,17 +36,17 @@ function StepHeader({ num, title, active, done, onClick, locked }: { num: number
     >
       <div style={{
         width: 30, height: 30, borderRadius: '50%',
-        background: done ? 'var(--forest)' : active ? 'var(--gold)' : 'var(--bg-elevated)',
+        background: done ? 'var(--forest)' : active ? 'var(--forest-mid)' : 'var(--bg-elevated)',
         color: done || active ? '#fff' : 'var(--forest)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.8rem',
-        boxShadow: active ? '0 0 20px rgba(201,168,76,0.2)' : 'none',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.8rem',
+        boxShadow: active ? '0 0 20px rgba(3,65,26,0.25)' : 'none',
         transition: 'all 0.3s',
         flexShrink: 0
       }}>
         {done ? <IcCheck /> : num}
       </div>
-      <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--forest)', margin: 0, letterSpacing: '-0.01em' }}>{title}</h3>
-      {done && !active && <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 700, color: 'var(--sage)', textTransform: 'uppercase' }}>Change</span>}
+      <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--forest)', margin: 0, letterSpacing: '-0.01em' }}>{title}</h3>
+      {done && !active && <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 500, color: 'var(--sage)', textTransform: 'uppercase' }}>Change</span>}
     </div>
   );
 }
@@ -230,35 +230,35 @@ function BookFlow() {
   const maxPlants = isOnDemand ? 1000 : (selectedPlan?.max_plants || 50);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--cream)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(165deg, #eef6ee 0%, #fffdf5 55%, #f5f0e8 100%)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <Navbar />
 
       <main style={{ flex: 1, padding: 'calc(var(--nav-h) + 24px) 16px 100px', zIndex: 10 }}>
         <div className="container" style={{ maxWidth: 800, margin: '0 auto', padding: 0 }}>
 
           <div style={{ textAlign: 'center', marginBottom: 40, padding: '0 10px' }}>
-            <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: 900, color: 'var(--forest)', marginBottom: 8, letterSpacing: '-0.02em' }}>Book Your Visit</h1>
-            <p style={{ color: 'var(--sage)', fontWeight: 600, fontSize: '0.95rem', lineHeight: 1.5 }}>Professional botanical care for your flourishing garden.</p>
+            <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: 700, color: 'var(--forest)', marginBottom: 8, letterSpacing: '-0.02em' }}>Book Your Visit</h1>
+            <p style={{ color: 'var(--sage)', fontWeight: 400, fontSize: '0.95rem', lineHeight: 1.5 }}>Professional botanical care for your flourishing garden.</p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
             {/* STEP 1: ADDRESS */}
-            <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 0 ? '40px' : '0 40px', border: activeStep === 0 ? '1.5px solid var(--gold)' : '1px solid var(--border)', boxShadow: activeStep === 0 ? 'var(--sh-lg)' : 'none', overflow: 'hidden' }}>
+            <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 0 ? '40px' : '0 40px', border: activeStep === 0 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 0 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden' }}>
               <StepHeader num={1} title="Service Address" active={activeStep === 0} done={activeStep > 0} onClick={() => setActiveStep(0)} locked={false} />
               <AnimatePresence>
                 {activeStep === 0 && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ paddingBottom: 40, borderTop: '1px solid var(--border-gold)', paddingTop: 32 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                        <div><label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>ROOM / FLAT NO.</label><input placeholder="e.g. B-204" value={addrFields.roomNo} onChange={e => updateAddr({ roomNo: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
-                        <div><label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>BUILDING / SOCIETY</label><input placeholder="e.g. ATS Pristine" value={addrFields.building} onChange={e => updateAddr({ building: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
+                        <div><label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>ROOM / FLAT NO.</label><input placeholder="e.g. B-204" value={addrFields.roomNo} onChange={e => updateAddr({ roomNo: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
+                        <div><label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>BUILDING / SOCIETY</label><input placeholder="e.g. ATS Pristine" value={addrFields.building} onChange={e => updateAddr({ building: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
                       </div>
-                      <div><label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>AREA / LANDMARK</label><input placeholder="Sector 150" value={addrFields.area} onChange={e => updateAddr({ area: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
+                      <div><label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>AREA / LANDMARK</label><input placeholder="Sector 150" value={addrFields.area} onChange={e => updateAddr({ area: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                        <div><label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>CITY</label><input placeholder="e.g. Noida" value={addrFields.city} onChange={e => updateAddr({ city: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
+                        <div><label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>CITY</label><input placeholder="e.g. Noida" value={addrFields.city} onChange={e => updateAddr({ city: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
                         <div>
-                          <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>STATE</label>
+                          <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>STATE</label>
                           <select value={addrFields.state} onChange={e => updateAddr({ state: e.target.value })}
                             style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600, background: '#fff', appearance: 'none', cursor: 'pointer' }}>
                             {['Uttar Pradesh','Delhi','Haryana','Rajasthan','Maharashtra','Karnataka','Tamil Nadu','West Bengal','Gujarat','Telangana','Other'].map(s => (
@@ -267,7 +267,7 @@ function BookFlow() {
                           </select>
                         </div>
                       </div>
-                      <div><label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>PINCODE</label><input placeholder="201301" maxLength={6} value={addrFields.pincode} onChange={e => updateAddr({ pincode: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
+                      <div><label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>PINCODE</label><input placeholder="201301" maxLength={6} value={addrFields.pincode} onChange={e => updateAddr({ pincode: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
                       <button onClick={checkLoc} disabled={checking} className="btn btn-primary" style={{ marginTop: 12, width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>
                         {checking ? 'Checking availability...' : 'Detected GPS & Continue'}
                       </button>
@@ -278,7 +278,7 @@ function BookFlow() {
             </div>
 
             {/* STEP 2: PLAN SELECTION */}
-            <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 1 ? '40px' : '0 40px', border: activeStep === 1 ? '1.5px solid var(--gold)' : '1px solid var(--border)', boxShadow: activeStep === 1 ? 'var(--sh-lg)' : 'none', overflow: 'hidden', filter: activeStep < 1 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 1 ? 'none' : 'auto' }}>
+            <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 1 ? '40px' : '0 40px', border: activeStep === 1 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 1 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 1 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 1 ? 'none' : 'auto' }}>
               <StepHeader num={2} title="Choose Your Care Plan" active={activeStep === 1} done={activeStep > 1} onClick={() => setActiveStep(1)} locked={activeStep < 1} />
               <AnimatePresence>
                 {activeStep === 1 && (
@@ -287,8 +287,8 @@ function BookFlow() {
                       {plans.map(p => (
                         <div key={p.id} onClick={() => setForm(f => ({ ...f, plan_id: p.id }))}
                           style={{ padding: 24, borderRadius: 24, border: `2.5px solid ${form.plan_id === p.id ? 'var(--forest)' : 'var(--border)'}`, cursor: 'pointer', background: form.plan_id === p.id ? 'rgba(3,65,26,0.03)' : '#fff', transition: 'all 0.3s' }}>
-                          <h3 style={{ fontWeight: 900, fontSize: '1.2rem', color: 'var(--forest)', marginBottom: 6 }}>{p.name}</h3>
-                          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--forest)', marginBottom: 12 }}>
+                          <h3 style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--forest)', marginBottom: 6 }}>{p.name}</h3>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--forest)', marginBottom: 12 }}>
                             ₹{p.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : p.price}
                             <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>/{p.plan_type === 'subscription' ? 'mo' : 'visit'}</span>
                           </div>
@@ -303,7 +303,7 @@ function BookFlow() {
             </div>
 
             {/* STEP 3: PLANT COUNT */}
-            <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 2 ? '40px' : '0 40px', border: activeStep === 2 ? '1.5px solid var(--gold)' : '1px solid var(--border)', boxShadow: activeStep === 2 ? 'var(--sh-lg)' : 'none', overflow: 'hidden', filter: activeStep < 2 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 2 ? 'none' : 'auto' }}>
+            <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 2 ? '40px' : '0 40px', border: activeStep === 2 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 2 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 2 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 2 ? 'none' : 'auto' }}>
               <StepHeader num={3} title="Number of Plants" active={activeStep === 2} done={activeStep > 2} onClick={() => setActiveStep(2)} locked={activeStep < 2} />
               <AnimatePresence>
                 {activeStep === 2 && (
@@ -312,7 +312,7 @@ function BookFlow() {
                       <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Adjust based on your garden size</div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 32 }}>
                         <button onClick={() => setForm(f => ({ ...f, plant_count: Math.max(minPlants, f.plant_count - 1) }))} style={{ width: 64, height: 64, borderRadius: '50%', border: 'none', background: '#fff', boxShadow: 'var(--sh-sm)', cursor: 'pointer', fontSize: '1.5rem', fontWeight: 900, flexShrink: 0 }}>−</button>
-                        <div style={{ fontSize: '3.5rem', fontWeight: 900, color: 'var(--forest)', fontFamily: 'var(--font-display)', minWidth: 100 }}>{form.plant_count}</div>
+                        <div style={{ fontSize: '3.5rem', fontWeight: 700, color: 'var(--forest)', fontFamily: 'var(--font-display)', minWidth: 100 }}>{form.plant_count}</div>
                         <button onClick={() => setForm(f => ({ ...f, plant_count: Math.min(maxPlants, f.plant_count + 1) }))} style={{ width: 64, height: 64, borderRadius: '50%', border: 'none', background: 'var(--forest)', color: '#fff', boxShadow: 'var(--sh-sm)', cursor: 'pointer', fontSize: '1.5rem', fontWeight: 900, flexShrink: 0 }}>+</button>
                       </div>
                       <p style={{ marginTop: 20, color: 'var(--sage)', fontSize: '0.9rem', fontWeight: 600 }}>Min: {minPlants} · Max: {maxPlants} plants</p>
@@ -324,7 +324,7 @@ function BookFlow() {
             </div>
 
             {/* STEP 4: ADD-ONS */}
-            <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 3 ? '40px' : '0 40px', border: activeStep === 3 ? '1.5px solid var(--gold)' : '1px solid var(--border)', boxShadow: activeStep === 3 ? 'var(--sh-lg)' : 'none', overflow: 'hidden', filter: activeStep < 3 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 3 ? 'none' : 'auto' }}>
+            <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 3 ? '40px' : '0 40px', border: activeStep === 3 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 3 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 3 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 3 ? 'none' : 'auto' }}>
               <StepHeader num={4} title="Enhance Your Visit (Add-ons)" active={activeStep === 3} done={activeStep > 3} onClick={() => setActiveStep(3)} locked={activeStep < 3} />
               <AnimatePresence>
                 {activeStep === 3 && (
@@ -348,7 +348,7 @@ function BookFlow() {
             </div>
 
             {/* STEP 5: SCHEDULE */}
-            <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 4 ? '40px' : '0 40px', border: activeStep === 4 ? '1.5px solid var(--gold)' : '1px solid var(--border)', boxShadow: activeStep === 4 ? 'var(--sh-lg)' : 'none', overflow: 'hidden', filter: activeStep < 4 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 4 ? 'none' : 'auto' }}>
+            <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 4 ? '40px' : '0 40px', border: activeStep === 4 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 4 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 4 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 4 ? 'none' : 'auto' }}>
               <StepHeader num={5} title="Pick Your Preferred Slot" active={activeStep === 4} done={activeStep > 4} onClick={() => setActiveStep(4)} locked={activeStep < 4} />
               <AnimatePresence>
                 {activeStep === 4 && (
@@ -397,7 +397,7 @@ function BookFlow() {
             </div>
 
             {/* STEP 6: SUMMARY & PAYMENT */}
-            <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 5 ? '40px' : '0 40px', border: activeStep === 5 ? '1.5px solid var(--gold)' : '1px solid var(--border)', boxShadow: activeStep === 5 ? 'var(--sh-lg)' : 'none', overflow: 'hidden', filter: activeStep < 5 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 5 ? 'none' : 'auto' }}>
+            <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 5 ? '40px' : '0 40px', border: activeStep === 5 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 5 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 5 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 5 ? 'none' : 'auto' }}>
               <StepHeader num={6} title="Final Review" active={activeStep === 5} done={false} onClick={() => setActiveStep(5)} locked={activeStep < 5} />
               <AnimatePresence>
                 {activeStep === 5 && (
@@ -433,8 +433,8 @@ function BookFlow() {
                       </div>
 
                       <div style={{ borderTop: '1.5px dashed var(--border)', paddingTop: 24, marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                        <span style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--forest)' }}>Total Amount</span>
-                        <span style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '1.9rem', fontFamily: 'var(--font-display)' }}>₹{total.toLocaleString('en-IN')}</span>
+                        <span style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--forest)' }}>Total Amount</span>
+                        <span style={{ fontWeight: 700, color: 'var(--forest)', fontSize: '1.9rem', fontFamily: 'var(--font-display)' }}>₹{total.toLocaleString('en-IN')}</span>
                       </div>
                     </div>
                     <button

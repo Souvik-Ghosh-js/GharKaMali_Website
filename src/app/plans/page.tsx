@@ -85,11 +85,11 @@ function PlanCarousel({ items }: { items: any[] }) {
             return (
               <div key={plan.id || i} style={{ flexShrink: 0, width: 'calc(100vw - 60px)', maxWidth: 360, scrollSnapAlign: 'center', background: isDark ? 'var(--forest)' : '#fff', borderRadius: 28, border: `1.5px solid ${isDark ? 'transparent' : 'var(--border-gold)'}`, padding: '32px 24px', boxShadow: isDark ? 'var(--sh-xl)' : 'var(--sh-md)', position: 'relative' }}>
                 {isDark && <div style={{ position: 'absolute', top: 14, right: 20, background: 'var(--gold)', color: 'var(--forest)', padding: '4px 14px', borderRadius: 99, fontSize: '0.62rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em' }}>FEATURED</div>}
-                <div style={{ fontSize: '0.68rem', fontWeight: 800, color: isDark ? 'rgba(255,255,255,0.55)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: 10 }}>{plan.plan_type}</div>
-                <h3 style={{ fontSize: '1.8rem', fontWeight: 900, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 10, letterSpacing: '-0.02em' }}>{plan.name}</h3>
+                <div style={{ fontSize: '0.68rem', fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: 10 }}>{plan.plan_type}</div>
+                <h3 style={{ fontSize: '1.8rem', fontWeight: 700, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 10, letterSpacing: '-0.02em' }}>{plan.name}</h3>
                 <p style={{ color: isDark ? 'rgba(255,255,255,0.65)' : 'var(--text-2)', fontSize: '0.9rem', marginBottom: 24, lineHeight: 1.7 }}>{plan.description || 'Professional botanical care for your space.'}</p>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 28 }}>
-                  <span style={{ fontSize: '2.6rem', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', lineHeight: 0.9 }}>
+                  <span style={{ fontSize: '2.6rem', fontWeight: 700, color: isDark ? 'var(--gold)' : 'var(--forest)', lineHeight: 0.9 }}>
                     ₹{plan.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : plan.price}
                   </span>
                   <span style={{ fontSize: '1rem', color: isDark ? 'rgba(255,255,255,0.35)' : 'var(--sage)', fontWeight: 700 }}>{plan.plan_type === 'subscription' ? '/mo' : '/visit'}</span>
@@ -180,13 +180,13 @@ function PlanCarousel({ items }: { items: any[] }) {
                      </div>
                   )}
 
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: isDark ? 'rgba(255,255,255,0.6)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.18em', marginBottom: 14 }}>{plan.plan_type}</div>
-                  <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 16, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{plan.name}</h3>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.6)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.18em', marginBottom: 14 }}>{plan.plan_type}</div>
+                  <h3 style={{ fontSize: '2.2rem', fontWeight: 700, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 16, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{plan.name}</h3>
                   <p style={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'var(--text-2)', fontSize: '1rem', marginBottom: 40, lineHeight: 1.7, flexShrink: 0 }}>{plan.description || 'Premium botanical luxury for your flourishing space.'}</p>
 
                   <div style={{ marginBottom: 44 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                      <span style={{ fontSize: '3.4rem', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', fontFamily: 'var(--font-display)', lineHeight: 0.9 }}>
+                      <span style={{ fontSize: '3.4rem', fontWeight: 700, color: isDark ? 'var(--gold)' : 'var(--forest)', fontFamily: 'var(--font-display)', lineHeight: 0.9 }}>
                         ₹{plan.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : plan.price}
                       </span>
                       <span style={{ fontSize: '1.25rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 700 }}>{plan.plan_type === 'subscription' ? '/mo' : '/visit'}</span>
@@ -202,7 +202,7 @@ function PlanCarousel({ items }: { items: any[] }) {
                     ))}
                   </div>
 
-                  <Link href={`/book?plan=${plan.id}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'}`} style={{ width: '100%', justifyContent: 'center', padding: '20px', fontSize: '1rem', fontWeight: 900, borderRadius: 24, marginTop: 'auto' }}>
+                  <Link href={`/book?plan=${plan.id}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'}`} style={{ width: '100%', justifyContent: 'center', padding: '20px', fontSize: '1rem', fontWeight: 600, borderRadius: 24, marginTop: 'auto' }}>
                     {plan.plan_type === 'subscription' ? 'Subscribe Now' : 'Book Now'}
                   </Link>
                 </div>
@@ -307,7 +307,7 @@ export default function PlansPage() {
           <div className="guarantee-premium" style={{ marginTop: 80, padding: '48px 56px', background: '#fff', border: '2px solid var(--gold)', borderRadius: 40, display: 'flex', gap: 40, alignItems: 'center', flexWrap: 'wrap', boxShadow: 'var(--sh-lg)', position:'relative', overflow:'hidden' }}>
             <div className="guarantee-icon" style={{ width: 72, height: 72, borderRadius: 24, background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', flexShrink: 0, border:'1.5px solid var(--border-gold)' }}><IcShield/></div>
             <div style={{ flex: 1 }}>
-              <h3 style={{ fontWeight: 900, fontSize: '1.4rem', marginBottom: 8, color: 'var(--forest)' }}>100% Satisfaction Guarantee</h3>
+              <h3 style={{ fontWeight: 700, fontSize: '1.4rem', marginBottom: 8, color: 'var(--forest)' }}>100% Satisfaction Guarantee</h3>
               <p style={{ color: 'var(--sage)', fontSize: '1rem', lineHeight: 1.8, fontWeight:500 }}>Not completely wowed by your visit? We’ll send a replacement expert free of charge within 24 hours. Your garden’s happiness is our priority.</p>
             </div>
             <a href="https://wa.me/919876543210" className="btn btn-primary" style={{ padding:'18px 36px', borderRadius:18, fontWeight:900 }}>Discuss with Concierge</a>
@@ -323,18 +323,20 @@ export default function PlansPage() {
               </p>
             </div>
             <div style={{ position: 'relative' }}>
-              <div style={{ position: 'absolute', top: 0, bottom: 0, left: -20, right: -20, pointerEvents: 'none', zIndex: 100 }}>
-                <button className="floating-nav-btn" onClick={() => setColIdx1(prev => Math.max(0, prev - 1))} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx1 === 0 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronLeft /></button>
-                <button className="floating-nav-btn" onClick={() => setColIdx1(prev => Math.min(1, prev + 1))} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx1 === 1 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronRight /></button>
-              </div>
-              
+              {isMobileView && (
+                <div style={{ position: 'absolute', top: 0, bottom: 0, left: -20, right: -20, pointerEvents: 'none', zIndex: 100 }}>
+                  <button className="floating-nav-btn" onClick={() => setColIdx1(prev => Math.max(0, prev - 1))} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx1 === 0 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronLeft /></button>
+                  <button className="floating-nav-btn" onClick={() => setColIdx1(prev => Math.min(1, prev + 1))} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx1 === 1 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronRight /></button>
+                </div>
+              )}
+
               <div ref={tableRef1} className="no-scrollbar table-container-shadow" style={{ width:'100%', overflowX:'auto', WebkitOverflowScrolling:'touch' as any, position: 'relative' }}>
                 <table style={{ width:'100%', borderCollapse:'collapse' }}>
                   <thead>
                     <tr style={{ background:'var(--bg-sage)' }}>
-                      <th className="sticky-col" style={{ padding:'24px', textAlign:'left', fontWeight:800, color:'var(--forest)', fontSize:'clamp(0.85rem, 2vw, 1.1rem)', whiteSpace: 'normal', position: 'sticky', left: 0, background: 'var(--bg-sage)', zIndex: 12 }}>Feature</th>
-                      {(!isMobileView || colIdx1 === 0) && <th style={{ padding:'24px', textAlign:'center', fontWeight:800, color:'var(--forest)', fontSize:'clamp(0.8rem, 2vw, 1.1rem)', whiteSpace: 'normal', position: 'sticky', top: 0, background: 'var(--bg-sage)', zIndex: 11 }}>Normal Gardener</th>}
-                      {(!isMobileView || colIdx1 === 1) && <th style={{ padding:'24px', textAlign:'center', fontWeight:800, color:'var(--gold)', fontSize:'clamp(0.8rem, 2vw, 1.1rem)', whiteSpace: 'normal', position: 'sticky', top: 0, background: 'var(--bg-sage)', zIndex: 11 }}>Professional Gardener</th>}
+                      <th className="sticky-col" style={{ padding:'18px 20px', textAlign:'left', fontWeight:600, color:'var(--forest)', fontSize:'0.9rem', whiteSpace: 'nowrap', background: 'var(--bg-sage)', zIndex: 12, borderRight: '2px solid var(--border-gold)' }}>Feature</th>
+                      {(!isMobileView || colIdx1 === 0) && <th style={{ padding:'18px 20px', textAlign:'center', fontWeight:600, color:'var(--forest)', fontSize:'0.9rem', whiteSpace: 'normal', background: 'var(--bg-sage)', zIndex: 11 }}>Normal Gardener</th>}
+                      {(!isMobileView || colIdx1 === 1) && <th style={{ padding:'18px 20px', textAlign:'center', fontWeight:600, color:'var(--earth)', fontSize:'0.9rem', whiteSpace: 'normal', background: 'var(--bg-sage)', zIndex: 11 }}>Professional Gardener</th>}
                     </tr>
                   </thead>
                 <tbody>
@@ -348,10 +350,10 @@ export default function PlansPage() {
                     { feature: 'Emergency support', normal: '✕', professional: '✓' },
                     { feature: 'Detailed visit reports', normal: '✕', professional: '✓' },
                   ].map((row, i) => (
-                    <tr key={i} style={{ borderTop:'1px solid var(--border)', background: '#fff' }}>
-                      <td className="sticky-col" style={{ padding:'20px 24px', fontWeight:600, color:'var(--forest)', whiteSpace: 'normal', position: 'sticky', left: 0, background: '#fff', zIndex: 5, maxWidth: '200px' }}>{row.feature}</td>
-                      {(!isMobileView || colIdx1 === 0) && <td style={{ padding:'20px 24px', textAlign:'center', color: row.normal === '✓' ? 'var(--success)' : 'var(--text-2)', fontSize: '1.05rem', whiteSpace: 'normal' }}>{row.normal}</td>}
-                      {(!isMobileView || colIdx1 === 1) && <td style={{ padding:'20px 24px', textAlign:'center', fontWeight:600, color: row.professional === '✓' ? 'var(--success)' : 'var(--forest)', fontSize: '1.05rem', whiteSpace: 'normal' }}>{row.professional}</td>}
+                    <tr key={i} style={{ borderTop:'1px solid var(--border)', background: i % 2 === 0 ? '#fafcfa' : '#fff' }}>
+                      <td className="sticky-col" style={{ padding:'16px 20px', fontWeight:500, color:'var(--forest)', fontSize:'0.88rem', whiteSpace: 'normal', background: i % 2 === 0 ? '#fafcfa' : '#fff', borderRight: '2px solid var(--border-gold)' }}>{row.feature}</td>
+                      {(!isMobileView || colIdx1 === 0) && <td style={{ padding:'16px 20px', textAlign:'center', color: row.normal === '✓' ? 'var(--success)' : 'var(--text-2)', fontSize: '1rem', whiteSpace: 'normal' }}>{row.normal}</td>}
+                      {(!isMobileView || colIdx1 === 1) && <td style={{ padding:'16px 20px', textAlign:'center', fontWeight:500, color: row.professional === '✓' ? 'var(--success)' : 'var(--forest)', fontSize: '1rem', whiteSpace: 'normal' }}>{row.professional}</td>}
                     </tr>
                   ))}
                 </tbody>
@@ -368,27 +370,29 @@ export default function PlansPage() {
                 <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 8 }}>Compare Exclusive Benefits</h2>
               </div>
               <div style={{ position: 'relative' }}>
-                <div style={{ position: 'absolute', top: 0, bottom: 0, left: -20, right: -20, pointerEvents: 'none', zIndex: 100 }}>
-                  <button className="floating-nav-btn" onClick={() => setColIdx2(prev => Math.max(0, prev - 1))} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx2 === 0 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronLeft /></button>
-                  <button className="floating-nav-btn" onClick={() => setColIdx2(prev => Math.min(subPlans.length - 1, prev + 1))} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx2 === subPlans.length - 1 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronRight /></button>
-                </div>
+                {isMobileView && (
+                  <div style={{ position: 'absolute', top: 0, bottom: 0, left: -20, right: -20, pointerEvents: 'none', zIndex: 100 }}>
+                    <button className="floating-nav-btn" onClick={() => setColIdx2(prev => Math.max(0, prev - 1))} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx2 === 0 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronLeft /></button>
+                    <button className="floating-nav-btn" onClick={() => setColIdx2(prev => Math.min(subPlans.length - 1, prev + 1))} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx2 === subPlans.length - 1 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronRight /></button>
+                  </div>
+                )}
                 
                 <div ref={tableRef2} className="no-scrollbar table-container-shadow" style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling:'touch' as any, position: 'relative' }}>
                   <table className="plans-compare-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: 'var(--forest)' }}>
-                        <th className="sticky-col" style={{ padding: '20px 24px', textAlign: 'left', color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', whiteSpace: 'normal', position: 'sticky', left: 0, background: 'var(--forest)', zIndex: 12 }}>Feature</th>
+                        <th className="sticky-col" style={{ padding: '18px 20px', textAlign: 'left', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', whiteSpace: 'nowrap', background: 'var(--forest)', borderRight: '1px solid rgba(255,255,255,0.1)' }}>Feature</th>
                         {subPlans.slice(0, 3).map((p: any, j: number) => (
-                          (!isMobileView || colIdx2 === j) && <th key={p.id || p.name} style={{ padding: '20px 24px', textAlign: 'center', color: 'var(--gold)', fontSize: 'clamp(0.8rem, 2vw, 1rem)', fontWeight: 900, whiteSpace: 'normal', position: 'sticky', top: 0, background: 'var(--forest)', zIndex: 11 }}>{p.name}</th>
+                          (!isMobileView || colIdx2 === j) && <th key={p.id || p.name} style={{ padding: '18px 20px', textAlign: 'center', color: 'var(--gold)', fontSize: '0.9rem', fontWeight: 600, whiteSpace: 'normal', background: 'var(--forest)' }}>{p.name}</th>
                         ))}
                       </tr>
                     </thead>
                   <tbody>
                     {COMPARE_FEATURES.map((f, i) => (
-                      <tr key={f.label} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'rgba(3,65,26,0.01)' : '#fff' }}>
-                        <td className="sticky-col" style={{ padding: '16px 24px', fontSize: '0.9rem', color: 'var(--forest)', fontWeight: 700, whiteSpace: 'normal', position: 'sticky', left: 0, background: i % 2 === 0 ? '#f9fbf9' : '#fff', zIndex: 5, maxWidth: '220px' }}>{f.label}</td>
+                      <tr key={f.label} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? '#fafcfa' : '#fff' }}>
+                        <td className="sticky-col" style={{ padding: '14px 20px', fontSize: '0.88rem', color: 'var(--forest)', fontWeight: 500, whiteSpace: 'normal', background: i % 2 === 0 ? '#fafcfa' : '#fff', borderRight: '1px solid var(--border-gold)' }}>{f.label}</td>
                         {[f.basic, f.standard, f.premium].slice(0, subPlans.length).map((v, j) => (
-                          (!isMobileView || colIdx2 === j) && <td key={j} style={{ padding: '16px 20px', textAlign: 'center', whiteSpace: 'normal' }}><CheckCell val={v}/></td>
+                          (!isMobileView || colIdx2 === j) && <td key={j} style={{ padding: '14px 20px', textAlign: 'center', whiteSpace: 'normal' }}><CheckCell val={v}/></td>
                         ))}
                       </tr>
                     ))}
@@ -401,7 +405,7 @@ export default function PlansPage() {
 
           {/* FAQ */}
           <div style={{ marginTop: 120 }}>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2.5rem', textAlign: 'center', marginBottom: 52, color: 'var(--forest)' }}>Frequently Asked Questions</h2>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '2.2rem', textAlign: 'center', marginBottom: 52, color: 'var(--forest)' }}>Frequently Asked Questions</h2>
             <div style={{ maxWidth: 800, margin: '0 auto', display:'flex', flexDirection:'column', gap:16 }}>
               {FAQS.map((faq, i) => (
                 <div key={i} style={{ background:'#fff', borderRadius:24, border:`1.5px solid ${openFaq===i?'var(--forest)':'var(--border)'}`, overflow:'hidden', transition:'all 0.3s var(--ease)' }}>

@@ -852,7 +852,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══ BRAND STORY ═══ */}
-      <section className="section brand-story-section s-reveal" id="brand-story" style={{ background: '#fff' }}>
+      <section className="section brand-story-section s-reveal" id="brand-story" style={{ background: 'linear-gradient(180deg, #fff 0%, #eef7ee 60%, #e2f0e2 100%)' }}>
         {/* Decorative blobs */}
         <div style={{ position: 'absolute', top: -40, left: '10%', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -40, right: '8%', width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />

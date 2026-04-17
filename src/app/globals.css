@@ -278,7 +278,7 @@ h6 {
   scroll-snap-align: start;
   scroll-snap-stop: always;
   position: relative;
-  padding: 80px 0;
+  padding: 48px 0;
   box-sizing: border-box;
 }
 
@@ -286,9 +286,16 @@ h6 {
   .section {
     min-height: 100vh;
     height: auto;
-    padding: 10vh 0;
-    /* Perfect breathable padding */
+    padding: 6vh 0;
   }
+}
+
+.sticky-col {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 5 !important;
+  min-width: 150px;
+  width: 180px;
 }
 
 .section-tight {
@@ -1758,13 +1765,13 @@ html.snap {
    SECTIONS
 ═══════════════════════════════════════════════════════ */
 /* Single fluid value — no media query overrides needed.
-   480px → 48px  |  768px → 64px  |  1280px → 100px  |  1600px → 120px */
+   480px → 28px  |  768px → 44px  |  1280px → 60px */
 .section {
-  padding: clamp(48px, 8vw, 120px) 0;
+  padding: clamp(28px, 5vw, 60px) 0;
 }
 
 .section-sm {
-  padding: clamp(32px, 5vw, 72px) 0;
+  padding: clamp(20px, 3vw, 48px) 0;
 }
 
 .section-header {
@@ -7398,13 +7405,14 @@ body {
 }
 
 .journey-card {
-  background: #fff;
+  background: linear-gradient(180deg, #ffffff 40%, rgba(3, 65, 26, 0.04) 100%);
   padding: clamp(24px, 3vh, 40px);
   border-radius: 40px;
   border: 1.5px solid var(--border-gold);
   position: relative;
   overflow: hidden;
   box-shadow: var(--sh-md);
+  border-bottom: 3px solid rgba(3, 65, 26, 0.12);
 }
 
 .journey-card-deco {
