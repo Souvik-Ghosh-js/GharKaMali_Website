@@ -8,6 +8,7 @@ import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
 import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, initiatePayment, getPreviousGardeners, checkGardenerAvailability } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from '@/store/location';
 
 type ModalType = 'location' | 'plan' | 'addons' | 'schedule';
 const TIMES = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
@@ -56,10 +57,11 @@ function BookFlow() {
   const { isAuthenticated, isLoading, updateUser } = useAuth();
   const preselectId = params.get('plan') ? parseInt(params.get('plan')!) : 0;
 
+  const { zone: globalZone } = useLocation();
   const [activeStep, setActiveStep] = useState(0);
   const [checking, setChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [zone, setZone] = useState<any>(null);
+  const [zone, setZone] = useState<any>(globalZone);
   const [form, setForm] = useState({
     address: '', lat: 0, lng: 0, plan_id: preselectId,
     plant_count: 5, scheduled_date: '', scheduled_time: '09:00',
@@ -121,7 +123,8 @@ function BookFlow() {
 
   const total = (() => {
     const planBase = Number(selectedPlan?.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : (selectedPlan?.price || 0));
-    const extraPlants = (zone && form.plant_count > (zone.min_plants || 1)) ? (form.plant_count - (zone.min_plants || 1)) * Number(zone.price_per_plant || 0) : 0;
+    const zMin = zone?.min_plants ?? 5;
+    const extraPlants = (zone && form.plant_count > zMin) ? (form.plant_count - zMin) * Number(zone.price_per_plant || 0) : 0;
     const addonsTotal = form.addons.reduce((sum, { addon_id }) => {
       const a = addons.find(x => x.id === addon_id);
       return sum + (Number(a?.price) || 0);
@@ -139,6 +142,8 @@ function BookFlow() {
       icon: '',
       bookingDetails: {
         plan_id: form.plan_id,
+        plan_type: selectedPlan.plan_type,
+        zone_id: zone?.id,
         scheduled_date: form.scheduled_date,
         scheduled_time: form.scheduled_time,
         service_address: form.address,
@@ -151,30 +156,64 @@ function BookFlow() {
   };
 
   const handleFinish = async () => {
-    if (!form.scheduled_date) { toast.error('Please select a preferred visit date'); return; }
+    if (!form.scheduled_date && selectedPlan?.plan_type !== 'subscription') { 
+      toast.error('Please select a preferred visit date'); return; 
+    }
     setSubmitting(true);
     try {
-      const payload = {
-        ...form,
+      const payload: any = {
+        plan_id: form.plan_id,
         zone_id: zone?.id,
         service_address: form.address,
         service_latitude: form.lat,
         service_longitude: form.lng,
+        plant_count: form.plant_count,
+        addon_ids: form.addons,
+        addons: form.addons,
+        total_amount: total,
+        preferred_gardener_id: form.preferred_gardener_id || null,
         customer_notes: form.notes
       };
-      const res: any = await createBooking(payload);
-      const payu = await initiatePayment({ type: 'booking', booking_id: res.id, amount: total });
-      if (payu?.mock_success) router.push(payu.frontend_redirect);
-      else if (payu?.data?.params) {
-        const f = document.createElement('form');
-        f.action = payu.data.url; f.method = 'POST';
-        Object.entries(payu.data.params).forEach(([k, v]) => {
-          const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = v as string; f.appendChild(i);
+
+      let res: any;
+      let type: 'booking' | 'subscription' = 'booking';
+
+      if (selectedPlan?.plan_type === 'subscription') {
+        type = 'subscription';
+        res = await createSubscription({
+          ...payload,
+          auto_renew: form.auto_renew
         });
-        document.body.appendChild(f); f.submit();
-      }
-    } catch { toast.error('Booking attempt failed. Please try again or contact support.'); setSubmitting(false); }
+      } else {
+            res = await createBooking({
+              ...payload,
+              scheduled_date: form.scheduled_date,
+              scheduled_time: form.scheduled_time,
+            });
+            if (form.addons.length > 0) {
+              try {
+                await addBookingAddons(res.id, form.addons.map(a => ({ addon_id: a.addon_id, quantity: a.quantity })));
+              } catch (e) {
+                console.error('Failed to add addons', e);
+              }
+            }
+          }
+
+      // Mock Payment: Directly redirect to success
+      toast.success('Booking Successful! (Test Mode)');
+      router.push(`/bookings/${res.id}`);
+    } catch (err: any) { 
+      console.error(err);
+      toast.error(err?.message || 'Booking attempt failed. Please try again or contact support.'); 
+      setSubmitting(false); 
+    }
   };
+
+  useEffect(() => {
+    if (globalZone && !zone) {
+      setZone(globalZone);
+    }
+  }, [globalZone, zone]);
 
   useEffect(() => {
     if (form.scheduled_date && zone?.id) {
@@ -187,7 +226,8 @@ function BookFlow() {
 
   // Constraints for plant count
   const minPlants = zone?.min_plants || 5;
-  const maxPlants = selectedPlan?.max_plants || 50;
+  const isOnDemand = selectedPlan?.name?.toLowerCase().includes('demand') || selectedPlan?.plan_type === 'on_demand';
+  const maxPlants = isOnDemand ? 1000 : (selectedPlan?.max_plants || 50);
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
@@ -216,9 +256,18 @@ function BookFlow() {
                       </div>
                       <div><label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>AREA / LANDMARK</label><input placeholder="Sector 150" value={addrFields.area} onChange={e => updateAddr({ area: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                        <div><label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>CITY</label><input value={addrFields.city} readOnly style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600, background: 'var(--bg-muted)' }} /></div>
-                        <div><label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>PINCODE</label><input placeholder="201301" maxLength={6} value={addrFields.pincode} onChange={e => updateAddr({ pincode: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
+                        <div><label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>CITY</label><input placeholder="e.g. Noida" value={addrFields.city} onChange={e => updateAddr({ city: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
+                        <div>
+                          <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>STATE</label>
+                          <select value={addrFields.state} onChange={e => updateAddr({ state: e.target.value })}
+                            style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600, background: '#fff', appearance: 'none', cursor: 'pointer' }}>
+                            {['Uttar Pradesh','Delhi','Haryana','Rajasthan','Maharashtra','Karnataka','Tamil Nadu','West Bengal','Gujarat','Telangana','Other'].map(s => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
+                      <div><label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>PINCODE</label><input placeholder="201301" maxLength={6} value={addrFields.pincode} onChange={e => updateAddr({ pincode: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
                       <button onClick={checkLoc} disabled={checking} className="btn btn-primary" style={{ marginTop: 12, width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>
                         {checking ? 'Checking availability...' : 'Detected GPS & Continue'}
                       </button>
@@ -239,7 +288,10 @@ function BookFlow() {
                         <div key={p.id} onClick={() => setForm(f => ({ ...f, plan_id: p.id }))}
                           style={{ padding: 24, borderRadius: 24, border: `2.5px solid ${form.plan_id === p.id ? 'var(--forest)' : 'var(--border)'}`, cursor: 'pointer', background: form.plan_id === p.id ? 'rgba(3,65,26,0.03)' : '#fff', transition: 'all 0.3s' }}>
                           <h3 style={{ fontWeight: 900, fontSize: '1.2rem', color: 'var(--forest)', marginBottom: 6 }}>{p.name}</h3>
-                          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--forest)', marginBottom: 12 }}>₹{p.price}<span style={{ fontSize: '0.8rem', opacity: 0.6 }}>/visit</span></div>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--forest)', marginBottom: 12 }}>
+                            ₹{p.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : p.price}
+                            <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>/{p.plan_type === 'subscription' ? 'mo' : 'visit'}</span>
+                          </div>
                           <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', lineHeight: 1.4 }}>{p.description || 'Professional botanical care.'}</div>
                         </div>
                       ))}
@@ -350,13 +402,39 @@ function BookFlow() {
               <AnimatePresence>
                 {activeStep === 5 && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ paddingBottom: 40, borderTop: '1px solid var(--border-gold)', paddingTop: 32 }}>
-                    <div style={{ background: 'var(--bg-elevated)', borderRadius: 24, padding: '24px', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}><span style={{ fontWeight: 700 }}>Plan</span><span style={{ fontWeight: 900, color: 'var(--forest)' }}>{selectedPlan?.name}</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}><span style={{ fontWeight: 700 }}>Plants</span><span style={{ fontWeight: 900, color: 'var(--forest)' }}>{form.plant_count} Units</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}><span style={{ fontWeight: 700 }}>Schedule</span><span style={{ fontWeight: 900, color: 'var(--forest)' }}>{form.scheduled_date} @ {form.scheduled_time}</span></div>
-                      <div style={{ borderTop: '1px dashed var(--border)', paddingTop: 16, marginTop: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '1.1rem' }}>Total Amount</span>
-                        <span style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '1.6rem' }}>₹{total.toLocaleString('en-IN')}</span>
+                    <div style={{ background: 'var(--bg-elevated)', borderRadius: 24, padding: '24px', display: 'flex', flexDirection: 'column', marginBottom: 24 }}>
+                      <div style={{ display: 'grid', gap: 16, marginBottom: 28 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Plan</span>
+                          <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{selectedPlan?.name}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Plants</span>
+                          <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{form.plant_count} Units</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Schedule</span>
+                          <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{form.scheduled_date} @ {form.scheduled_time}</span>
+                        </div>
+                        {form.addons.length > 0 && (
+                          <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px dashed var(--border)' }}>
+                             <div style={{ color: 'var(--sage)', fontWeight: 800, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Selected Add-ons</div>
+                             {form.addons.map(a => {
+                               const addonObj = addons.find(x => x.id === a.addon_id);
+                               return (
+                                 <div key={a.addon_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                                    <span style={{ color: 'var(--text-2)', fontSize: '0.9rem', fontWeight: 600 }}>{addonObj?.name}</span>
+                                    <span style={{ fontWeight: 700, color: 'var(--forest)', fontSize: '0.9rem' }}>+₹{addonObj?.price}</span>
+                                 </div>
+                               );
+                             })}
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ borderTop: '1.5px dashed var(--border)', paddingTop: 24, marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <span style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--forest)' }}>Total Amount</span>
+                        <span style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '1.9rem', fontFamily: 'var(--font-display)' }}>₹{total.toLocaleString('en-IN')}</span>
                       </div>
                     </div>
                     <button

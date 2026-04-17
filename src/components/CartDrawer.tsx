@@ -112,17 +112,21 @@ export default function CartDrawer() {
           
           if (isSub) {
             res = await createSubscription({
-              plan_id: svc.bookingDetails?.plan_id,
+              plan_id: svc.bookingDetails?.plan_id!,
               zone_id: svc.bookingDetails?.zone_id!,
               service_address: svc.bookingDetails?.service_address || finalAddress,
               service_latitude: svc.bookingDetails?.service_latitude || 0,
               service_longitude: svc.bookingDetails?.service_longitude || 0,
               plant_count: svc.bookingDetails?.plant_count || 1,
               preferred_gardener_id: svc.bookingDetails?.preferred_gardener_id || null,
-              auto_renew: svc.bookingDetails?.auto_renew ?? true
+              auto_renew: svc.bookingDetails?.auto_renew ?? true,
+              addon_ids: svc.bookingDetails?.addons || [],
+              addons: svc.bookingDetails?.addons || [],
+              total_amount: svc.bookingDetails?.price
             });
           } else {
             res = await createBooking({
+              plan_id: svc.bookingDetails?.plan_id,
               zone_id: svc.bookingDetails?.zone_id!,
               scheduled_date: svc.bookingDetails?.scheduled_date!,
               scheduled_time: svc.bookingDetails?.scheduled_time,
@@ -131,8 +135,18 @@ export default function CartDrawer() {
               service_longitude: svc.bookingDetails?.service_longitude || 0,
               plant_count: svc.bookingDetails?.plant_count || 1,
               preferred_gardener_id: svc.bookingDetails?.preferred_gardener_id || null,
-              customer_notes: svc.bookingDetails?.notes || 'Booked via cart'
+              customer_notes: svc.bookingDetails?.notes || 'Booked via cart',
+              addon_ids: svc.bookingDetails?.addons || [],
+              addons: svc.bookingDetails?.addons || [],
+              total_amount: svc.bookingDetails?.price
             });
+            if (svc.bookingDetails?.addons?.length) {
+              try {
+                await addBookingAddons(res.id, svc.bookingDetails.addons);
+              } catch (e) {
+                console.error('Failed to add addons to cart booking', e);
+              }
+            }
           }
           bookingResponses.push(res);
         }
@@ -144,6 +158,8 @@ export default function CartDrawer() {
         setMaliBooked(bookingResponses[0]);
       }
 
+      const totalPrice = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+      // Mock Payment Step
       setStep('success');
       clearCart();
     } catch (err: any) {

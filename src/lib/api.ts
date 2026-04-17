@@ -83,9 +83,11 @@ export const checkGardenerAvailability = (date: string, gardenerId?: number, zon
 
 // ─── BOOKINGS (customer) ──────────────────────────────────────────────────────
 export const createBooking = (b: {
+  plan_id?: number;
   zone_id: number; scheduled_date: string; scheduled_time?: string;
   service_address: string; service_latitude: number; service_longitude: number;
   plant_count?: number; preferred_gardener_id?: number; customer_notes?: string;
+  addons?: { addon_id: number; quantity: number }[];
 }) => req('/bookings', { method: 'POST', body: JSON.stringify(b) });
 
 export const getMyBookings = (p?: { status?: string; page?: number; limit?: number }) =>
@@ -112,8 +114,17 @@ export const addBookingAddons = (id: number, addon_ids: { addon_id: number; quan
   req(`/bookings/${id}/addons`, { method: 'POST', body: JSON.stringify({ addon_ids }) });
 
 // ─── SUBSCRIPTIONS ────────────────────────────────────────────────────────────
-export const createSubscription = (b: any) =>
-  req('/subscriptions', { method: 'POST', body: JSON.stringify(b) });
+export const createSubscription = (b: {
+  plan_id: number;
+  zone_id: number;
+  service_address: string;
+  service_latitude: number;
+  service_longitude: number;
+  plant_count?: number;
+  preferred_gardener_id?: number;
+  auto_renew?: boolean;
+  addons?: { addon_id: number; quantity: number }[];
+}) => req('/subscriptions', { method: 'POST', body: JSON.stringify(b) });
 
 export const getMySubscriptions = () => req('/subscriptions/my');
 

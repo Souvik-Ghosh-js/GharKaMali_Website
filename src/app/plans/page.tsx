@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getPlans, getFaqs } from '@/lib/api';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
+import { useLocation } from '@/store/location';
 
 const IcArrow = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
 const IcCheck = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>;
@@ -44,7 +45,7 @@ function CheckCell({ val }: { val: boolean | string }) {
 }
 
 function PlanCarousel({ items }: { items: any[] }) {
-  // ── ALL hooks must be called unconditionally (Rules of Hooks) ──
+  const { zone } = useLocation();
   const [isMobile, setIsMobile] = useState(false);
 
   // Desktop carousel state
@@ -88,8 +89,10 @@ function PlanCarousel({ items }: { items: any[] }) {
                 <h3 style={{ fontSize: '1.8rem', fontWeight: 900, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 10, letterSpacing: '-0.02em' }}>{plan.name}</h3>
                 <p style={{ color: isDark ? 'rgba(255,255,255,0.65)' : 'var(--text-2)', fontSize: '0.9rem', marginBottom: 24, lineHeight: 1.7 }}>{plan.description || 'Professional botanical care for your space.'}</p>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 28 }}>
-                  <span style={{ fontSize: '2.6rem', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', lineHeight: 0.9 }}>₹{plan.price}</span>
-                  <span style={{ fontSize: '1rem', color: isDark ? 'rgba(255,255,255,0.35)' : 'var(--sage)', fontWeight: 700 }}>/mo</span>
+                  <span style={{ fontSize: '2.6rem', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', lineHeight: 0.9 }}>
+                    ₹{plan.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : plan.price}
+                  </span>
+                  <span style={{ fontSize: '1rem', color: isDark ? 'rgba(255,255,255,0.35)' : 'var(--sage)', fontWeight: 700 }}>{plan.plan_type === 'subscription' ? '/mo' : '/visit'}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
                   {(Array.isArray(plan.features) ? plan.features : []).slice(0, 4).map((f: string, idx: number) => (
@@ -183,8 +186,10 @@ function PlanCarousel({ items }: { items: any[] }) {
 
                   <div style={{ marginBottom: 44 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                      <span style={{ fontSize: '3.4rem', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', fontFamily: 'var(--font-display)', lineHeight: 0.9 }}>₹{plan.price}</span>
-                      <span style={{ fontSize: '1.25rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 700 }}>/mo</span>
+                      <span style={{ fontSize: '3.4rem', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', fontFamily: 'var(--font-display)', lineHeight: 0.9 }}>
+                        ₹{plan.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : plan.price}
+                      </span>
+                      <span style={{ fontSize: '1.25rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 700 }}>{plan.plan_type === 'subscription' ? '/mo' : '/visit'}</span>
                     </div>
                   </div>
 

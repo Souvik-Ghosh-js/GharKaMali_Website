@@ -5,15 +5,19 @@ import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
 import CartDrawer from './CartDrawer';
 
+import { useLocation } from '@/store/location';
+
 const qc = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false } } });
 
 function AuthHydrator({ children }: { children: React.ReactNode }) {
   const hydrate = useAuth(s => s.hydrate);
-  const hydrateCart = useCart(s => s.openCart); // trigger hydration
+  const detectLoc = useLocation(s => s.detectLocation);
+  
   useEffect(() => {
     hydrate();
     useCart.persist.rehydrate();
-  }, [hydrate]);
+    detectLoc();
+  }, [hydrate, detectLoc]);
   return <>{children}</>;
 }
 
