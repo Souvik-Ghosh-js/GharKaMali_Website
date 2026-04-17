@@ -70,6 +70,7 @@ export default function Footer() {
       borderTop: '1px solid var(--border)',
       position: 'relative',
       overflow: 'hidden',
+      scrollSnapAlign: 'end',
     }}>
 
       {/* Ambient glow orbs */}

@@ -328,7 +328,7 @@ export default function PlansPage() {
                 <button className="floating-nav-btn" onClick={() => setColIdx1(prev => Math.min(1, prev + 1))} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx1 === 1 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronRight /></button>
               </div>
               
-              <div ref={tableRef1} className="no-scrollbar" style={{ width:'100%', overflowX:'auto', WebkitOverflowScrolling:'touch' as any, borderRadius:24, boxShadow:'var(--sh-lg)', border:'1px solid var(--border)', position: 'relative' }}>
+              <div ref={tableRef1} className="no-scrollbar table-container-shadow" style={{ width:'100%', overflowX:'auto', WebkitOverflowScrolling:'touch' as any, position: 'relative' }}>
                 <table style={{ width:'100%', borderCollapse:'collapse' }}>
                   <thead>
                     <tr style={{ background:'var(--bg-sage)' }}>
@@ -373,7 +373,7 @@ export default function PlansPage() {
                   <button className="floating-nav-btn" onClick={() => setColIdx2(prev => Math.min(subPlans.length - 1, prev + 1))} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx2 === subPlans.length - 1 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronRight /></button>
                 </div>
                 
-                <div ref={tableRef2} className="no-scrollbar" style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling:'touch' as any, borderRadius: 32, position: 'relative' }}>
+                <div ref={tableRef2} className="no-scrollbar table-container-shadow" style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling:'touch' as any, position: 'relative' }}>
                   <table className="plans-compare-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: 'var(--forest)' }}>

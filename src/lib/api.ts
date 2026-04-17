@@ -110,8 +110,8 @@ export const trackBooking = (booking_id: number) =>
 export const rescheduleBooking = (booking_id: number, new_date: string, new_time?: string) =>
   req('/payments/reschedule', { method: 'POST', body: JSON.stringify({ booking_id, new_date, ...(new_time ? { new_time } : {}) }) });
 
-export const addBookingAddons = (id: number, addon_ids: { addon_id: number; quantity: number }[]) =>
-  req(`/bookings/${id}/addons`, { method: 'POST', body: JSON.stringify({ addon_ids }) });
+export const addBookingAddons = (id: number, addons: { addon_id: number; quantity: number }[]) =>
+  req(`/bookings/${id}/addons`, { method: 'POST', body: JSON.stringify({ booking_id: id, addons }) });
 
 // ─── SUBSCRIPTIONS ────────────────────────────────────────────────────────────
 export const createSubscription = (b: {

@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar';
 import { useGSAPAnimations } from '@/hooks/useGSAPAnimations';
 import Footer from '@/components/Footer';
 import PageLoader from '@/components/PageLoader';
-import { getPlans, getBlogs, getTaglines, getShopProducts } from '@/lib/api';
+import { getPlans, getBlogs, getTaglines, getShopProducts, getPublicReviews } from '@/lib/api';
 import dynamic from 'next/dynamic';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 const ValleyScene = dynamic(() => import('@/components/ValleyScene'), { ssr: false });
@@ -51,18 +51,32 @@ const TypeWriter = ({ words, style, className }: { words: string[]; style?: Reac
     <div
       className={`typewriter-container ${className || ''}`}
       style={{
-        display: 'block',
-        height: height === 'auto' ? 'auto' : `${height}px`,
+        display: 'inline-flex',
+        alignItems: 'baseline',
+        height: '1.5em',
         overflow: 'hidden',
-        textAlign: 'center',
-        transition: 'height 0.3s ease',
+        lineHeight: 1.25,
         ...style,
       }}
     >
-      <span ref={contentRef} className="typewriter-gradient">
+      <span ref={contentRef} style={{ 
+        fontSize: '1.2rem', 
+        color: 'var(--gold)', 
+        fontWeight: 700,
+        fontStyle: 'italic',
+        opacity: 1,
+        whiteSpace: 'nowrap'
+      }}>
         {text}
       </span>
-      <span style={{ animation: 'blink 0.9s step-end infinite', opacity: 0.8, fontWeight: 300, color: '#fff', fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>|</span>
+      <span style={{ 
+        animation: 'blink 0.9s step-end infinite', 
+        opacity: 0.8, 
+        fontWeight: 300, 
+        color: 'var(--gold)', 
+        fontSize: '1.2rem', 
+        marginLeft: '4px' 
+      }}>|</span>
     </div>
   );
 };
@@ -137,6 +151,32 @@ function Counter({ end, suffix = '' }: { end: number; suffix?: string }) {
 function Stars() {
   return <div style={{ display: 'flex', gap: 2 }}>{[1, 2, 3, 4, 5].map(i => <IcStar key={i} />)}</div>;
 }
+
+const AppDownloadPopup = () => {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShow(true), 5000);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (!show) return null;
+  return (
+    <div className="app-popup-overlay" onClick={() => setShow(false)}>
+      <div className="app-popup-box" onClick={e => e.stopPropagation()}>
+        <button className="close" onClick={() => setShow(false)}>×</button>
+        <div className="app-popup-icon"><IcLeaf /></div>
+        <h3 style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--forest)', marginBottom: 12 }}>Join the Green Club</h3>
+        <p style={{ color: 'var(--text-2)', fontSize: '1rem', lineHeight: 1.6, marginBottom: 32, fontWeight: 500 }}>
+          Download the GharKaMali app to track your plant growth, get digital health reports, and manage bookings instantly.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <button className="btn btn-primary btn-lg" style={{ width: '100%' }}>Download App Now</button>
+          <div style={{ fontSize: '0.75rem', color: 'var(--sage)', fontWeight: 600 }}>Available on Play Store & App Store</div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /* ── DATA ── */
 
@@ -351,7 +391,7 @@ const Marquee = () => {
           {[...items, ...items, ...items].map((item, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', whiteSpace: 'nowrap' }}>
               <span style={{ color: 'var(--gold)' }}><item.Icon /></span>
-              <span style={{ fontSize: '0.9rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.text}</span>
+              <span style={{ fontSize: '0.92rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.text}</span>
             </div>
           ))}
         </div>
@@ -360,18 +400,46 @@ const Marquee = () => {
   );
 };
 
+const CityMarquee = ({ zones }: { zones: any[] }) => {
+  if (!zones?.length) return null;
+  return (
+    <div style={{ background: 'var(--bg-elevated)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '14px 0', overflow: 'hidden' }}>
+      <div className="marquee-container" style={{ gap: '60px' }}>
+        <div className="marquee-scroller" style={{ animationDuration: '40s', gap: '80px' }}>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '80px' }}>
+              {zones.map((z, zi) => (
+                <div key={zi} style={{ display: 'flex', alignItems: 'center', gap: '12px', whiteSpace: 'nowrap' }}>
+                  <span style={{ color: 'var(--earth)' }}><IcMap /></span>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>NOW SERVING: {z.name}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 /* BASlider removed — images now change via GSAP scroll */
 
 export default function HomePage() {
   useGSAPAnimations();
   const { data: plansRaw } = useQuery({ queryKey: ['plans'], queryFn: getPlans });
   const { data: blogsRaw } = useQuery({ queryKey: ['blogs-home'], queryFn: () => getBlogs({ limit: 4 }) });
-  const { data: shopRaw } = useQuery({ queryKey: ['shop-preview'], queryFn: () => getShopProducts({ limit: 4 }) });
+  const { data: shopRaw } = useQuery({ queryKey: ['shop-preview'], queryFn: () => getShopProducts({ limit: 12 }) });
   const { data: taglinesRaw } = useQuery({ queryKey: ['taglines'], queryFn: getTaglines });
+  const { data: zonesRaw } = useQuery({ queryKey: ['zones'], queryFn: () => fetch('https://gkm.gobt.in/api/zones').then(r => r.json()).then(j => j.data ?? j) });
+  const { data: reviewsRaw } = useQuery({ queryKey: ['public-reviews'], queryFn: () => getPublicReviews({ limit: 12 }) });
 
   const plans: any[] = (plansRaw as any[]) ?? [];
   const blogs: any[] = (blogsRaw as any)?.items ?? (Array.isArray(blogsRaw) ? blogsRaw : []);
   const shopProducts: any[] = (shopRaw as any) ?? [];
+  const zones: any[] = (zonesRaw as any[]) ?? [];
+  const publicReviews: any[] = reviewsRaw?.reviews || (Array.isArray(reviewsRaw) ? reviewsRaw : []);
+  const activeReviews = publicReviews.length > 0 ? publicReviews : REVIEWS;
 
   const taglineItems = (taglinesRaw as any[]) ?? [];
   const dynamicWords = taglineItems.length > 0
@@ -445,62 +513,104 @@ export default function HomePage() {
       <Navbar transparent />
 
       {/* ═══ HERO ═══ */}
-      <section className="hero s-reveal" id="hero" style={{ position: 'relative', overflow: 'hidden', background: '#000', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <section className="section hero s-reveal" id="hero" style={{ position: 'relative', overflow: 'hidden', background: '#000' }}>
         <HeroSlideshow />
 
         <div className="container" style={{ position: 'relative', zIndex: 5 }}>
-          <div className="hero-content-box" style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center', paddingTop: '160px', paddingBottom: '100px' }}>
+          <div className="hero-split-layout" style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 0.75fr)', 
+            gap: 'clamp(30px, 5vw, 80px)', 
+            alignItems: 'center', 
+            paddingTop: 'clamp(80px, 10vh, 140px)', 
+            paddingBottom: '60px',
+            textAlign: 'left'
+          }}>
+            
+            <div className="hero-left-col">
+              <div className="hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderRadius: 99, padding: '8px 20px', marginBottom: 32, fontSize: '0.78rem', fontWeight: 700, color: '#fff' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80', animation: 'pulse 2s ease infinite', display: 'inline-block' }} />
+                <span>Professional gardening made simple</span>
+              </div>
 
-            <div className="hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--sh-sm)', borderRadius: 99, padding: '8px 20px', marginBottom: 32, fontSize: '0.78rem', fontWeight: 700 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#16a34a', animation: 'pulse 2s ease infinite', display: 'inline-block' }} />
-              <span style={{ color: 'var(--forest)' }}>Professional gardening made simple</span>
+              {/* Hero title structure */}
+              <div style={{ marginBottom: 20, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {/* Row 1: Typewriter */}
+                <TypeWriter words={dynamicWords} />
+                
+                {/* Row 2: Brand + Tag */}
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
+                  <span className="typewriter-gradient" style={{ 
+                    fontSize: 'clamp(2.8rem, 6vw, 4.2rem)',
+                    fontWeight: 900,
+                    letterSpacing: '-0.03em',
+                    color: '#fff',
+                    textShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                    lineHeight: 1.1
+                  }}>
+                    GharKaMali
+                  </span>
+                  <span style={{ 
+                    fontSize: '1.2rem', 
+                    color: 'rgba(255,255,255,0.8)', 
+                    fontWeight: 700,
+                    letterSpacing: '0.02em',
+                    fontStyle: 'italic'
+                  }}>
+                    hai na!
+                  </span>
+                </div>
+              </div>
+
+              <p className="hero-subtitle" style={{ maxWidth: 580, marginBottom: 44, fontWeight: 500, color: 'rgba(255,255,255,0.92)', textShadow: '0 2px 8px rgba(0,0,0,0.4)', fontSize: 'clamp(1rem, 1.4vw, 1.18rem)', lineHeight: 1.8 }}>
+                Certified realistic plant care experts at your home starting just{' '}
+                <strong style={{ color: 'var(--gold)', fontWeight: 800 }}>₹349</strong>.
+                Ensuring your green spaces thrive in every season.
+              </p>
+
+              <div className="hero-cta-row" style={{ display: 'flex', gap: 14, justifyContent: 'flex-start', flexWrap: 'wrap', position: 'relative' }}>
+                <Link href="/book?type=on-demand" className="btn btn-primary btn-lg btn-3d-plant" style={{ position: 'relative', overflow: 'visible', padding: '12px 28px' }}>
+                  Book Professional Visit <IcArrow />
+                </Link>
+                <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-lg btn-3d-plant" style={{ borderColor: 'rgba(255,255,255,0.4)', color: '#fff', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', position: 'relative', overflow: 'visible', padding: '12px 28px' }}>
+                  <IcWhatsApp /> Chat with Experts
+                </a>
+              </div>
             </div>
 
-            {/* Hero title */}
-            <h1 className="hero-title" style={{ marginBottom: 16, textAlign: 'center', fontSize: 'clamp(3.5rem, 10vw, 7.5rem)', fontWeight: 900, color: '#ffffff', textShadow: '0 4px 24px rgba(0,0,0,0.8)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-              GharKaMali
-            </h1>
-            <div style={{ marginBottom: 32, textAlign: 'center', width: '100%' }}>
-              <TypeWriter
-                words={dynamicWords}
-              />
-            </div>
-
-            <p className="hero-subtitle" style={{ maxWidth: 640, margin: '0 auto 44px', fontWeight: 500, color: 'rgba(255,255,255,0.9)', textShadow: '0 2px 10px rgba(0,0,0,0.8)', fontSize: 'clamp(1rem, 1.6vw, 1.18rem)', lineHeight: 1.8 }}>
-              Certified realistic plant care experts at your home starting just{' '}
-              <strong style={{ color: 'var(--gold)', fontWeight: 800, textShadow: 'none' }}>₹349</strong>.
-              Ensuring your green spaces thrive in every season.
-            </p>
-
-            <div className="hero-cta-row" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 36, position: 'relative' }}>
-              <Link href="/book?type=on-demand" className="btn btn-primary btn-xl btn-3d-plant" style={{ position: 'relative', overflow: 'visible' }}>
-                Book Professional Visit <IcArrow />
-              </Link>
-              <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-xl btn-3d-plant" style={{ borderColor: 'rgba(255,255,255,0.8)', color: '#fff', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', position: 'relative', overflow: 'visible', textShadow: '0 1px 4px rgba(0,0,0,0.5)', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
-                <IcWhatsApp /> Chat with Experts
-              </a>
-            </div>
-
-            <div className="hero-stats" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginTop: 40, opacity: 1, position: 'relative', zIndex: 10 }}>
+            <div className="hero-right-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               {[
                 { num: 1200, suffix: '+', label: 'Visits Done' },
-                { num: 25, suffix: '+', label: 'Certified Plant Experts' },
+                { num: 25, suffix: '+', label: 'Certified Experts' },
                 { num: 4.9, suffix: '★', label: 'Avg Rating' },
                 { num: 55, suffix: '+', label: 'Societies' },
               ].map(s => (
-                <div key={s.label} className="hero-stat" style={{ background: '#fff', border: '1.5px solid var(--border-gold)', borderRadius: 20, padding: '20px 28px', minWidth: 120, boxShadow: 'var(--sh-sm)', textAlign: 'center', opacity: 1 }}>
-                  <div style={{ fontSize: 'clamp(1.6rem,3vw,2.2rem)', fontWeight: 900, color: 'var(--forest)', lineHeight: 1 }}>
+                <div key={s.label} className="hero-stat-card" style={{ 
+                  background: 'rgba(255,255,255,0.05)', 
+                  backdropFilter: 'blur(16px)',
+                  border: '1.5px solid rgba(255,255,255,0.15)', 
+                  borderRadius: 24, 
+                  padding: '32px 24px', 
+                  textAlign: 'center',
+                  boxShadow: '0 12px 40px rgba(0,0,0,0.2)',
+                  transition: 'transform 0.3s ease'
+                }}>
+                  <div style={{ fontSize: 'clamp(1.8rem, 2.5vw, 2.6rem)', fontWeight: 900, color: '#fff', lineHeight: 1.1, marginBottom: 6 }}>
                     {s.label === 'Avg Rating' ? `4.9★` : <Counter end={s.num} suffix={s.suffix} />}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--sage)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 }}>{s.label}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.label}</div>
                 </div>
               ))}
             </div>
+
           </div>
         </div>
-      </section>
 
-      <Marquee />
+        <div style={{ padding: '0', width: '100%', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 10 }}>
+          <Marquee />
+          <CityMarquee zones={zones} />
+        </div>
+      </section>
 
 
 
@@ -510,7 +620,7 @@ export default function HomePage() {
           <div className="prof-gardening-grid">
             <div className="prof-gardening-content s-reveal s-reveal-d1">
               <span className="overline" style={{ color: 'var(--earth)' }}>Service Excellence</span>
-              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, textAlign: 'left', width: 'auto' }}>Professional gardening <br /> made <span style={{ color: 'var(--earth)' }}>simple.</span></h2>
+              <h2 className="display-2 heading-two-tone" style={{ marginTop: 12, textAlign: 'left', width: 'auto' }}>Professional gardening <br /> made <span>simple.</span></h2>
               <p style={{ color: 'var(--text-2)', fontSize: '1.1rem', marginTop: 24, lineHeight: 1.8, maxWidth: 500, fontWeight: 500 }}>
                 We bring the expertise of certified horticulturists to your doorstep. From regular maintenance to complete transformations, we ensure your green space stays vibrant and healthy through science-backed protocols.
               </p>
@@ -581,49 +691,50 @@ export default function HomePage() {
             </p>
           </div>
 
-        {/* Utilities Grid - Precise 3-2 Layout */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(6, 1fr)',
-          gap: '30px',
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '20px'
-        }}>
-          {[
-            { title: 'Watering Strategy', desc: 'Precision moisture monitoring for every species.', Icon: IcDroplet },
-            { title: 'Organic Nutrition', desc: 'Premium fertilizers for lush green growth.', Icon: IcLeaf },
-            { title: 'Pest Screening', desc: 'Proactive detection of infestations and diseases.', Icon: IcShield },
-            { title: 'Growth Pruning', desc: 'Shaping plants for better health and aesthetics.', Icon: IcScissors },
-            { title: 'Soil Restoration', desc: 'Revitalizing soil health with organic amendments.', Icon: IcMap },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="utility-card"
-              style={{
-                background: '#fff',
-                padding: '45px 30px',
-                border: '1.5px solid var(--border)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                textAlign: 'center',
-                borderRadius: 28,
-                boxShadow: 'var(--sh-sm)',
-                transition: 'all 0.3s ease-out',
-                cursor: 'pointer',
-              }}
-            >
-              <div style={{ color: 'var(--forest)', width: 64, height: 64, borderRadius: '20px', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, border: '1px solid var(--border-gold)' }}>
-                <item.Icon />
+          {/* Utilities Grid - Precise 3-2 Layout */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(6, 1fr)',
+            gap: '30px',
+            maxWidth: '1200px',
+            margin: '0 auto',
+            padding: '20px'
+          }}>
+            {[
+              { title: 'Watering Strategy', desc: 'Precision moisture monitoring for every species.', Icon: IcDroplet },
+              { title: 'Organic Nutrition', desc: 'Premium fertilizers for lush green growth.', Icon: IcLeaf },
+              { title: 'Pest Screening', desc: 'Proactive detection of infestations and diseases.', Icon: IcShield },
+              { title: 'Growth Pruning', desc: 'Shaping plants for better health and aesthetics.', Icon: IcScissors },
+              { title: 'Soil Restoration', desc: 'Revitalizing soil health with organic amendments.', Icon: IcMap },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="utility-card"
+                style={{
+                  gridColumn: i < 3 ? 'span 2' : (i === 3 ? '2 / span 2' : '4 / span 2'),
+                  background: '#fff',
+                  padding: 'clamp(30px, 4vh, 45px) 30px',
+                  border: '1.5px solid var(--border)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  borderRadius: 28,
+                  boxShadow: 'var(--sh-sm)',
+                  transition: 'all 0.3s ease-out',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{ color: 'var(--forest)', width: 64, height: 64, borderRadius: '20px', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, border: '1px solid var(--border-gold)' }}>
+                  <item.Icon />
+                </div>
+                <h3 style={{ fontSize: '1.3rem', color: 'var(--forest)', fontWeight: 800, marginBottom: 12 }}>{item.title}</h3>
+                <p style={{ color: 'var(--sage)', fontSize: '0.9rem', lineHeight: 1.6, fontWeight: 500 }}>{item.desc}</p>
               </div>
-              <h3 style={{ fontSize: '1.3rem', color: 'var(--forest)', fontWeight: 800, marginBottom: 12 }}>{item.title}</h3>
-              <p style={{ color: 'var(--sage)', fontSize: '0.9rem', lineHeight: 1.6, fontWeight: 500 }}>{item.desc}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        <style jsx>{`
+          <style jsx>{`
           .utility-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 16px 32px rgba(3, 65, 26, 0.1) !important;
@@ -733,7 +844,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══ BRAND STORY ═══ */}
-      <section className="section brand-story-section s-reveal" id="brand-story" style={{ position: 'relative', zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)', borderBottom: '1px solid rgba(3,65,26,0.06)', padding: 'clamp(64px,8vw,120px) 0 clamp(80px,12vw,160px)' }}>
+      <section className="section brand-story-section s-reveal" id="brand-story" style={{ background: '#fff' }}>
         {/* Decorative blobs */}
         <div style={{ position: 'absolute', top: -40, left: '10%', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -40, right: '8%', width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -789,7 +900,19 @@ export default function HomePage() {
                   <p style={{ marginBottom: 20 }}>Every journey begins with a small problem. We noticed that many people love plants but taking care of them is not always easy. Busy schedules, lack of plant care knowledge, and difficulty finding a reliable plant expert often lead to plants slowly losing their health.</p>
                   <p style={{ marginBottom: 20 }}>This everyday problem sparked the idea of GharKaMali – a reliable and trustworthy platform for plant care. The journey was not easy. There were many challenges, rejections, and countless sleepless nights while building the right team, creating systems, and solving day-to-day problems.</p>
                   <p style={{ marginBottom: 20 }}>Step by step, the belief in the vision kept growing stronger. What started as a simple idea gradually became a dream to build something that could truly help people and contribute positively to society.</p>
-                  <p className="journey-milestone" style={{ color: '#0d1f14', fontWeight: 800, fontSize: '1rem', borderLeft: '3px solid var(--forest)', paddingLeft: '16px', marginTop: '16px', backgroundColor: 'rgba(3, 65, 26, 0.03)', padding: '12px 16px', borderRadius: '0 8px 8px 0' }}>
+                  <p className="journey-milestone" style={{
+                    color: 'var(--text)',
+                    fontWeight: 500,
+                    fontSize: '1rem',
+                    borderLeft: '4px solid var(--gold)',
+                    paddingLeft: '20px',
+                    marginTop: '24px',
+                    backgroundColor: 'var(--bg-elevated)',
+                    padding: '24px',
+                    borderRadius: '16px',
+                    boxShadow: 'var(--sh-sm)',
+                    lineHeight: 1.7
+                  }}>
                     Today, we are proud to share an important milestone – the GharKaMali website is now live, serving homes in Noida and Greater Noida West. And this is just the beginning of our journey to help homes keep their plants healthy and green.
                   </p>
                 </div>
@@ -801,7 +924,7 @@ export default function HomePage() {
 
       {/* ═══ SHOP PREVIEW ═══ */}
       {shopProducts?.length > 0 && (
-        <section className="section s-reveal" style={{ position: 'relative', zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)' }}>
+        <section className="section marketplace-section s-reveal" style={{ background: 'var(--bg)' }}>
           <div className="container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 52, flexWrap: 'wrap', gap: 20 }}>
               <div style={{ maxWidth: 540 }}>
@@ -814,28 +937,71 @@ export default function HomePage() {
                 Explore Marketplace
               </Link>
             </div>
-            <div className="testimonials-marquee-outer" style={{ paddingBottom: 8 }}>
-              <div className="testimonials-marquee-track">
-                {shopProducts?.length > 0 ? [...shopProducts, ...shopProducts].map((p: any, idx: number) => (
-                  <Link key={`${p._id || p.id || 'market'}-${idx}`} href={`/shop/${p.slug || p._id || p.id}`} className="card shop-card-animate testimonial-marquee-card" style={{ padding: 10, borderRadius: 22, display: 'block', textDecoration: 'none', width: '280px', flexShrink: 0 }}>
-                    <div style={{ position: 'relative', width: '100%', height: 240, borderRadius: 14, overflow: 'hidden', marginBottom: 14 }}>
-                      <img src={p.thumbnail || p.images?.[0] || 'https://images.unsplash.com/photo-1597055110188-591ff1130d2e?w=600&h=600&fit=crop'} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <div style={{ position: 'absolute', top: 10, right: 10, background: 'var(--forest)', color: '#fff', fontSize: '0.72rem', padding: '5px 10px', borderRadius: 99, fontWeight: 700 }}>₹{p.price}</div>
-                    </div>
-                    <div style={{ padding: '0 6px 6px' }}>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--earth)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 3 }}>{p.category?.name || p.category || 'Premium Care'}</div>
-                      <h3 style={{ fontSize: '1.1rem', color: 'var(--forest)', fontWeight: 800, marginBottom: 6 }}>{p.name}</h3>
-                      <div style={{ display: 'flex', gap: 2 }}>{[1, 2, 3, 4, 5].map(i => <IcStar key={i} />)}</div>
-                    </div>
-                  </Link>
-                )) : null}
+            <div className="marketplace-container" style={{ position: 'relative', margin: '0 -20px', padding: '0 20px' }}>
+              <div className="testimonials-marquee-outer" id="shop-track" style={{
+                padding: '20px 0',
+                overflowX: 'auto',
+                scrollBehavior: 'smooth',
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none'
+              }}>
+                <div className="shop-marquee-track" style={{
+                  display: 'flex',
+                  gap: '24px',
+                  width: 'max-content',
+                  animation: 'marquee-shop 40s linear infinite'
+                }}
+                  onMouseEnter={(e) => (e.currentTarget.style.animationPlayState = 'paused')}
+                  onMouseLeave={(e) => (e.currentTarget.style.animationPlayState = 'running')}
+                >
+                  {[...shopProducts, ...shopProducts].map((p: any, idx: number) => (
+                    <Link key={`${p._id || p.id}-${idx}`} href={`/shop/${p.slug || p._id || p.id}`} className="card shop-card-animate" style={{
+                      padding: 12,
+                      borderRadius: 24,
+                      display: 'block',
+                      textDecoration: 'none',
+                      width: '300px',
+                      flexShrink: 0,
+                      border: '1px solid var(--border)',
+                      background: '#fff',
+                      boxShadow: 'var(--sh-sm)',
+                      transition: 'transform 0.3s ease'
+                    }}>
+                      <div style={{ position: 'relative', width: '100%', height: 260, borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
+                        <img src={p.thumbnail || p.images?.[0] || 'https://images.unsplash.com/photo-1597055110188-591ff1130d2e?w=600&h=600&fit=crop'} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div style={{ position: 'absolute', top: 12, right: 12, background: 'var(--forest)', color: '#fff', fontSize: '0.75rem', padding: '6px 12px', borderRadius: 99, fontWeight: 800, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>₹{p.price}</div>
+                      </div>
+                      <div style={{ padding: '0 4px' }}>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--earth)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{p.category?.name || p.category || 'Premium Care'}</div>
+                        <h3 style={{ fontSize: '1.2rem', color: 'var(--forest)', fontWeight: 900, marginBottom: 10, lineHeight: 1.2 }}>{p.name}</h3>
+                        <div style={{ display: 'flex', gap: 2 }}><Stars /></div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Navigation Buttons - Aligned left/right over the cards */}
+              <div className="marketplace-nav-buttons" style={{ position: 'absolute', top: '50%', left: 0, right: 0, transform: 'translateY(-50%)', display: 'flex', justifyContent: 'space-between', pointerEvents: 'none', zIndex: 10, padding: '0 10px' }}>
+                <button
+                  onClick={() => document.getElementById('shop-track')?.scrollBy({ left: -324, behavior: 'smooth' })}
+                  className="btn btn-white btn-sm" style={{ width: 44, height: 44, borderRadius: '50%', padding: 0, boxShadow: 'var(--sh-md)', border: '1px solid var(--border)', pointerEvents: 'auto' }}
+                >
+                  <span style={{ transform: 'rotate(180deg)', display: 'inline-block' }}><IcArrow /></span>
+                </button>
+                <button
+                  onClick={() => document.getElementById('shop-track')?.scrollBy({ left: 324, behavior: 'smooth' })}
+                  className="btn btn-white btn-sm" style={{ width: 44, height: 44, borderRadius: '50%', padding: 0, boxShadow: 'var(--sh-md)', border: '1px solid var(--border)', pointerEvents: 'auto' }}
+                >
+                  <IcArrow />
+                </button>
               </div>
             </div>
           </div>
         </section>
       )}
       {/* ═══ FINAL CTA ═══ */}
-      <section className="section final-cta s-reveal" id="cta" style={{ borderTop: '1px solid rgba(3,65,26,0.07)', padding: 'clamp(56px,8vw,120px) 0' }}>
+      <section className="section final-cta s-reveal" id="cta">
         {/* Light gardening video background */}
         <video autoPlay loop muted playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.18 }}>
           <source src="/bg.mp4" type="video/mp4" />
@@ -847,9 +1013,9 @@ export default function HomePage() {
             <div style={{ position: 'absolute', right: -60, top: -60, width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle, rgba(237,207,135,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', left: -40, bottom: -40, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,5.5vw,4.2rem)', fontWeight: 900, color: 'var(--forest)', marginBottom: 24, lineHeight: 1.1, position: 'relative', fontStyle: 'normal' }}>
+            <h2 className="heading-two-tone" style={{ fontSize: 'clamp(2rem,5.5vw,4.2rem)', fontWeight: 900, marginBottom: 24, lineHeight: 1.1, position: 'relative', fontStyle: 'normal' }}>
               Ready for a Professional<br />
-              <span style={{ fontStyle: 'normal', color: 'var(--earth)' }}>Garden Transformation?</span>
+              <span>Garden Transformation?</span>
             </h2>
             <p style={{ color: 'var(--text-2)', fontSize: 'clamp(0.95rem,1.4vw,1.2rem)', maxWidth: 640, margin: '0 auto 44px', lineHeight: 1.8, fontWeight: 500 }}>
               Join Noida's most elite plant care society. Secure your spot for a premium visit and let our realistic experts handle the rest.
@@ -866,7 +1032,7 @@ export default function HomePage() {
         </div>
       </section>
       {/* ═══ TESTIMONIALS ═══ */}
-      <section className="section trust-section s-reveal" id="testimonials" style={{ zIndex: 11, paddingBottom: 100 }}>
+      <section className="section trust-section s-reveal" id="testimonials">
         <div className="container">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 52 }}>
             <div className="section-divider-line" />
@@ -878,18 +1044,20 @@ export default function HomePage() {
         <div className="testimonials-marquee-outer" style={{ paddingBottom: 8 }}>
           <div className="testimonials-marquee-track">
             {/* Original set */}
-            {[...REVIEWS, ...REVIEWS].map((r, i) => (
+            {[...activeReviews, ...activeReviews].map((r, i) => (
               <div key={i} className="testimonial-marquee-card">
                 <Stars />
                 <p style={{ color: 'var(--forest)', fontSize: '1rem', lineHeight: 1.7, margin: '16px 0', fontStyle: 'normal', fontWeight: 600 }}>
-                  &ldquo;{r.text}&rdquo;
+                  &ldquo;{r.comment || r.text}&rdquo;
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: '25%', background: 'var(--bg-elevated)', border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', fontWeight: 900, fontSize: '1.1rem', flexShrink: 0 }}>{r.avatar}</div>
+                  <div style={{ width: 44, height: 44, borderRadius: '25%', background: 'var(--bg-elevated)', border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', fontWeight: 900, fontSize: '1.1rem', flexShrink: 0 }}>
+                    {r.customer?.name?.[0] || r.avatar || 'U'}
+                  </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--forest)' }}>{r.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--earth)', fontWeight: 700 }}>{r.society}</div>
-                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 2 }}>{r.city}</div>
+                    <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--forest)' }}>{r.customer?.name || r.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--earth)', fontWeight: 700 }}>{r.customer?.city || r.society}</div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 2 }}>{r.city || 'Noida'}</div>
                   </div>
                 </div>
               </div>
@@ -901,7 +1069,7 @@ export default function HomePage() {
 
       {/* ═══ BLOG JOURNAL ═══ */}
       {blogs?.length > 0 && (
-        <section className="section s-reveal" style={{ position: 'relative', zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)' }}>
+        <section className="section s-reveal" style={{ position: 'relative', zIndex: 11 }}>
           <div className="container">
             <div style={{ textAlign: 'center', marginBottom: 52 }}>
               <div className="section-divider-line" />
@@ -931,7 +1099,7 @@ export default function HomePage() {
 
       {/* ═══ PLANS PREVIEW ═══ */}
       {plans.length > 0 && (
-        <section className="section s-reveal" style={{ zIndex: 11, borderTop: '1px solid rgba(3,65,26,0.06)', paddingBottom: 120 }}>
+        <section className="section s-reveal" style={{ zIndex: 11 }}>
           <div className="container">
             <div style={{ textAlign: 'center', marginBottom: 64 }}>
               <div className="section-divider-line" />
@@ -940,34 +1108,37 @@ export default function HomePage() {
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center', marginBottom: 64 }}>
-              {plans.slice(0, 2).map((plan: any, i: number) => {
+              {(plans.filter((p: any) => p.is_featured === 1).length > 0
+                ? plans.filter((p: any) => p.is_featured === 1)
+                : plans.slice(0, 3)
+              ).map((plan: any, i: number) => {
                 const isDark = i === 1;
                 return (
                   <div key={plan._id || i} className="plan-home-card" style={{
-                    flex: '1 1 min(420px, calc(100vw - 40px))',
-                    maxWidth: 500,
+                    flex: '1 1 min(360px, calc(100vw - 40px))',
+                    maxWidth: 420,
                     background: isDark ? 'var(--forest)' : 'rgba(255,255,255,0.85)',
                     backdropFilter: isDark ? 'none' : 'blur(12px)',
                     WebkitBackdropFilter: isDark ? 'none' : 'blur(12px)',
                     border: `1.5px solid ${isDark ? 'rgba(201,168,76,0.2)' : 'rgba(201,168,76,0.35)'}`,
-                    borderRadius: 'clamp(24px,4vw,40px)',
-                    padding: 'clamp(28px,5vw,52px) clamp(20px,4vw,48px)',
+                    borderRadius: 'clamp(24px,4vw,32px)',
+                    padding: '32px 28px',
                     position: 'relative',
                     boxShadow: isDark ? 'var(--sh-xl)' : 'var(--sh-md)',
                     transition: 'all 0.4s var(--ease)',
                   }}>
-                    {isDark && <div style={{ position: 'absolute', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--gold)', color: 'var(--forest)', padding: '6px 20px', borderRadius: 99, fontSize: '0.72rem', fontWeight: 900, whiteSpace: 'nowrap', boxShadow: '0 4px 15px rgba(201,168,76,0.4)', zIndex: 5 }}>MOST RECOMMENDED</div>}
+                    {plan.is_best_value === 1 && <div style={{ position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)', background: 'var(--gold)', color: 'var(--forest)', padding: '4px 16px', borderRadius: 99, fontSize: '0.65rem', fontWeight: 900, whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(201,168,76,0.3)', zIndex: 5 }}>BEST VALUE</div>}
 
-                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: isDark ? 'rgba(255,255,255,0.6)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12 }}>{plan.plan_type}</div>
-                    <h3 style={{ fontSize: '2.2rem', fontWeight: 900, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 12, letterSpacing: '-0.02em' }}>{plan.name}</h3>
-                    <p style={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'var(--text-2)', fontSize: '1rem', marginBottom: 40, lineHeight: 1.7 }}>{plan.description || 'Elevate your living space with our premium botanical maintenance plans.'}</p>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: isDark ? 'rgba(255,255,255,0.6)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{plan.plan_type}</div>
+                    <h3 style={{ fontSize: '1.8rem', fontWeight: 900, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 10, letterSpacing: '-0.02em' }}>{plan.name}</h3>
+                    <p style={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'var(--text-2)', fontSize: '0.92rem', marginBottom: 32, lineHeight: 1.6 }}>{plan.tagline || plan.description || 'Elevate your living space with our premium botanical maintenance plans.'}</p>
 
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 44 }}>
-                      <span style={{ fontSize: '3.4rem', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', letterSpacing: '-0.02em' }}>₹{plan.price}</span>
-                      <span style={{ fontSize: '1.2rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 600 }}>/month</span>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 36 }}>
+                      <span style={{ fontSize: '2.8rem', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', letterSpacing: '-0.02er' }}>₹{plan.price}</span>
+                      <span style={{ fontSize: '1rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 600 }}>/month</span>
                     </div>
 
-                    <Link href={`/book?plan=${plan.id}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'} btn-lg`} style={{ width: '100%', justifyContent: 'center', padding: '18px', fontSize: '0.95rem' }}>
+                    <Link href={`/book?plan=${plan.id}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'} btn-lg`} style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '0.88rem' }}>
                       {plan.plan_type === 'subscription' ? 'Subscribe Now →' : 'Book a Visit →'}
                     </Link>
                   </div>
@@ -992,6 +1163,7 @@ export default function HomePage() {
         <IcWhatsApp />
         <div className="whatsapp-tooltip">Need Help? Chat with Us</div>
       </a>
+      <AppDownloadPopup />
     </SmoothScrollProvider>
   );
 }

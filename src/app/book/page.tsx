@@ -69,7 +69,7 @@ function BookFlow() {
     auto_renew: true, notes: '', preferred_gardener_id: 0
   });
 
-  const [addrFields, setAddrFields] = useState({ roomNo: '', building: '', area: '', city: 'Noida', state: 'Uttar Pradesh', pincode: '' });
+  const [addrFields, setAddrFields] = useState({ roomNo: '', building: '', area: '', city: '', state: 'Uttar Pradesh', pincode: '' });
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
 
