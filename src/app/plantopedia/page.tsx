@@ -141,6 +141,7 @@ export default function PlantopediaPage() {
     setLoading(true);
     try {
       const form = new FormData(); form.append('image', file);
+      if (useAuth.getState().user?.geofence_id) form.append('geofence_id', String(useAuth.getState().user?.geofence_id));
       const res = await identifyPlant(form);
       setResult(res);
     } catch { toast.error('Identification failed. Try a clearer photo.'); }

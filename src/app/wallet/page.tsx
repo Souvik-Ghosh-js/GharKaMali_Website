@@ -58,7 +58,7 @@ export default function WalletPage() {
   const finalAmount = custom ? parseInt(custom) || 0 : amount;
   
   const topupMut = useMutation({
-    mutationFn: () => walletTopup(custom ? parseInt(custom) : amount),
+    mutationFn: () => walletTopup(custom ? parseInt(custom) : amount, (profile as any)?.geofence_id),
     onSuccess: (res: any) => {
       if (res?.mock_success) {
         toast.success('Payment Successful! Wallet Updated.');

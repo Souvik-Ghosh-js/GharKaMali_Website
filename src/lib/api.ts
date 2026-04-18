@@ -102,8 +102,8 @@ export const cancelBooking = (booking_id: number, reason?: string) =>
   req('/bookings/cancel', { method: 'POST', body: JSON.stringify({ booking_id, ...(reason ? { reason } : {}) }) });
 
 // Rate = POST /bookings/rate with body
-export const rateBooking = (booking_id: number, rating: number, review?: string) =>
-  req('/bookings/rate', { method: 'POST', body: JSON.stringify({ booking_id, rating, ...(review ? { review } : {}) }) });
+export const rateBooking = (booking_id: number, rating: number, review?: string, geofence_id?: number) =>
+  req('/bookings/rate', { method: 'POST', body: JSON.stringify({ booking_id, rating, geofence_id, ...(review ? { review } : {}) }) });
 
 export const trackBooking = (booking_id: number) =>
   req(`/bookings/track/${booking_id}`);
@@ -154,8 +154,8 @@ export const initiatePayment = (b: any) =>
 export const getPayments = (page?: number, limit?: number) =>
   req(`/payments/my${qs({ page, limit })}`);
 
-export const walletTopup = (amount: number) =>
-  req('/payments/wallet-topup', { method: 'POST', body: JSON.stringify({ amount }) });
+export const walletTopup = (amount: number, geofence_id?: number) =>
+  req('/payments/wallet-topup', { method: 'POST', body: JSON.stringify({ amount, geofence_id }) });
 
 // ─── PLANTOPEDIA ──────────────────────────────────────────────────────────────
 export const identifyPlant = (form: FormData) =>
@@ -183,6 +183,7 @@ export const createComplaint = (b: {
   type: 'service_quality' | 'late_arrival' | 'no_show' | 'rude_behavior' | 'billing' | 'damage' | 'other';
   description: string;
   booking_id?: number;
+  geofence_id?: number;
   priority?: 'low' | 'medium' | 'high';
 }) => req('/complaints', { method: 'POST', body: JSON.stringify(b) });
 
@@ -331,24 +332,24 @@ export const getTaglines = () => req('/taglines', { auth: false });
 
 // ─── REVIEWS (public) ─────────────────────────────────────────────────────────
 export const getPublicReviews = (p?: any) => req(`/reviews${qs(p)}`, { auth: false });
-export const submitReview = (bookingId: number, rating: number, comment?: string) =>
-  req(`/bookings/${bookingId}/review`, { method: 'POST', body: JSON.stringify({ rating, comment }) });
+export const submitReview = (bookingId: number, rating: number, comment?: string, geofence_id?: number) =>
+  req(`/bookings/${bookingId}/review`, { method: 'POST', body: JSON.stringify({ rating, comment, geofence_id }) });
 
 // ─── SOCIAL PROOF ─────────────────────────────────────────────────────────────
 export const getSocialProof = () => req('/social-proof', { auth: false });
 
 // ─── CONTACT FORM ─────────────────────────────────────────────────────────────
-export const submitContact = (b: { name: string; email?: string; phone?: string; message: string }) =>
+export const submitContact = (b: { name: string; email?: string; phone?: string; message: string; geofence_id?: number }) =>
   req('/contact', { method: 'POST', auth: false, body: JSON.stringify(b) });
 
 // ─── SYSTEM SETTINGS ──────────────────────────────────────────────────────────
 export const getSetting = (key: string) => req(`/settings/${key}`, { auth: false });
 
 // ─── TIP GARDENER ─────────────────────────────────────────────────────────────
-export const tipGardener = (bookingId: number, amount: number) =>
-  req(`/bookings/${bookingId}/tip`, { method: 'POST', body: JSON.stringify({ amount }) });
+export const tipGardener = (bookingId: number, amount: number, geofence_id?: number) =>
+  req(`/bookings/${bookingId}/tip`, { method: 'POST', body: JSON.stringify({ amount, geofence_id }) });
 
 // ─── GARDENER WITHDRAWAL ──────────────────────────────────────────────────────
-export const requestWithdrawal = (amount: number) =>
-  req('/gardener/withdraw', { method: 'POST', body: JSON.stringify({ amount }) });
+export const requestWithdrawal = (amount: number, geofence_id?: number) =>
+  req('/gardener/withdraw', { method: 'POST', body: JSON.stringify({ amount, geofence_id }) });
 export const getMyWithdrawals = () => req('/gardener/withdrawals');

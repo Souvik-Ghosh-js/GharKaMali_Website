@@ -6,6 +6,7 @@ import { submitContact } from '@/lib/api';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 
 export default function ContactPage() {
+  const { user } = useAuth();
   const [form, setForm] = useState({ name: '', phone: '', email: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -20,7 +21,7 @@ export default function ContactPage() {
     }
     setSubmitting(true);
     try {
-      await submitContact(form);
+      await submitContact({ ...form, geofence_id: user?.geofence_id });
       setSubmitted(true);
     } catch (err: any) {
       setError(err?.message || 'Failed to submit. Please try again.');

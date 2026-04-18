@@ -92,7 +92,7 @@ export default function BookingDetailPage() {
   const statusIdx = STATUS_ORDER.indexOf(status);
 
   const rateMut = useMutation({
-    mutationFn: () => rateBooking(parseInt(id), rating, review),
+    mutationFn: () => rateBooking(parseInt(id), rating, review, booking.geofence_id),
     onSuccess: () => { toast.success('Thank you for your feedback! 🌟'); setShowRating(false); qc.invalidateQueries({ queryKey: ['booking', id] }); },
     onError: (e: any) => toast.error(e.message),
   });
@@ -116,7 +116,8 @@ export default function BookingDetailPage() {
         type: booking.booking_type === 'subscription' ? 'subscription' : 'booking',
         booking_id: booking.id,
         subscription_id: booking.subscription_id,
-        amount: booking.total_amount
+        amount: booking.total_amount,
+        geofence_id: booking.geofence_id
       });
       if (res.mock_success) {
         setPaying(false);

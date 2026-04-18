@@ -40,7 +40,7 @@ export default function ComplaintsPage() {
   const complaints: any[] = Array.isArray(data) ? data : (data as any)?.complaints ?? [];
 
   const createMut = useMutation({
-    mutationFn: () => createComplaint({ type, description: desc, priority }),
+    mutationFn: () => createComplaint({ type, description: desc, priority, geofence_id: (useAuth.getState().user as any)?.geofence_id }),
     onSuccess: () => {
       toast.success('Complaint filed. We\'ll respond within 24 hours.');
       setShowForm(false); setDesc(''); setType('service_quality');
