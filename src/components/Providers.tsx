@@ -16,6 +16,7 @@ function AuthHydrator({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     hydrate();
     useCart.persist.rehydrate();
+    useLocation.persist.rehydrate();
     detectLoc();
   }, [hydrate, detectLoc]);
   return <>{children}</>;

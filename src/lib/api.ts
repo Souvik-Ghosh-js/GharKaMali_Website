@@ -88,6 +88,8 @@ export const createBooking = (b: {
   service_address: string; service_latitude: number; service_longitude: number;
   plant_count?: number; preferred_gardener_id?: number; customer_notes?: string;
   addons?: { addon_id: number; quantity: number }[];
+  addon_ids?: { addon_id: number; quantity: number }[];
+  total_amount?: number;
 }) => req('/bookings', { method: 'POST', body: JSON.stringify(b) });
 
 export const getMyBookings = (p?: { status?: string; page?: number; limit?: number }) =>
@@ -111,7 +113,10 @@ export const rescheduleBooking = (booking_id: number, new_date: string, new_time
   req('/payments/reschedule', { method: 'POST', body: JSON.stringify({ booking_id, new_date, ...(new_time ? { new_time } : {}) }) });
 
 export const addBookingAddons = (id: number, addons: { addon_id: number; quantity: number }[]) =>
-  req(`/bookings/${id}/addons`, { method: 'POST', body: JSON.stringify({ booking_id: id, addons }) });
+  req(`/bookings/${id}/addons`, {
+    method: 'POST',
+    body: JSON.stringify({ addon_ids: addons }),
+  });
 
 // ─── SUBSCRIPTIONS ────────────────────────────────────────────────────────────
 export const createSubscription = (b: {
@@ -124,6 +129,8 @@ export const createSubscription = (b: {
   preferred_gardener_id?: number;
   auto_renew?: boolean;
   addons?: { addon_id: number; quantity: number }[];
+  addon_ids?: { addon_id: number; quantity: number }[];
+  total_amount?: number;
 }) => req('/subscriptions', { method: 'POST', body: JSON.stringify(b) });
 
 export const getMySubscriptions = () => req('/subscriptions/my');

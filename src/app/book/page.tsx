@@ -1,14 +1,16 @@
 'use client';
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
-import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, initiatePayment, getPreviousGardeners, checkGardenerAvailability } from '@/lib/api';
+import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, initiatePayment, getPreviousGardeners, checkGardenerAvailability, addBookingAddons } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from '@/store/location';
+const AddressPicker = dynamic(() => import('@/components/AddressPicker'), { ssr: false });
 
 type ModalType = 'location' | 'plan' | 'addons' | 'schedule';
 const TIMES = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
@@ -57,11 +59,13 @@ function BookFlow() {
   const { isAuthenticated, isLoading, updateUser } = useAuth();
   const preselectId = params.get('plan') ? parseInt(params.get('plan')!) : 0;
 
-  const { zone: globalZone } = useLocation();
+  const { zone: globalZone, lat: globalLat, lng: globalLng, setCoords, setZone: setGlobalZone } = useLocation();
   const [activeStep, setActiveStep] = useState(0);
   const [checking, setChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [zone, setZone] = useState<any>(globalZone);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [addressMode, setAddressMode] = useState<'current' | 'other'>('current');
   const [form, setForm] = useState({
     address: '', lat: 0, lng: 0, plan_id: preselectId,
     plant_count: 5, scheduled_date: '', scheduled_time: '09:00',
@@ -95,25 +99,6 @@ function BookFlow() {
     setForm(f => ({ ...f, address: parts.join(', ') }));
   };
 
-  const checkLoc = async () => {
-    if (!addrFields.roomNo || !addrFields.building || !addrFields.pincode) {
-      toast.error('Please fill required address fields'); return;
-    }
-    setChecking(true);
-    try {
-      if (!navigator.geolocation) throw new Error('No GPS');
-      navigator.geolocation.getCurrentPosition(async pos => {
-        const res: any = await checkServiceability(pos.coords.latitude, pos.coords.longitude);
-        if (res?.serviceable) {
-          setZone(res.zones?.[0] ?? res.zone);
-          setForm(f => ({ ...f, lat: pos.coords.latitude, lng: pos.coords.longitude }));
-          toast.success('Serviceable in your area!');
-          setActiveStep(1); // Move to Plan Selection
-        } else { toast.error('Sorry, we are not serviceable in this area yet.'); }
-        setChecking(false);
-      }, () => { setChecking(false); toast.error('GPS access denied. Please enable location.'); });
-    } catch { setChecking(false); toast.error('Error checking location availability'); }
-  };
 
   const toggleAddon = (id: number) => {
     setForm(f => ({
@@ -193,8 +178,9 @@ function BookFlow() {
             if (form.addons.length > 0) {
               try {
                 await addBookingAddons(res.id, form.addons.map(a => ({ addon_id: a.addon_id, quantity: a.quantity })));
-              } catch (e) {
+              } catch (e: any) {
                 console.error('Failed to add addons', e);
+                toast.error(`Booking created but add-ons failed: ${e?.message || 'unknown error'}`);
               }
             }
           }
@@ -214,6 +200,13 @@ function BookFlow() {
       setZone(globalZone);
     }
   }, [globalZone, zone]);
+
+  useEffect(() => {
+    if (globalLat && globalLng && form.lat === 0 && form.lng === 0) {
+      setForm(f => ({ ...f, lat: globalLat, lng: globalLng }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [globalLat, globalLng]);
 
   useEffect(() => {
     if (form.scheduled_date && zone?.id) {
@@ -250,6 +243,68 @@ function BookFlow() {
                 {activeStep === 0 && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ paddingBottom: 40, borderTop: '1px solid var(--border-gold)', paddingTop: 32 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                      {/* Address Mode Toggle */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAddressMode('current');
+                            if (globalLat && globalLng) {
+                              setForm(f => ({ ...f, lat: globalLat, lng: globalLng }));
+                              if (globalZone) setZone(globalZone);
+                            } else {
+                              setPickerOpen(true);
+                            }
+                          }}
+                          style={{
+                            padding: '14px', borderRadius: 16,
+                            border: `2px solid ${addressMode === 'current' ? 'var(--forest)' : 'var(--border)'}`,
+                            background: addressMode === 'current' ? 'rgba(3,65,26,0.04)' : '#fff',
+                            cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
+                          }}
+                        >
+                          <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--forest)', marginBottom: 4 }}>📍 Current Location</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--sage)', fontWeight: 600 }}>Service at where I am now</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setAddressMode('other'); setPickerOpen(true); }}
+                          style={{
+                            padding: '14px', borderRadius: 16,
+                            border: `2px solid ${addressMode === 'other' ? 'var(--forest)' : 'var(--border)'}`,
+                            background: addressMode === 'other' ? 'rgba(3,65,26,0.04)' : '#fff',
+                            cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
+                          }}
+                        >
+                          <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--forest)', marginBottom: 4 }}>🗺 Different Location</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--sage)', fontWeight: 600 }}>Pick on map (e.g. parent's home)</div>
+                        </button>
+                      </div>
+
+                      {/* Picked-location preview */}
+                      {form.lat !== 0 && form.lng !== 0 && (
+                        <div style={{ padding: '14px 16px', background: 'var(--bg-elevated)', border: '1px dashed var(--forest-mid)', borderRadius: 14, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Service Pin</div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--forest)', lineHeight: 1.45 }}>
+                              {form.address || `${form.lat.toFixed(5)}, ${form.lng.toFixed(5)}`}
+                            </div>
+                            {zone?.name && <div style={{ fontSize: '0.72rem', color: 'var(--forest-mid)', fontWeight: 700, marginTop: 4 }}>✓ {zone.name}</div>}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setPickerOpen(true)}
+                            style={{ padding: '6px 12px', borderRadius: 10, border: '1.5px solid var(--forest)', background: '#fff', color: 'var(--forest)', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer', flexShrink: 0 }}
+                          >
+                            Change
+                          </button>
+                        </div>
+                      )}
+
+                      <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 }}>
+                        Additional details (so gardener finds you easily)
+                      </div>
+
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                         <div><label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>ROOM / FLAT NO.</label><input placeholder="e.g. B-204" value={addrFields.roomNo} onChange={e => updateAddr({ roomNo: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
                         <div><label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>BUILDING / SOCIETY</label><input placeholder="e.g. ATS Pristine" value={addrFields.building} onChange={e => updateAddr({ building: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
@@ -268,8 +323,23 @@ function BookFlow() {
                         </div>
                       </div>
                       <div><label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', marginBottom: 6, display: 'block' }}>PINCODE</label><input placeholder="201301" maxLength={6} value={addrFields.pincode} onChange={e => updateAddr({ pincode: e.target.value })} style={{ width: '100%', padding: 14, borderRadius: 14, border: '1.5px solid var(--border)', fontWeight: 600 }} /></div>
-                      <button onClick={checkLoc} disabled={checking} className="btn btn-primary" style={{ marginTop: 12, width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>
-                        {checking ? 'Checking availability...' : 'Detected GPS & Continue'}
+                      <button
+                        onClick={() => {
+                          if (form.lat === 0 || form.lng === 0) {
+                            toast.error('Please pin your service location first');
+                            setPickerOpen(true);
+                            return;
+                          }
+                          if (!zone) {
+                            toast.error('Selected location is not serviceable');
+                            return;
+                          }
+                          setActiveStep(1);
+                        }}
+                        className="btn btn-primary"
+                        style={{ marginTop: 12, width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}
+                      >
+                        Continue
                       </button>
                     </div>
                   </motion.div>
@@ -461,6 +531,30 @@ function BookFlow() {
           </div>
         </div>
       </main>
+
+      <AddressPicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        initialLat={form.lat || globalLat}
+        initialLng={form.lng || globalLng}
+        title={addressMode === 'other' ? 'Pick service location' : 'Confirm your location'}
+        onConfirm={(p) => {
+          setForm(f => ({ ...f, lat: p.lat, lng: p.lng, address: p.address }));
+          if (p.zone) {
+            setZone(p.zone);
+            setGlobalZone(p.zone);
+          }
+          setCoords(p.lat, p.lng, p.address);
+          // Prefill city/pincode/state if user hasn't typed them
+          setAddrFields(prev => ({
+            ...prev,
+            city: prev.city || p.city || '',
+            pincode: prev.pincode || p.pincode || '',
+            state: prev.state && prev.state !== 'Uttar Pradesh' ? prev.state : (p.state || prev.state),
+          }));
+          toast.success('Location set!');
+        }}
+      />
 
       <style jsx>{`
         .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }

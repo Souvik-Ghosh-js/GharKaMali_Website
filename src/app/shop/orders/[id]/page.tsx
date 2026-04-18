@@ -139,6 +139,31 @@ export default function OrderDetailPage() {
                 </div>
               )}
 
+              {/* Order Placed Timestamp */}
+              <div style={{ marginTop: 32, background: '#fff', borderRadius: 32, border: '1.5px solid var(--border)', padding: 32, boxShadow: 'var(--sh-sm)' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--forest)', marginBottom: 16 }}>Order Timeline</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingBottom: 12, borderBottom: '1px solid var(--border-light)' }}>
+                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.2rem', flexShrink: 0 }}>
+                      ✓
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 800, color: 'var(--forest)' }}>Order Placed</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        {order.createdAt ? new Date(order.createdAt).toLocaleString('en-IN', { 
+                          day: 'numeric', 
+                          month: 'short', 
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit'
+                        }) : 'Order date not available'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Shipping Timeline */}
               <div style={{ marginTop: 32, background: '#fff', borderRadius: 32, border: '1.5px solid var(--border)', padding: 32, boxShadow: 'var(--sh-sm)' }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--forest)', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -160,6 +185,37 @@ export default function OrderDetailPage() {
                     })}
                   </div>
                 </div>
+
+                {/* Status History */}
+                {order.status_history && order.status_history.length > 0 && (
+                  <div style={{ marginTop: 32, paddingTop: 32, borderTop: '1px solid var(--border-light)' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--forest)', marginBottom: 16 }}>Status Updates</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {order.status_history.map((sh: any, idx: number) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: 12, background: 'var(--bg)', borderRadius: 12, border: '1px solid var(--border-light)' }}>
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.9rem', flexShrink: 0 }}>
+                            {['pending', 'processing', 'shipped', 'delivered'].indexOf(sh.status) + 1}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 700, color: 'var(--forest)', marginBottom: 4 }}>
+                              {sh.status.charAt(0).toUpperCase() + sh.status.slice(1).replace(/_/g, ' ')}
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                              {sh.updatedAt ? new Date(sh.updatedAt).toLocaleString('en-IN', { 
+                                day: 'numeric', 
+                                month: 'short', 
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              }) : 'Time not available'}
+                            </div>
+                            {sh.notes && <div style={{ fontSize: '0.78rem', color: 'var(--sage)', marginTop: 4 }}>{sh.notes}</div>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

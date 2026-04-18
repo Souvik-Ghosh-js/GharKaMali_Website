@@ -3,8 +3,11 @@ import { useState, useEffect } from 'react';
 import { useCart } from '@/store/cart';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { createOrder } from '@/lib/api';
+import { createOrder, addBookingAddons } from '@/lib/api';
 import { useAuth } from '@/store/auth';
+import { useLocation } from '@/store/location';
+import dynamic from 'next/dynamic';
+const AddressPicker = dynamic(() => import('./AddressPicker'), { ssr: false });
 
 /* Icons */
 const IcX = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>;
@@ -31,9 +34,14 @@ type CheckoutStep = 'cart' | 'address' | 'processing' | 'success';
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQty, totalItems, totalPrice, clearCart, wantsMali } = useCart();
   const { user, updateUser } = useAuth();
+  const { lat: storeLat, lng: storeLng, setCoords } = useLocation();
   const [step, setStep] = useState<CheckoutStep>('cart');
   const [addrF, setAddrF] = useState({ roomNo: '', building: '', city: '', state: 'Uttar Pradesh', pincode: '' });
   const [address, setAddress] = useState('');
+  const [pinLat, setPinLat] = useState<number | null>(null);
+  const [pinLng, setPinLng] = useState<number | null>(null);
+  const [mapAddress, setMapAddress] = useState('');
+  const [pickerOpen, setPickerOpen] = useState(false);
   const buildAddress = (f: typeof addrF) => [f.roomNo, f.building, f.city, f.state, f.pincode].filter(Boolean).join(', ');
   const updateAddrF = (patch: Partial<typeof addrF>) => {
     const next = { ...addrF, ...patch };
@@ -43,6 +51,14 @@ export default function CartDrawer() {
   const [orderNum, setOrderNum] = useState('');
   const [maliBooked, setMaliBooked] = useState<any>(null);
   const [useSavedAddress, setUseSavedAddress] = useState(false);
+
+  // Seed pin from global location store when opening
+  useEffect(() => {
+    if (isOpen && pinLat === null && storeLat && storeLng) {
+      setPinLat(storeLat);
+      setPinLng(storeLng);
+    }
+  }, [isOpen, storeLat, storeLng, pinLat]);
 
   useEffect(() => {
     if (isOpen && user?.address) {
@@ -110,13 +126,15 @@ export default function CartDrawer() {
           const isSub = svc.bookingDetails?.plan_type?.toLowerCase() === 'subscription';
           let res: any;
           
+          const svcLat = svc.bookingDetails?.service_latitude || pinLat || storeLat || 0;
+          const svcLng = svc.bookingDetails?.service_longitude || pinLng || storeLng || 0;
           if (isSub) {
             res = await createSubscription({
               plan_id: svc.bookingDetails?.plan_id!,
               zone_id: svc.bookingDetails?.zone_id!,
               service_address: svc.bookingDetails?.service_address || finalAddress,
-              service_latitude: svc.bookingDetails?.service_latitude || 0,
-              service_longitude: svc.bookingDetails?.service_longitude || 0,
+              service_latitude: svcLat,
+              service_longitude: svcLng,
               plant_count: svc.bookingDetails?.plant_count || 1,
               preferred_gardener_id: svc.bookingDetails?.preferred_gardener_id || null,
               auto_renew: svc.bookingDetails?.auto_renew ?? true,
@@ -131,8 +149,8 @@ export default function CartDrawer() {
               scheduled_date: svc.bookingDetails?.scheduled_date!,
               scheduled_time: svc.bookingDetails?.scheduled_time,
               service_address: svc.bookingDetails?.service_address || finalAddress,
-              service_latitude: svc.bookingDetails?.service_latitude || 0,
-              service_longitude: svc.bookingDetails?.service_longitude || 0,
+              service_latitude: svcLat,
+              service_longitude: svcLng,
               plant_count: svc.bookingDetails?.plant_count || 1,
               preferred_gardener_id: svc.bookingDetails?.preferred_gardener_id || null,
               customer_notes: svc.bookingDetails?.notes || 'Booked via cart',
@@ -143,8 +161,9 @@ export default function CartDrawer() {
             if (svc.bookingDetails?.addons?.length) {
               try {
                 await addBookingAddons(res.id, svc.bookingDetails.addons);
-              } catch (e) {
+              } catch (e: any) {
                 console.error('Failed to add addons to cart booking', e);
+                toast.error(`Booking created but add-ons failed: ${e?.message || 'unknown error'}`);
               }
             }
           }
@@ -384,6 +403,25 @@ export default function CartDrawer() {
                 </>
                 )}
 
+                {/* Map pin — ensures gardener gets exact location */}
+                <div style={{ padding: '12px 14px', background: '#fff', border: '1.5px dashed var(--forest-mid)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>Map Pin (for gardener)</div>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--forest)', lineHeight: 1.4 }} className="truncate">
+                      {pinLat && pinLng
+                        ? (mapAddress || `${pinLat.toFixed(5)}, ${pinLng.toFixed(5)}`)
+                        : 'No pin yet — tap to pick on map'}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPickerOpen(true)}
+                    style={{ padding: '8px 12px', borderRadius: 10, border: '1.5px solid var(--forest)', background: '#fff', color: 'var(--forest)', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer', flexShrink: 0 }}
+                  >
+                    {pinLat && pinLng ? 'Change' : 'Pick'}
+                  </button>
+                </div>
+
                 <div style={{ padding: 12, background: 'var(--bg-elevated)', borderRadius: 10, border: '1px solid var(--border-gold)', fontSize: '0.78rem', color: 'var(--sage)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                   <strong style={{ color: 'var(--forest)' }}>Secure checkout.</strong> 256-bit encrypted payment processing.
@@ -449,6 +487,23 @@ export default function CartDrawer() {
           </div>
         )}
       </div>
+
+      <AddressPicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        initialLat={pinLat ?? storeLat}
+        initialLng={pinLng ?? storeLng}
+        title="Pin service location"
+        onConfirm={(p) => {
+          setPinLat(p.lat);
+          setPinLng(p.lng);
+          setMapAddress(p.address);
+          setCoords(p.lat, p.lng, p.address);
+          if (!useSavedAddress && !addrF.city && p.city) updateAddrF({ city: p.city });
+          if (!useSavedAddress && !addrF.pincode && p.pincode) updateAddrF({ pincode: p.pincode });
+          toast.success('Location pinned!');
+        }}
+      />
     </>
   );
 }
