@@ -128,7 +128,7 @@ function BookFlow() {
       bookingDetails: {
         plan_id: form.plan_id,
         plan_type: selectedPlan.plan_type,
-        zone_id: zone?.id,
+        geofence_id: zone?.id,
         scheduled_date: form.scheduled_date,
         scheduled_time: form.scheduled_time,
         service_address: form.address,
@@ -150,7 +150,7 @@ function BookFlow() {
     try {
       const payload: any = {
         plan_id: form.plan_id,
-        zone_id: zone?.id,
+        geofence_id: zone?.id,
         service_address: form.address,
         service_latitude: form.lat,
         service_longitude: form.lng,

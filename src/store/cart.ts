@@ -16,6 +16,7 @@ export interface CartItem {
     plan_id?: number;
     plan_type?: string;
     zone_id?: number;
+    geofence_id?: number;
     scheduled_date?: string;
     scheduled_time?: string;
     service_address?: string;

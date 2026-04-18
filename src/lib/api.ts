@@ -84,7 +84,7 @@ export const checkGardenerAvailability = (date: string, gardenerId?: number, zon
 // ─── BOOKINGS (customer) ──────────────────────────────────────────────────────
 export const createBooking = (b: {
   plan_id?: number;
-  zone_id: number; scheduled_date: string; scheduled_time?: string;
+  geofence_id: number; scheduled_date: string; scheduled_time?: string;
   service_address: string; service_latitude: number; service_longitude: number;
   plant_count?: number; preferred_gardener_id?: number; customer_notes?: string;
   addons?: { addon_id: number; quantity: number }[];
@@ -121,7 +121,7 @@ export const addBookingAddons = (id: number, addons: { addon_id: number; quantit
 // ─── SUBSCRIPTIONS ────────────────────────────────────────────────────────────
 export const createSubscription = (b: {
   plan_id: number;
-  zone_id: number;
+  geofence_id: number;
   service_address: string;
   service_latitude: number;
   service_longitude: number;
@@ -322,7 +322,7 @@ export const createOrder = (b: {
   book_mali?: boolean;
   service_bookings?: any[];
   service_address_for_mali?: string;
-  zone_id?: number;
+  geofence_id?: number;
   service_latitude?: number;
   service_longitude?: number;
 }) => req('/shop/orders', { method: 'POST', body: JSON.stringify(b) });
