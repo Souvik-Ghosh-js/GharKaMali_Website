@@ -34,7 +34,7 @@ type CheckoutStep = 'cart' | 'address' | 'processing' | 'success';
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQty, totalItems, totalPrice, clearCart, wantsMali } = useCart();
   const { user, updateUser } = useAuth();
-  const { lat: storeLat, lng: storeLng, setCoords } = useLocation();
+  const { lat: storeLat, lng: storeLng, zone: userZone, setCoords } = useLocation();
   const [step, setStep] = useState<CheckoutStep>('cart');
   const [addrF, setAddrF] = useState({ roomNo: '', building: '', city: '', state: 'Uttar Pradesh', pincode: '' });
   const [address, setAddress] = useState('');
@@ -114,7 +114,10 @@ export default function CartDrawer() {
           items: productItems.map(i => ({ product_id: i.id, quantity: i.qty })),
           shipping_address: finalAddress,
           shipping_city: finalCity,
-          shipping_pincode: finalPincode
+          shipping_pincode: finalPincode,
+          zone_id: userZone?.id,
+          service_latitude: pinLat || storeLat || undefined,
+          service_longitude: pinLng || storeLng || undefined
         });
         setOrderNum(orderResponse?.order_number || orderResponse?.txnid || 'GKM-ORD-' + Date.now());
       }

@@ -322,6 +322,9 @@ export const createOrder = (b: {
   book_mali?: boolean;
   service_bookings?: any[];
   service_address_for_mali?: string;
+  zone_id?: number;
+  service_latitude?: number;
+  service_longitude?: number;
 }) => req('/shop/orders', { method: 'POST', body: JSON.stringify(b) });
 export const getMyOrders = () => req('/shop/orders/my');
 export const getTaglines = () => req('/taglines', { auth: false });
