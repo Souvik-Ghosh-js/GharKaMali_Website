@@ -140,8 +140,10 @@ function BookFlow() {
     router.push('/plans'); // Or stay on page, addService already opens the cart
   };
 
+  const isSubscriptionPlan = selectedPlan?.plan_type === 'subscription';
+
   const handleFinish = async () => {
-    if (!form.scheduled_date && selectedPlan?.plan_type !== 'subscription') { 
+    if (!form.scheduled_date && !isSubscriptionPlan) { 
       toast.error('Please select a preferred visit date'); return; 
     }
     setSubmitting(true);
@@ -161,33 +163,31 @@ function BookFlow() {
       };
 
       let res: any;
-      let type: 'booking' | 'subscription' = 'booking';
 
-      if (selectedPlan?.plan_type === 'subscription') {
-        type = 'subscription';
+      if (isSubscriptionPlan) {
         res = await createSubscription({
           ...payload,
           auto_renew: form.auto_renew
         });
+        toast.success('Subscription created successfully!');
+        router.push('/subscriptions');
       } else {
-            res = await createBooking({
-              ...payload,
-              scheduled_date: form.scheduled_date,
-              scheduled_time: form.scheduled_time,
-            });
-            if (form.addons.length > 0) {
-              try {
-                await addBookingAddons(res.id, form.addons.map(a => ({ addon_id: a.addon_id, quantity: a.quantity })));
-              } catch (e: any) {
-                console.error('Failed to add addons', e);
-                toast.error(`Booking created but add-ons failed: ${e?.message || 'unknown error'}`);
-              }
-            }
+        res = await createBooking({
+          ...payload,
+          scheduled_date: form.scheduled_date,
+          scheduled_time: form.scheduled_time,
+        });
+        if (form.addons.length > 0) {
+          try {
+            await addBookingAddons(res.id, form.addons.map(a => ({ addon_id: a.addon_id, quantity: a.quantity })));
+          } catch (e: any) {
+            console.error('Failed to add addons', e);
+            toast.error(`Booking created but add-ons failed: ${e?.message || 'unknown error'}`);
           }
-
-      // Mock Payment: Directly redirect to success
-      toast.success('Booking Successful! (Test Mode)');
-      router.push(`/bookings/${res.id}`);
+        }
+        toast.success('Booking Successful! (Test Mode)');
+        router.push(`/bookings/${res.id}`);
+      }
     } catch (err: any) { 
       console.error(err);
       toast.error(err?.message || 'Booking attempt failed. Please try again or contact support.'); 
@@ -230,8 +230,12 @@ function BookFlow() {
         <div className="container" style={{ maxWidth: 800, margin: '0 auto', padding: 0 }}>
 
           <div style={{ textAlign: 'center', marginBottom: 40, padding: '0 10px' }}>
-            <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: 700, color: 'var(--forest)', marginBottom: 8, letterSpacing: '-0.02em' }}>Book Your Visit</h1>
-            <p style={{ color: 'var(--sage)', fontWeight: 400, fontSize: '0.95rem', lineHeight: 1.5 }}>Professional botanical care for your flourishing garden.</p>
+            <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: 700, color: 'var(--forest)', marginBottom: 8, letterSpacing: '-0.02em' }}>
+              {isSubscriptionPlan ? 'Subscribe to Plan' : 'Book Your Visit'}
+            </h1>
+            <p style={{ color: 'var(--sage)', fontWeight: 400, fontSize: '0.95rem', lineHeight: 1.5 }}>
+              {isSubscriptionPlan ? 'Set up your monthly care plan — schedule individual visits from My Subscriptions.' : 'Professional botanical care for your flourishing garden.'}
+            </p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -411,13 +415,14 @@ function BookFlow() {
                         );
                       })}
                     </div>
-                    <button onClick={() => setActiveStep(4)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>Next: Schedule</button>
+                    <button onClick={() => setActiveStep(isSubscriptionPlan ? 5 : 4)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>{isSubscriptionPlan ? 'Next: Review' : 'Next: Schedule'}</button>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* STEP 5: SCHEDULE */}
+            {/* STEP 5: SCHEDULE (On-Demand only) */}
+            {!isSubscriptionPlan && (
             <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 4 ? '40px' : '0 40px', border: activeStep === 4 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 4 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 4 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 4 ? 'none' : 'auto' }}>
               <StepHeader num={5} title="Pick Your Preferred Slot" active={activeStep === 4} done={activeStep > 4} onClick={() => setActiveStep(4)} locked={activeStep < 4} />
               <AnimatePresence>
@@ -465,6 +470,7 @@ function BookFlow() {
                 )}
               </AnimatePresence>
             </div>
+            )}
 
             {/* STEP 6: SUMMARY & PAYMENT */}
             <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 5 ? '40px' : '0 40px', border: activeStep === 5 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 5 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 5 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 5 ? 'none' : 'auto' }}>
@@ -482,10 +488,18 @@ function BookFlow() {
                           <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Plants</span>
                           <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{form.plant_count} Units</span>
                         </div>
+                        {!isSubscriptionPlan && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Schedule</span>
                           <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{form.scheduled_date} @ {form.scheduled_time}</span>
                         </div>
+                        )}
+                        {isSubscriptionPlan && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Visits</span>
+                          <span style={{ fontWeight: 800, color: 'var(--forest)' }}>Schedule from My Subscriptions after purchase</span>
+                        </div>
+                        )}
                         {form.addons.length > 0 && (
                           <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px dashed var(--border)' }}>
                              <div style={{ color: 'var(--sage)', fontWeight: 800, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Selected Add-ons</div>
