@@ -4,6 +4,7 @@ import Providers from '@/components/Providers';
 import { Toaster } from 'react-hot-toast';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
 import SocialProofToast from '@/components/SocialProofToast';
+import NotificationListener from '@/components/NotificationListener';
 
 export const metadata: Metadata = {
   title: { default: 'GharKaMali — Expert Plant Care at Home | Starting ₹349', template: '%s | GharKaMali' },
@@ -107,6 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>{children}</Providers>
         <WhatsAppFloat />
         <SocialProofToast />
+        <NotificationListener />
         <Toaster
           position="top-center"
           toastOptions={{
