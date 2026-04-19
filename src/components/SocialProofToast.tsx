@@ -6,174 +6,156 @@ type SocialProofItem = {
   type: 'booking' | 'visitor';
   message: string;
   time_ago: string;
-  data?: {
-    name: string;
-    city: string;
-    service: string;
-  };
+  data?: { name: string; city: string; service: string };
 };
 
 export default function SocialProofToast() {
   const [items, setItems] = useState<SocialProofItem[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [visible, setVisible] = useState(false);
-  const [config, setConfig] = useState({ enabled: true, interval: 8000, delay: 5000, duration: 5000 });
+  const [config, setConfig] = useState({ interval: 8000, delay: 5000, duration: 5000 });
   const [cycleKey, setCycleKey] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-
     async function init() {
       try {
         const res = await getSocialProof();
         if (!isMounted) return;
-
-        if (res.success && res.data.enabled && res.data.items?.length > 0) {
-          setItems(res.data.items);
-          setConfig({ 
-            enabled: true, 
-            interval: res.data.interval || 8000,
-            delay: res.data.delay || 5000,
-            duration: res.data.duration || 5000
+        if (res?.enabled !== false && res?.items?.length > 0) {
+          setItems(res.items);
+          setConfig({
+            interval: res.interval || 8000,
+            delay: res.delay || 5000,
+            duration: res.duration || 5000,
           });
-          
           timerRef.current = setTimeout(() => {
             if (!isMounted) return;
             setActiveIndex(0);
             setVisible(true);
-          }, Math.max(1000, res.data.delay || 5000)); // Ensure it at least waits 1s but appears eventually
+          }, Math.max(1000, res.delay || 5000));
         }
-      } catch (err) {
-        console.error('Failed to load social proof', err);
-      }
+      } catch {}
     }
     init();
-    return () => { 
+    return () => {
       isMounted = false;
-      if (timerRef.current) clearTimeout(timerRef.current); 
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
 
   useEffect(() => {
     if (activeIndex === -1 || items.length === 0) return;
-
-    const hideTimer = setTimeout(() => {
-      setVisible(false);
-    }, config.duration);
-
+    const hideTimer = setTimeout(() => setVisible(false), config.duration);
     const nextTimer = setTimeout(() => {
-      setActiveIndex((prev) => (prev + 1) % items.length);
-      setCycleKey((prev) => prev + 1);
+      setActiveIndex((p) => (p + 1) % items.length);
+      setCycleKey((p) => p + 1);
       setVisible(true);
     }, config.interval + config.duration);
-
-    return () => {
-      clearTimeout(hideTimer);
-      clearTimeout(nextTimer);
-    };
+    return () => { clearTimeout(hideTimer); clearTimeout(nextTimer); };
   }, [activeIndex, cycleKey, items.length, config.interval, config.duration]);
 
-  if (!config.enabled || activeIndex === -1 || items.length === 0) return null;
+  if (activeIndex === -1 || items.length === 0) return null;
 
   const item = items[activeIndex];
+  const isVisitor = item.type === 'visitor';
 
   return (
-    <div 
-      className="social-proof-toast"
-      style={{
-        position: 'fixed',
-        bottom: 'clamp(20px, 4vw, 30px)',
-        left: 'clamp(20px, 4vw, 30px)',
-        zIndex: 1000,
-        transform: visible ? 'translateY(0)' : 'translateY(120%)',
-        opacity: visible ? 1 : 0,
-        transition: 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
-        pointerEvents: visible ? 'auto' : 'none',
-        maxWidth: '340px',
-        width: 'calc(100vw - 40px)',
-      }}
-    >
-      <div 
-        style={{
-          background: 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderRadius: '24px',
-          border: '1.5px solid rgba(22, 163, 74, 0.2)',
-          padding: '16px',
-          display: 'flex',
-          gap: '14px',
-          alignItems: 'center',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-          position: 'relative'
-        }}
-      >
-        <div style={{
-          width: '48px',
-          height: '48px',
-          borderRadius: '16px',
-          background: item.type === 'visitor' ? 'linear-gradient(135deg, #16a34a, #22c55e)' : 'linear-gradient(135deg, #4f46e5, #6366f1)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#fff',
-          fontSize: '1.4rem',
-          flexShrink: 0,
-          boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-        }}>
-          {item.type === 'visitor' ? '🔥' : '🌱'}
-        </div>
-        
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              {item.type === 'visitor' ? 'Live Activity' : 'Recent Booking'}
-            </span>
-            <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'rgba(0,0,0,0.4)' }}>
-              {item.time_ago}
-            </span>
-          </div>
-          <p style={{ 
-            margin: 0, 
-            fontSize: '0.85rem', 
-            color: '#1a1a1a', 
-            lineHeight: 1.4,
-            fontWeight: 500
-          }}>
-            {item.message}
-          </p>
-        </div>
-        
-        <button 
-          onClick={() => setVisible(false)}
-          style={{
-            position: 'absolute',
-            top: '8px',
-            right: '8px',
-            background: 'none',
-            border: 'none',
-            color: 'rgba(0,0,0,0.2)',
-            cursor: 'pointer',
-            padding: '4px',
-            fontSize: '1.2rem',
-            lineHeight: 1,
-            transition: 'color 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(0,0,0,0.5)'}
-          onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(0,0,0,0.2)'}
-        >
-          ×
-        </button>
-      </div>
-
-      <style jsx>{`
-        @keyframes pulse {
-          0% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.4); opacity: 0.5; }
-          100% { transform: scale(1); opacity: 1; }
+    <>
+      <style>{`
+        @keyframes spBounceIn {
+          0%   { transform: translateY(110%) scale(0.95); opacity: 0; }
+          60%  { transform: translateY(-6px) scale(1.01); opacity: 1; }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        @keyframes spSlideOut {
+          0%   { transform: translateY(0) scale(1); opacity: 1; }
+          100% { transform: translateY(110%) scale(0.95); opacity: 0; }
+        }
+        @keyframes spPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(22,163,74,0.35); }
+          50%       { box-shadow: 0 0 0 7px rgba(22,163,74,0); }
+        }
+        .sp-wrap {
+          position: fixed;
+          bottom: clamp(20px, 4vw, 32px);
+          left: clamp(16px, 4vw, 32px);
+          z-index: 1000;
+          max-width: 320px;
+          width: calc(100vw - 32px);
+          animation: ${visible ? 'spBounceIn 0.55s cubic-bezier(0.22,1,0.36,1) forwards' : 'spSlideOut 0.4s ease forwards'};
+          pointer-events: ${visible ? 'auto' : 'none'};
+        }
+        .sp-card {
+          background: #ffffff;
+          border-radius: 18px;
+          border: 1px solid rgba(0,0,0,0.07);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.06);
+          padding: 14px 14px 14px 14px;
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          position: relative;
+          overflow: hidden;
+        }
+        .sp-card::before {
+          content: '';
+          position: absolute;
+          left: 0; top: 0; bottom: 0;
+          width: 4px;
+          background: ${isVisitor ? 'linear-gradient(180deg,#16a34a,#4ade80)' : 'linear-gradient(180deg,#4f46e5,#818cf8)'};
+          border-radius: 18px 0 0 18px;
+        }
+        .sp-icon {
+          width: 42px; height: 42px;
+          border-radius: 12px;
+          flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 1.3rem;
+          background: ${isVisitor ? 'rgba(22,163,74,0.1)' : 'rgba(79,70,229,0.1)'};
+          animation: spPulse 2.2s ease-in-out infinite;
+        }
+        .sp-close {
+          position: absolute; top: 8px; right: 8px;
+          background: none; border: none; cursor: pointer;
+          color: rgba(0,0,0,0.25); font-size: 1rem; line-height: 1;
+          padding: 2px 5px; border-radius: 6px;
+          transition: background 0.15s, color 0.15s;
+        }
+        .sp-close:hover { background: rgba(0,0,0,0.06); color: rgba(0,0,0,0.6); }
+        .sp-label {
+          font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: ${isVisitor ? '#16a34a' : '#4f46e5'};
+          margin-bottom: 3px;
+        }
+        .sp-msg {
+          font-size: 0.82rem; font-weight: 500;
+          color: #111; line-height: 1.4;
+          margin: 0; padding-right: 14px;
+        }
+        .sp-time {
+          font-size: 0.65rem; color: rgba(0,0,0,0.35);
+          font-weight: 500; margin-top: 3px;
         }
       `}</style>
-    </div>
+
+      <div className="sp-wrap">
+        <div className="sp-card">
+          <div className="sp-icon">
+            {isVisitor ? '🔥' : '🌿'}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="sp-label">
+              {isVisitor ? 'Live Activity' : 'Recent Booking'}
+            </div>
+            <p className="sp-msg">{item.message}</p>
+            {item.time_ago && <div className="sp-time">{item.time_ago}</div>}
+          </div>
+          <button className="sp-close" onClick={() => setVisible(false)}>×</button>
+        </div>
+      </div>
+    </>
   );
 }
