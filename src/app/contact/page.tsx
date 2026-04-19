@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { useAuth } from '@/store/auth';
 import { submitContact } from '@/lib/api';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 
