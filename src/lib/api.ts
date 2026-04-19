@@ -46,8 +46,8 @@ export const qs = (p?: Record<string, any>) => {
 export const sendOtp = (phone: string) =>
   req('/auth/send-otp', { method: 'POST', auth: false, body: JSON.stringify({ phone }) });
 
-export const verifyOtp = (phone: string, otp: string, name?: string) =>
-  req('/auth/verify-otp', { method: 'POST', auth: false, body: JSON.stringify({ phone, otp, ...(name ? { name } : {}) }) });
+export const verifyOtp = (phone: string, otp: string, name?: string, lat?: number, lng?: number) =>
+  req('/auth/verify-otp', { method: 'POST', auth: false, body: JSON.stringify({ phone, otp, ...(name ? { name } : {}), ...(lat != null && lng != null ? { lat, lng } : {}) }) });
 
 export const adminLogin = (phone: string, password: string) =>
   req('/auth/admin-login', { method: 'POST', auth: false, body: JSON.stringify({ phone, password }) });

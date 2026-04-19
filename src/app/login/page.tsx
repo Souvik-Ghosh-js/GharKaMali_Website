@@ -26,6 +26,17 @@ function LoginForm() {
   useEffect(() => { if (!isLoading && isAuthenticated) router.replace(redirect); }, [isAuthenticated, isLoading]);
   useEffect(() => () => clearInterval(timerRef.current), []);
 
+  const getLocation = () => {
+    return new Promise<{lat: number, lng: number}>((resolve, reject) => {
+      if (!navigator.geolocation) reject(new Error('Geolocation not supported'));
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({lat: pos.coords.latitude, lng: pos.coords.longitude}),
+        (err) => reject(err),
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+  };
+
   const startTimer = () => {
     setCountdown(30);
     clearInterval(timerRef.current);
@@ -65,8 +76,14 @@ function LoginForm() {
   const handleVerify = async (otp: string) => {
     const c = phone.replace(/\D/g,'');
     setLoading(true);
+    let location: {lat: number, lng: number} | null = null;
     try {
-      const res: any = await verifyOtp(c, otp);
+      location = await getLocation();
+    } catch (e) {
+      // Location not available, proceed without it
+    }
+    try {
+      const res: any = await verifyOtp(c, otp, undefined, location?.lat, location?.lng);
       if (res?.is_new_user || !res?.user?.name) { setStep('name'); setLoading(false); return; }
       login(res.user, res.token);
       toast.success('Welcome back!');
@@ -83,8 +100,14 @@ function LoginForm() {
     if (!name.trim()) { toast.error('Please enter your name'); return; }
     const c = phone.replace(/\D/g,'');
     setLoading(true);
+    let location: {lat: number, lng: number} | null = null;
     try {
-      const res: any = await verifyOtp(c, digits.join(''), name.trim());
+      location = await getLocation();
+    } catch (e) {
+      // Location not available, proceed without it
+    }
+    try {
+      const res: any = await verifyOtp(c, digits.join(''), name.trim(), location?.lat, location?.lng);
       login(res.user, res.token);
       toast.success('Welcome to GharKaMali!');
       router.replace(redirect);
