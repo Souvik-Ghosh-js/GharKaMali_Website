@@ -147,6 +147,12 @@ export const resumeSubscription = (id: number) =>
 export const selectSubscriptionDates = (id: number, dates: string[]) =>
   req(`/subscriptions/${id}/select-dates`, { method: 'POST', body: JSON.stringify({ dates }) });
 
+// ─── ADDRESSES ─────────────────────────────────────────────────────────────────
+export const getMyAddresses = () => req('/addresses');
+export const addAddress = (b: any) => req('/addresses', { method: 'POST', body: JSON.stringify(b) });
+export const deleteAddress = (id: number) => req(`/addresses/${id}`, { method: 'DELETE' });
+export const setDefaultAddress = (id: number) => req(`/addresses/${id}/default`, { method: 'PATCH' });
+
 // ─── PAYMENTS ─────────────────────────────────────────────────────────────────
 export const initiatePayment = (b: any) =>
   req('/payments/initiate', { method: 'POST', body: JSON.stringify(b) });
