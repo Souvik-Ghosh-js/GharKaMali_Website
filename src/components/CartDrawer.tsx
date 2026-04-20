@@ -50,21 +50,25 @@ export default function CartDrawer() {
   };
   const [orderNum, setOrderNum] = useState('');
   const [maliBooked, setMaliBooked] = useState<any>(null);
-  const [useSavedAddress, setUseSavedAddress] = useState(false);
-
-  // Seed pin from global location store when opening
-  useEffect(() => {
-    if (isOpen && pinLat === null && storeLat && storeLng) {
-      setPinLat(storeLat);
-      setPinLng(storeLng);
-    }
-  }, [isOpen, storeLat, storeLng, pinLat]);
+  
+  // Multi-Address Support
+  const [savedLocs, setSavedLocs] = useState<any[]>([]);
+  const [selectedLocId, setSelectedLocId] = useState<number | null>(null);
+  const [useSaved, setUseSaved] = useState(false);
 
   useEffect(() => {
-    if (isOpen && user?.address) {
-       setUseSavedAddress(true);
+    if (isOpen && user) {
+      const { getMyAddresses } = require('@/lib/api');
+      getMyAddresses().then((res: any) => {
+        setSavedLocs(res || []);
+        if (Array.isArray(res) && res.length > 0) {
+          setUseSaved(true);
+          const def = res.find((a: any) => a.is_default) || res[0];
+          setSelectedLocId(def.id);
+        }
+      }).catch(console.error);
     }
-  }, [isOpen, user?.address]);
+  }, [isOpen, user]);
 
   if (!isOpen) return null;
 
@@ -80,13 +84,17 @@ export default function CartDrawer() {
     let finalAddress = address;
     let finalCity = addrF.city;
     let finalPincode = addrF.pincode;
+    let finalLat = pinLat || storeLat;
+    let finalLng = pinLng || storeLng;
 
-    if (useSavedAddress && user.address) {
-      finalAddress = user.address;
-      const parts = user.address.split(', ');
-      if (parts.length >= 2) {
-        finalPincode = parts[parts.length - 1];
-        finalCity = parts.length >= 3 ? parts[parts.length - 3] : parts[0]; 
+    if (useSaved && selectedLocId) {
+      const loc = savedLocs.find(a => a.id === selectedLocId);
+      if (loc) {
+        finalAddress = [loc.flat_no, loc.building, loc.area, loc.city, loc.state, loc.pincode].filter(Boolean).join(', ');
+        finalCity = loc.city;
+        finalPincode = loc.pincode;
+        finalLat = parseFloat(loc.latitude);
+        finalLng = parseFloat(loc.longitude);
       }
     } else {
       if (!addrF.roomNo.trim() || !addrF.building.trim() || !addrF.city.trim() || !addrF.pincode.trim()) {
@@ -94,9 +102,6 @@ export default function CartDrawer() {
         return;
       }
       if (addrF.pincode.length !== 6) { toast.error('Please enter a valid 6-digit pincode'); return; }
-      if (user) {
-         updateUser({ address: finalAddress });
-      }
     }
 
     setStep('processing');
@@ -116,8 +121,8 @@ export default function CartDrawer() {
           shipping_city: finalCity,
           shipping_pincode: finalPincode,
           geofence_id: userZone?.id,
-          service_latitude: pinLat || storeLat || undefined,
-          service_longitude: pinLng || storeLng || undefined
+          service_latitude: finalLat || undefined,
+          service_longitude: finalLng || undefined
         });
         setOrderNum(orderResponse?.order_number || orderResponse?.txnid || 'GKM-ORD-' + Date.now());
       }
@@ -336,17 +341,32 @@ export default function CartDrawer() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-                {useSavedAddress && user?.address ? (
-                  <div style={{ padding: '20px', background: 'rgba(3,65,26,0.03)', borderRadius: 16, border: '1px dashed var(--forest-mid)', marginBottom: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                      <span style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--forest)' }}>Delivery Address</span>
-                      <button onClick={() => setUseSavedAddress(false)} style={{ background: 'none', border: 'none', color: 'var(--gold-deep)', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>Edit</button>
+                {savedLocs.length > 0 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                      <button onClick={() => setUseSaved(true)} style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1.5px solid ${useSaved ? 'var(--forest)' : 'var(--border)'}`, background: useSaved ? 'rgba(3,65,26,0.05)' : '#fff', color: 'var(--forest)', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer' }}>Saved Address</button>
+                      <button onClick={() => setUseSaved(false)} style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1.5px solid ${!useSaved ? 'var(--forest)' : 'var(--border)'}`, background: !useSaved ? 'rgba(3,65,26,0.05)' : '#fff', color: 'var(--forest)', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer' }}>New Address</button>
                     </div>
-                    <div style={{ fontSize: '0.88rem', color: 'var(--sage)', lineHeight: 1.5, fontWeight: 600 }}>
-                      📍 {user.address}
-                    </div>
+
+                    {useSaved ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 200, overflowY: 'auto', paddingRight: 4 }}>
+                        {savedLocs.map(loc => (
+                          <div key={loc.id} onClick={() => setSelectedLocId(loc.id)} style={{ padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${selectedLocId === loc.id ? 'var(--forest)' : 'var(--border)'}`, background: selectedLocId === loc.id ? 'rgba(3,65,26,0.03)' : '#fff', cursor: 'pointer', position: 'relative' }}>
+                            <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--forest)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                              {loc.label || 'Home'} {loc.is_default && <span style={{ fontSize: '0.65rem', background: 'var(--forest)', color: '#fff', padding: '1px 6px', borderRadius: 4 }}>DEFAULT</span>}
+                            </div>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--sage)', fontWeight: 600, lineHeight: 1.4 }} className="truncate-2">
+                              {loc.flat_no}, {loc.building}, {loc.area}, {loc.city}
+                            </div>
+                            {selectedLocId === loc.id && <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--forest)' }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg></div>}
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
-                ) : (
+                )}
+
+                {(!useSaved || savedLocs.length === 0) && (
                   <>
                     {/* Row 1: Room + Building */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

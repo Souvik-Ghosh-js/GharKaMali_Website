@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/store/auth';
-import { getProfile, updateProfile } from '@/lib/api';
+import { getProfile, updateProfile, getMyAddresses, addAddress, deleteAddress, setDefaultAddress } from '@/lib/api';
 
 const IcWallet  = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>;
 const IcCalendar= () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
@@ -34,6 +34,41 @@ export default function ProfilePage() {
   // Address fields
   const [addrF, setAddrF] = useState({ roomNo: '', building: '', city: '', state: 'Uttar Pradesh', pincode: '' });
   const [editingAddr, setEditingAddr] = useState(false);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const { data: addrData, refetch: refetchAddrs } = useQuery({ queryKey: ['addresses'], queryFn: getMyAddresses, enabled: isAuthenticated });
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  useEffect(() => {
+    if (addrData) setAddresses(addrData);
+  }, [addrData]);
+
+  const addAddrMut = useMutation({
+    mutationFn: (data: any) => addAddress(data),
+    onSuccess: () => {
+      toast.success('Address added');
+      setShowAddForm(false);
+      refetchAddrs();
+    },
+    onError: (e: any) => toast.error(e.message)
+  });
+
+  const deleteAddrMut = useMutation({
+    mutationFn: (id: number) => deleteAddress(id),
+    onSuccess: () => {
+      toast.success('Address deleted');
+      refetchAddrs();
+    },
+    onError: (e: any) => toast.error(e.message)
+  });
+
+  const setDefMut = useMutation({
+    mutationFn: (id: number) => setDefaultAddress(id),
+    onSuccess: () => {
+      toast.success('Default address updated');
+      refetchAddrs();
+    },
+    onError: (e: any) => toast.error(e.message)
+  });
 
   const parseAddress = (full: string) => {
     if (!full) return;
@@ -209,82 +244,102 @@ export default function ProfilePage() {
 
           {/* Address Management card */}
           <div className="card profile-card" style={{ padding: 'clamp(20px,5vw,40px)', marginBottom: 28, borderRadius: 32 }}>
-            <div className="profile-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 36, gap: 16, flexWrap: 'wrap' }}>
+            <div className="profile-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, gap: 16, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(3,65,26,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)' }}>
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
                 </div>
-                <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.6rem', color: 'var(--forest)', margin: 0 }}>Saved Address</h2>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.6rem', color: 'var(--forest)', margin: 0 }}>My Addresses</h2>
               </div>
-              {!editingAddr
-                ? <button onClick={() => setEditingAddr(true)} className="btn btn-outline" style={{ padding: '10px 20px' }}>Edit Address</button>
-                : <div style={{ display: 'flex', gap: 10 }}>
-                    <button onClick={() => { setEditingAddr(false); if(profile?.address) parseAddress(profile.address); }} className="btn btn-outline">Cancel</button>
-                    <button onClick={() => saveMut.mutate()} disabled={saveMut.isPending || !addrF.building} className="btn btn-primary" style={{ boxShadow: 'var(--sh-md)' }}>
-                      {saveMut.isPending ? 'Saving…' : 'Save Address'}
-                    </button>
-                  </div>
-              }
+              {!showAddForm && (
+                <button onClick={() => { setAddrF({ roomNo: '', building: '', city: 'Noida', state: 'Uttar Pradesh', pincode: '' }); setShowAddForm(true); }} className="btn btn-primary" style={{ padding: '10px 20px' }}>+ Add New</button>
+              )}
             </div>
 
-            {editingAddr ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Room / Flat No. *</label>
-                    <input className="form-input" value={addrF.roomNo} onChange={e => setAddrF({ ...addrF, roomNo: e.target.value })} placeholder="e.g. B-204" />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Block / Building / Society *</label>
-                    <input className="form-input" value={addrF.building} onChange={e => setAddrF({ ...addrF, building: e.target.value })} placeholder="e.g. ATS Pristine" />
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">City *</label>
-                    <input className="form-input" value={addrF.city} onChange={e => setAddrF({ ...addrF, city: e.target.value })} placeholder="e.g. Noida" />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Pincode *</label>
-                    <input className="form-input" value={addrF.pincode} onChange={e => setAddrF({ ...addrF, pincode: e.target.value.replace(/\D/g,'') })} placeholder="e.g. 201301" maxLength={6} />
-                  </div>
-                </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">State *</label>
-                  <select className="form-input" value={addrF.state} onChange={e => setAddrF({ ...addrF, state: e.target.value })} style={{ cursor: 'pointer' }}>
-                    {['Uttar Pradesh','Delhi','Haryana','Rajasthan','Maharashtra','Karnataka','Tamil Nadu','West Bengal','Gujarat','Telangana','Other'].map(s => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            ) : (
-              <div style={{ background: 'rgba(3,65,26,0.03)', border: '1px dashed var(--border)', borderRadius: 20, padding: 24 }}>
-                {profile?.address ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {[
-                      { label: 'Room / Flat', value: addrF.roomNo },
-                      { label: 'Building / Locality', value: addrF.building },
-                      { label: 'City', value: addrF.city },
-                      { label: 'State', value: addrF.state },
-                      { label: 'Pincode', value: addrF.pincode },
-                    ].filter(r => r.value).map((row, i, arr) => (
-                      <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: i < arr.length - 1 ? 8 : 0, borderBottom: i < arr.length - 1 ? '1px solid rgba(3,65,26,0.08)' : 'none' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--sage)', fontWeight: 600 }}>{row.label}</span>
-                        <span style={{ fontSize: '0.9rem', color: 'var(--forest)', fontWeight: 800 }}>{row.value}</span>
+            {showAddForm ? (
+              <div style={{ background: 'var(--bg-elevated)', borderRadius: 24, padding: 24, border: '1.5px solid var(--border-gold)', marginBottom: 24 }}>
+                 <h4 style={{ color: 'var(--forest)', marginBottom: 16, fontWeight: 800 }}>Add New Address</h4>
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Room / Flat No. *</label>
+                        <input className="form-input" value={addrF.roomNo} onChange={e => setAddrF({ ...addrF, roomNo: e.target.value })} placeholder="e.g. B-204" />
                       </div>
-                    ))}
-                    <div style={{ marginTop: 8, paddingTop: 12, borderTop: '2px solid #fff', fontSize: '0.95rem', color: 'var(--forest)', fontWeight: 700 }}>
-                      📍 {profile.address}
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Building / Society *</label>
+                        <input className="form-input" value={addrF.building} onChange={e => setAddrF({ ...addrF, building: e.target.value })} placeholder="e.g. ATS Pristine" />
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">City *</label>
+                        <input className="form-input" value={addrF.city} onChange={e => setAddrF({ ...addrF, city: e.target.value })} placeholder="e.g. Noida" />
+                      </div>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Pincode *</label>
+                        <input className="form-input" value={addrF.pincode} onChange={e => setAddrF({ ...addrF, pincode: e.target.value.replace(/\D/g,'') })} placeholder="e.g. 201301" maxLength={6} />
+                      </div>
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 12 }}>
+                      <label className="form-label">State *</label>
+                      <select className="form-input" value={addrF.state} onChange={e => setAddrF({ ...addrF, state: e.target.value })} style={{ cursor: 'pointer' }}>
+                        {['Uttar Pradesh','Delhi','Haryana','Rajasthan','Maharashtra','Karnataka','Tamil Nadu','West Bengal','Gujarat','Telangana','Other'].map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <button onClick={() => setShowAddForm(false)} className="btn btn-outline" style={{ flex: 1 }}>Cancel</button>
+                      <button 
+                        onClick={() => addAddrMut.mutate({
+                          label: 'Home',
+                          flat_no: addrF.roomNo,
+                          building: addrF.building,
+                          city: addrF.city,
+                          state: addrF.state,
+                          pincode: addrF.pincode,
+                          latitude: 28.5355, // Default for now, should use a picker ideally
+                          longitude: 77.3910,
+                          is_default: addresses.length === 0
+                        })} 
+                        disabled={addAddrMut.isPending || !addrF.building} 
+                        className="btn btn-primary" 
+                        style={{ flex: 2 }}
+                      >
+                        {addAddrMut.isPending ? 'Saving…' : 'Save Address'}
+                      </button>
+                    </div>
+                 </div>
+              </div>
+            ) : null}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {addresses.length > 0 ? (
+                addresses.map((a: any) => (
+                  <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: 20, background: a.is_default ? 'rgba(3,65,26,0.03)' : '#fff', border: `1.5px solid ${a.is_default ? 'var(--forest)' : 'var(--border)'}`, borderRadius: 24, transition: 'all 0.3s' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <span style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '1rem' }}>{a.label || 'Home'}</span>
+                        {a.is_default && <span style={{ fontSize: '0.65rem', background: 'var(--forest)', color: '#fff', padding: '2px 8px', borderRadius: 6, fontWeight: 800 }}>DEFAULT</span>}
+                      </div>
+                      <div style={{ fontSize: '0.9rem', color: 'var(--sage)', fontWeight: 600, lineHeight: 1.5 }}>
+                        {a.flat_no}, {a.building}, {a.city}, {a.state} - {a.pincode}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, marginLeft: 16 }}>
+                      {!a.is_default && (
+                        <button onClick={() => setDefMut.mutate(a.id)} style={{ padding: '6px 12px', borderRadius: 99, background: 'none', border: '1px solid var(--border)', color: 'var(--forest)', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>Set Default</button>
+                      )}
+                      <button onClick={() => { if(confirm('Delete this address?')) deleteAddrMut.mutate(a.id); }} style={{ padding: '6px 12px', borderRadius: 99, background: 'none', border: '1px solid #FCA5A5', color: '#DC2626', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>Delete</button>
                     </div>
                   </div>
-                ) : (
-                  <div style={{ textAlign: 'center', color: 'var(--sage)', padding: '10px 0' }}>
-                    No address saved. Add one to speed up your bookings!
-                  </div>
-                )}
-              </div>
-            )}
+                ))
+              ) : !showAddForm ? (
+                <div style={{ textAlign: 'center', color: 'var(--sage)', padding: '40px 20px', background: 'var(--bg-elevated)', borderRadius: 24, border: '1.5px dashed var(--border)' }}>
+                   No saved addresses found. Add one to speed up your checkout.
+                </div>
+              ) : null}
+            </div>
           </div>
 
           {/* Danger zone */}
