@@ -76,6 +76,8 @@ function BookFlow() {
   const [addrFields, setAddrFields] = useState({ roomNo: '', building: '', area: '', city: '', state: 'Uttar Pradesh', pincode: '' });
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [slotsLoaded, setSlotsLoaded] = useState(false);
+  const [noGardenersInZone, setNoGardenersInZone] = useState(false);
 
   const { data: plansRaw } = useQuery({ queryKey: ['plans'], queryFn: getPlans });
   const { data: addonsRaw } = useQuery({ queryKey: ['addons'], queryFn: getAddons });
@@ -217,9 +219,19 @@ function BookFlow() {
   useEffect(() => {
     if (form.scheduled_date && zone?.id) {
       setLoadingSlots(true);
+      setSlotsLoaded(false);
+      setNoGardenersInZone(false);
       checkGardenerAvailability(form.scheduled_date, undefined, zone.id)
-        .then(setAvailableSlots)
-        .finally(() => setLoadingSlots(false));
+        .then((res: any) => {
+          const slots: string[] = Array.isArray(res) ? res : (res?.available_slots ?? []);
+          setAvailableSlots(slots);
+          setNoGardenersInZone(res?.no_gardeners_in_zone === true || slots.length === 0);
+        })
+        .catch(() => { setAvailableSlots([]); setNoGardenersInZone(false); })
+        .finally(() => { setLoadingSlots(false); setSlotsLoaded(true); });
+    } else {
+      setSlotsLoaded(false);
+      setNoGardenersInZone(false);
     }
   }, [form.scheduled_date, zone]);
 
@@ -462,13 +474,23 @@ function BookFlow() {
                       </div>
                       <div>
                         <label style={{ display: 'block', fontWeight: 800, marginBottom: 12, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--sage)' }}>2. Choose Time Slot</label>
+                        {loadingSlots && (
+                          <div style={{ padding: '16px 0', color: 'var(--sage)', fontSize: '0.85rem', fontWeight: 600 }}>Checking availability...</div>
+                        )}
+                        {!loadingSlots && slotsLoaded && noGardenersInZone && (
+                          <div style={{ padding: '16px', borderRadius: 14, background: '#fff8e1', border: '1.5px solid #f5c842', color: '#7a5c00', fontWeight: 700, fontSize: '0.85rem', marginBottom: 12 }}>
+                            No gardeners available in your area for this date. Please try a different date.
+                          </div>
+                        )}
+                        {!noGardenersInZone && (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
                           {TIMES.map(t => {
                             const sel = form.scheduled_time === t;
-                            const available = availableSlots.length === 0 || availableSlots.includes(t);
+                            const available = !slotsLoaded || availableSlots.includes(t);
                             return (<button key={t} disabled={!available} onClick={() => setForm(f => ({ ...f, scheduled_time: t }))} style={{ padding: '12px 0', borderRadius: 14, border: `2px solid ${sel ? 'var(--forest)' : 'var(--border)'}`, background: sel ? 'var(--forest)' : available ? '#fff' : 'var(--bg-muted)', color: sel ? '#fff' : available ? 'var(--sage)' : 'var(--text-faint)', fontWeight: 800, cursor: available ? 'pointer' : 'not-allowed', transition: 'all 0.2s' }}>{t}</button>);
                           })}
                         </div>
+                        )}
                       </div>
                     </div>
                     <button onClick={() => setActiveStep(5)} disabled={!form.scheduled_date} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, marginTop: 32, fontWeight: 500, fontSize: '0.85rem' }}>Review & Confirm Selection</button>

@@ -79,7 +79,7 @@ export const getFaqs = () => req('/faqs', { auth: false });
 
 export const getPreviousGardeners = () => req('/bookings/previous-gardeners');
 export const checkGardenerAvailability = (date: string, gardenerId?: number, zoneId?: number) =>
-  req(`/bookings/check-availability${qs({ date, gardener_id: gardenerId, zone_id: zoneId })}`, { auth: false });
+  req(`/bookings/check-availability${qs({ date, gardener_id: gardenerId, geofence_id: zoneId })}`, { auth: false });
 
 // ─── BOOKINGS (customer) ──────────────────────────────────────────────────────
 export const createBooking = (b: {
