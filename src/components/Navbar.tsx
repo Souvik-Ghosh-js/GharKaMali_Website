@@ -191,6 +191,36 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
                 transition: 'all 0.2s', whiteSpace: 'nowrap',
               }}>{item.label}</Link>
             ))}
+            {/* Green Makeover CTA pill */}
+            <Link
+              href="/green-makeover"
+              className="nav-gm-pill"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7,
+                padding: '7px 14px', borderRadius: 10,
+                background: pathname === '/green-makeover'
+                  ? 'var(--forest)'
+                  : isLight
+                    ? 'rgba(255,255,255,0.18)'
+                    : 'linear-gradient(135deg, var(--forest) 0%, var(--forest-mid) 100%)',
+                border: isLight ? '1px solid rgba(255,255,255,0.3)' : 'none',
+                color: '#fff',
+                fontSize: '0.75rem', fontWeight: 800,
+                letterSpacing: '0.04em', textTransform: 'uppercase',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                boxShadow: isLight ? 'none' : '0 4px 14px rgba(3,65,26,0.3)',
+                transition: 'all 0.25s',
+                backdropFilter: isLight ? 'blur(10px)' : 'none',
+                flexShrink: 0,
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/>
+                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+              </svg>
+              Green Makeover
+            </Link>
           </div>
 
           {/* Desktop search bar */}
@@ -300,6 +330,44 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
               </button>
             )}
           </form>
+
+          {/* ── GREEN MAKEOVER FEATURE CARD ── */}
+          <Link
+            href="/green-makeover"
+            onClick={() => setHubOpen(false)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 20,
+              background: 'linear-gradient(135deg, var(--forest) 0%, var(--forest-mid) 100%)',
+              borderRadius: 20, padding: '20px 24px',
+              textDecoration: 'none', marginBottom: 28,
+              position: 'relative', overflow: 'hidden',
+              boxShadow: '0 12px 40px rgba(3,65,26,0.25)',
+              transition: 'transform 0.25s var(--ease), box-shadow 0.25s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 18px 50px rgba(3,65,26,0.35)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px rgba(3,65,26,0.25)'; }}
+          >
+            {/* Decorative glow */}
+            <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle, rgba(237,207,135,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            {/* Icon */}
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(237,207,135,0.15)', border: '1px solid rgba(237,207,135,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--gold)' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/>
+                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+              </svg>
+            </div>
+            {/* Text */}
+            <div style={{ flex: 1, position: 'relative', zIndex: 1 }}>
+              <div style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.18em', marginBottom: 4 }}>New Service</div>
+              <div style={{ fontWeight: 900, fontSize: '1.15rem', color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.2 }}>Green Makeover</div>
+              <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)', fontWeight: 500, marginTop: 4 }}>Plant setups from ₹20,000</div>
+            </div>
+            {/* Arrow + badge */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0, position: 'relative', zIndex: 1 }}>
+              <div style={{ background: 'var(--gold)', color: 'var(--forest)', fontSize: '0.58rem', fontWeight: 900, padding: '4px 10px', borderRadius: 99, whiteSpace: 'nowrap', letterSpacing: '0.06em' }}>₹299 Visit</div>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </Link>
 
           {/* Section label */}
           <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.35em', marginBottom: 20 }}>Navigate</div>

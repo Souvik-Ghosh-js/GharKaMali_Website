@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '@/components/Navbar';
@@ -204,6 +204,114 @@ const BEFORE_AFTER = [
   { before: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=800&h=800&fit=crop', after: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=800&h=800&fit=crop', label: 'Soil Health', desc: 'Deep root analysis and custom organic fertilizer application for thriving plants.' },
   { before: 'https://images.unsplash.com/photo-1509587584298-0f3b3a3a1797?w=800&h=800&fit=crop', after: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=800&fit=crop', label: 'Digital Report', desc: 'Real-time plant health analytics and WhatsApp-based before/after photo documentation.' },
 ];
+
+const MAKEOVER_SLIDES = [
+  {
+    before: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=900&h=1200&fit=crop',
+    after: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=900&h=1200&fit=crop',
+    label: 'Balcony', tag: 'Balcony Paradise',
+  },
+  {
+    before: 'https://images.unsplash.com/photo-1509587584298-0f3b3a3a1797?w=900&h=1200&fit=crop',
+    after: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=900&h=1200&fit=crop',
+    label: 'Indoor', tag: 'Indoor Sanctuary',
+  },
+  {
+    before: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=900&h=1200&fit=crop',
+    after: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=900&h=1200&fit=crop',
+    label: 'Terrace', tag: 'Terrace Garden',
+  },
+];
+
+/* ── GREEN MAKEOVER AUTO SLIDER ── */
+const GreenMakeoverSlider = () => {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [sliderPos, setSliderPos] = useState(50);
+  const animDirRef = useRef(1);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+  const posRef = useRef(50);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (!isDraggingRef.current) {
+        posRef.current += animDirRef.current * 0.22;
+        if (posRef.current >= 78) animDirRef.current = -1;
+        if (posRef.current <= 22) animDirRef.current = 1;
+        setSliderPos(posRef.current);
+      }
+    }, 30);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setActiveSlide(p => (p + 1) % MAKEOVER_SLIDES.length);
+      posRef.current = 50;
+      animDirRef.current = 1;
+    }, 5500);
+    return () => clearInterval(t);
+  }, []);
+
+  const handleMove = useCallback((clientX: number) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const pct = Math.max(5, Math.min(95, ((clientX - rect.left) / rect.width) * 100));
+    posRef.current = pct;
+    setSliderPos(pct);
+  }, []);
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
+      <div
+        ref={containerRef}
+        style={{ position: 'relative', flex: 1, overflow: 'hidden', cursor: 'col-resize', userSelect: 'none' }}
+        onMouseDown={() => { isDraggingRef.current = true; }}
+        onMouseUp={() => { isDraggingRef.current = false; }}
+        onMouseLeave={() => { isDraggingRef.current = false; }}
+        onMouseMove={e => { if (isDraggingRef.current) handleMove(e.clientX); }}
+        onTouchStart={() => { isDraggingRef.current = true; }}
+        onTouchEnd={() => { isDraggingRef.current = false; }}
+        onTouchMove={e => { if (isDraggingRef.current) handleMove(e.touches[0].clientX); }}
+      >
+        {MAKEOVER_SLIDES.map((slide, i) => (
+          <div key={i} style={{ position: 'absolute', inset: 0, opacity: i === activeSlide ? 1 : 0, transition: 'opacity 1.2s ease' }}>
+            <img src={slide.after} alt="After" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={slide.before} alt="Before" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }} />
+          </div>
+        ))}
+        {/* Divider */}
+        <div style={{ position: 'absolute', top: 0, bottom: 0, width: 3, background: 'rgba(255,255,255,0.95)', left: `${sliderPos}%`, transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 48, height: 48, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 28px rgba(201,168,76,0.7)', cursor: 'col-resize', pointerEvents: 'all' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--forest)" strokeWidth="2.5"><polyline points="8 4 4 12 8 20" /><polyline points="16 4 20 12 16 20" /></svg>
+          </div>
+        </div>
+        {/* Labels */}
+        <div style={{ position: 'absolute', bottom: 16, left: 16, background: 'rgba(0,0,0,0.55)', color: '#fff', padding: '5px 12px', borderRadius: 99, fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', zIndex: 20, backdropFilter: 'blur(8px)' }}>Before</div>
+        <div style={{ position: 'absolute', bottom: 16, right: 16, background: 'rgba(3,65,26,0.85)', color: '#fff', padding: '5px 12px', borderRadius: 99, fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', zIndex: 20, backdropFilter: 'blur(8px)' }}>After</div>
+        {/* Slide badge */}
+        <div style={{ position: 'absolute', top: 20, left: 20, background: 'rgba(237,207,135,0.96)', color: 'var(--forest)', padding: '6px 16px', borderRadius: 99, fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', zIndex: 20 }}>
+          {MAKEOVER_SLIDES[activeSlide].tag}
+        </div>
+      </div>
+      {/* Thumbnail strip */}
+      <div style={{ display: 'flex', height: 72 }}>
+        {MAKEOVER_SLIDES.map((slide, i) => (
+          <button
+            key={i}
+            onClick={() => { setActiveSlide(i); posRef.current = 50; setSliderPos(50); animDirRef.current = 1; }}
+            style={{ flex: 1, position: 'relative', cursor: 'pointer', background: 'transparent', border: 'none', padding: 0, overflow: 'hidden', borderBottom: i === activeSlide ? '3px solid var(--gold)' : '3px solid rgba(255,255,255,0.1)', transition: 'all 0.3s ease', outline: 'none' }}
+          >
+            <img src={slide.after} alt={slide.label} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: i === activeSlide ? 'brightness(1)' : 'brightness(0.4)' }} />
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 8 }}>
+              <span style={{ color: '#fff', fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{slide.label}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 /* ── INTERACTIVE SERVICES ACCORDION & MOBILE ── */
 const ServicesAccordion = () => {
@@ -847,6 +955,41 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ GREEN MAKEOVER TEASER ═══ */}
+      <section className="section s-reveal gm-home-section" id="green-makeover" style={{ background: 'var(--forest)', overflow: 'hidden', padding: 0 }}>
+        <div className="gm-home-inner">
+          {/* LEFT: Transformation Slider */}
+          <div className="gm-home-left">
+            <GreenMakeoverSlider />
+          </div>
+
+          {/* RIGHT: Minimal premium content */}
+          <div className="gm-home-right">
+
+            <div className="gm-home-headline">
+              <span className="gm-hl-white">Green</span>
+              <span className="gm-hl-gold">Makeover</span>
+            </div>
+
+            <div className="gm-home-rule" />
+
+            <p className="gm-home-sub">
+              Professional plant setups for balconies, terraces &amp; interiors — designed, delivered, and installed.
+            </p>
+
+            <div className="gm-adjustable-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>
+              ₹299 Visit — 100% Adjustable
+            </div>
+
+            <Link href="/green-makeover" className="gm-home-cta">
+              Explore Green Makeover
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+            </Link>
           </div>
         </div>
       </section>
