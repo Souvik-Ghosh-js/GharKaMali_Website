@@ -135,8 +135,7 @@ export default function GreenMakeoverPage() {
           </div>
 
           <div className="gmr-adj-chip">
-            <Ic.Check />
-            ₹299 Visit — 100% Adjustable in final cost
+            👉 “₹299 Visit – 100% Adjustable”
           </div>
         </div>
 
@@ -185,8 +184,7 @@ export default function GreenMakeoverPage() {
           </div>
 
           <div className="gmr-adj-chip gmr-adj-dark">
-            <Ic.Check />
-            ₹299 Visit — 100% Adjustable
+            👉 “₹299 Visit – 100% Adjustable”
           </div>
         </div>
       </section>
@@ -269,6 +267,59 @@ export default function GreenMakeoverPage() {
         </div>
       </section>
 
+      {/* ═══ 4.5 TRANSFORMATIONS GALLERY ═══ */}
+      <section className="gmr-sec gmr-gallery-sec">
+        <div className="gmr-gallery-content gmr-reveal">
+          <div className="gmr-sec-header" style={{ marginBottom: 'clamp(24px, 4vh, 40px)' }}>
+            <div className="gmr-overline gmr-dark-overline"><Ic.Star /> Real Masterpieces</div>
+            <h2 className="gmr-h2">See the Transformations</h2>
+            <p className="gmr-sec-p" style={{ color: 'var(--text-2)' }}>A glimpse into how we turn ordinary spaces into lush green paradises.</p>
+          </div>
+
+          <div className="gmr-marquee-wrapper">
+            {/* Top Row - Moves Left */}
+            <div className="gmr-marquee">
+              <div className="gmr-marquee-track">
+                <div className="gmr-marquee-set">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={`m1-${i}`} className="gmr-marquee-item">
+                      <img src={`/img-${i + 1}.jpeg`} alt={`Transformation ${i + 1}`} loading="lazy" />
+                    </div>
+                  ))}
+                </div>
+                <div className="gmr-marquee-set">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={`m1-dup-${i}`} className="gmr-marquee-item">
+                      <img src={`/img-${i + 1}.jpeg`} alt={`Transformation ${i + 1}`} loading="lazy" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Row - Moves Right */}
+            <div className="gmr-marquee gmr-marquee-reverse" style={{ marginTop: '16px' }}>
+              <div className="gmr-marquee-track">
+                <div className="gmr-marquee-set">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={`m2-${i}`} className="gmr-marquee-item">
+                      <img src={`/img-${i + 9}.jpeg`} alt={`Transformation ${i + 9}`} loading="lazy" />
+                    </div>
+                  ))}
+                </div>
+                <div className="gmr-marquee-set">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={`m2-dup-${i}`} className="gmr-marquee-item">
+                      <img src={`/img-${i + 9}.jpeg`} alt={`Transformation ${i + 9}`} loading="lazy" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ═══ 5. PRICING ═══ */}
       <section className="gmr-sec gmr-dark-sec">
         <div className="gmr-contained">
@@ -334,7 +385,7 @@ export default function GreenMakeoverPage() {
           </div>
 
           <div className="gmr-adj-chip">
-            <Ic.Check /> ₹299 Visit — 100% Adjustable
+            👉 “₹299 Visit – 100% Adjustable”
           </div>
 
           <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="gmr-cta-wa-btn">
@@ -786,6 +837,92 @@ export default function GreenMakeoverPage() {
         .gmr-mob-tag  { font-size: 0.58rem; font-weight: 900; color: var(--gold-deep); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px; }
         .gmr-mob-title { font-size: 0.95rem; font-weight: 800; color: var(--forest); margin: 0 0 6px; display: flex; align-items: center; gap: 6px; }
         .gmr-mob-desc  { font-size: 0.78rem; color: var(--text-2); line-height: 1.5; margin: 0; }
+
+        /* ── GALLERY MARQUEE ── */
+        .gmr-gallery-sec {
+          background: var(--bg);
+          flex-direction: column;
+          justify-content: center;
+        }
+        .gmr-gallery-content {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .gmr-marquee-wrapper {
+          width: 100%;
+          overflow: hidden;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+        }
+        .gmr-marquee-wrapper::before,
+        .gmr-marquee-wrapper::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: 15vw;
+          z-index: 2;
+          pointer-events: none;
+        }
+        .gmr-marquee-wrapper::before { left: 0; background: linear-gradient(to right, var(--bg) 0%, transparent 100%); }
+        .gmr-marquee-wrapper::after { right: 0; background: linear-gradient(to left, var(--bg) 0%, transparent 100%); }
+
+        .gmr-marquee {
+          display: flex;
+          width: 100%;
+        }
+        .gmr-marquee-track {
+          display: flex;
+          width: max-content;
+          animation: marqueeScroll 45s linear infinite;
+        }
+        .gmr-marquee-reverse .gmr-marquee-track {
+          animation-direction: reverse;
+        }
+        .gmr-marquee:hover .gmr-marquee-track {
+          animation-play-state: paused;
+        }
+        .gmr-marquee-set {
+          display: flex;
+          gap: 16px;
+          padding-right: 16px;
+        }
+
+        @keyframes marqueeScroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+
+        .gmr-marquee-item {
+          width: clamp(240px, 22vw, 320px);
+          height: clamp(160px, 15vw, 220px);
+          border-radius: 16px;
+          overflow: hidden;
+          flex-shrink: 0;
+          position: relative;
+          box-shadow: var(--sh-sm);
+          cursor: pointer;
+        }
+        .gmr-marquee-item img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.6s var(--ease);
+        }
+        .gmr-marquee-item:hover img {
+          transform: scale(1.1);
+        }
+        .gmr-marquee-item::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 16px;
+          border: 1px solid rgba(0,0,0,0.05);
+          pointer-events: none;
+        }
 
         /* ── PRICING ── */
         .gmr-plans-grid {
