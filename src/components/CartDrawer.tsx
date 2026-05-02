@@ -426,24 +426,26 @@ export default function CartDrawer() {
                 </>
                 )}
 
-                {/* Map pin — ensures gardener gets exact location */}
-                <div style={{ padding: '12px 14px', background: '#fff', border: '1.5px dashed var(--forest-mid)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>Map Pin (for gardener)</div>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--forest)', lineHeight: 1.4 }} className="truncate">
-                      {pinLat && pinLng
-                        ? (mapAddress || `${pinLat.toFixed(5)}, ${pinLng.toFixed(5)}`)
-                        : 'No pin yet — tap to pick on map'}
+                {/* Map pin — only shown when a gardener service is in the cart */}
+                {items.some(i => i.type === 'service') && (
+                  <div style={{ padding: '12px 14px', background: '#fff', border: '1.5px dashed var(--forest-mid)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>Map Pin (for gardener)</div>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--forest)', lineHeight: 1.4 }} className="truncate">
+                        {pinLat && pinLng
+                          ? (mapAddress || `${pinLat.toFixed(5)}, ${pinLng.toFixed(5)}`)
+                          : 'No pin yet — tap to pick on map'}
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setPickerOpen(true)}
+                      style={{ padding: '8px 12px', borderRadius: 10, border: '1.5px solid var(--forest)', background: '#fff', color: 'var(--forest)', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer', flexShrink: 0 }}
+                    >
+                      {pinLat && pinLng ? 'Change' : 'Pick'}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setPickerOpen(true)}
-                    style={{ padding: '8px 12px', borderRadius: 10, border: '1.5px solid var(--forest)', background: '#fff', color: 'var(--forest)', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer', flexShrink: 0 }}
-                  >
-                    {pinLat && pinLng ? 'Change' : 'Pick'}
-                  </button>
-                </div>
+                )}
 
                 <div style={{ padding: 12, background: 'var(--bg-elevated)', borderRadius: 10, border: '1px solid var(--border-gold)', fontSize: '0.78rem', color: 'var(--sage)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -452,7 +454,7 @@ export default function CartDrawer() {
               </div>
             </div>
             <div className="cart-footer" style={{ borderTop: '1px solid var(--border)' }}>
-              <button onClick={handleCheckout} disabled={!useSavedAddress && !address.trim()} className="btn btn-primary w-full" style={{ justifyContent: 'center', padding: '14px', opacity: (!useSavedAddress && !address.trim()) ? 0.5 : 1 }}>
+              <button onClick={handleCheckout} disabled={!useSaved && !address.trim()} className="btn btn-primary w-full" style={{ justifyContent: 'center', padding: '14px', opacity: (!useSaved && !address.trim()) ? 0.5 : 1 }}>
                 Complete Purchase · ₹{price.toLocaleString('en-IN')} <IcArrow />
               </button>
               <button onClick={() => setStep('cart')} className="btn btn-outline w-full btn-sm" style={{ justifyContent: 'center', marginTop: 10 }}>← Back to Cart</button>
@@ -522,8 +524,8 @@ export default function CartDrawer() {
           setPinLng(p.lng);
           setMapAddress(p.address);
           setCoords(p.lat, p.lng, p.address);
-          if (!useSavedAddress && !addrF.city && p.city) updateAddrF({ city: p.city });
-          if (!useSavedAddress && !addrF.pincode && p.pincode) updateAddrF({ pincode: p.pincode });
+          if (!useSaved && !addrF.city && p.city) updateAddrF({ city: p.city });
+          if (!useSaved && !addrF.pincode && p.pincode) updateAddrF({ pincode: p.pincode });
           toast.success('Location pinned!');
         }}
       />
