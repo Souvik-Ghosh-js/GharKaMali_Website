@@ -35,7 +35,6 @@ const NAV_ITEMS = [
   { href: '/book?type=on-demand', label: 'Book Visit', Icon: Ic.Cal, color: '#f59e0b' },
   { href: '/shop', label: 'Plant Store', Icon: Ic.Shop, color: '#8b5cf6' },
   { href: '/plantopedia', label: 'AI Care', Icon: Ic.Leaf, color: '#10b981' },
-  { href: '/blogs', label: 'Journal', Icon: Ic.Book, color: '#f97316' },
   { href: '/about', label: 'About Us', Icon: Ic.Help, color: '#06b6d4' },
 ];
 
@@ -438,7 +437,7 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
         .nav-link.is-light.active { color: #fff !important; background: rgba(255,255,255,0.2) !important; }
         .nav-link.is-light:hover { color: #fff !important; background: rgba(255,255,255,0.15) !important; }
         
-        @media(max-width:960px){.nav-desktop-links{display:none!important}}
+        @media(max-width:860px){.nav-desktop-links{display:none!important}}
         @media(max-width:820px){.nav-app-badges{display:none!important}}
         @media(max-width:640px){.nav-bell-desktop{display:none!important}}
         @media(max-width:640px){

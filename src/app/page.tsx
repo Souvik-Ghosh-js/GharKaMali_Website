@@ -60,7 +60,7 @@ const TypeWriter = ({ words, style, className }: { words: string[]; style?: Reac
       }}
     >
       <span ref={contentRef} style={{
-        fontSize: '1.2rem',
+        fontSize: 'clamp(0.82rem, 2.5vw, 1.2rem)',
         color: 'var(--gold)',
         fontWeight: 700,
         fontStyle: 'italic',
@@ -74,7 +74,7 @@ const TypeWriter = ({ words, style, className }: { words: string[]; style?: Reac
         opacity: 0.8,
         fontWeight: 300,
         color: 'var(--gold)',
-        fontSize: '1.2rem',
+        fontSize: 'clamp(0.82rem, 2.5vw, 1.2rem)',
         marginLeft: '4px'
       }}>|</span>
     </div>
@@ -425,9 +425,9 @@ const ServicesAccordion = () => {
 };
 
 const HOW_STEPS = [
-  { step: '01', Icon: IcMap, title: 'Pin Your Location', desc: 'Securely share your address to find certified plant experts in your society.' },
-  { step: '02', Icon: IcCalendar, title: 'Schedule Slot', desc: 'Select a convenient time. We ensure punctual arrival with all tools ready.' },
-  { step: '03', Icon: IcLeaf, title: 'Complete Care', desc: 'Your plant expert transforms your green space and shares a digital health report.' },
+  { step: '01', Icon: IcMap, title: 'Select your location', desc: 'Choose your city and share your address to find available experts in your area.' },
+  { step: '02', Icon: IcCalendar, title: 'Choose your time slot', desc: 'Pick a date and time that works best for you. We arrive on time, every time.' },
+  { step: '03', Icon: IcLeaf, title: 'Relax while our expert takes care of your plants', desc: 'Sit back and let our trained mali handle watering, pruning, pest check, and more.' },
 ];
 
 const WA_URL = 'https://wa.me/919876543210?text=Hi%20GharKaMali!%20I%20want%20to%20book%20a%20gardener%20visit%20for%20my%20home.';
@@ -486,11 +486,14 @@ const HeroSlideshow = () => {
 /* ── MARQUEE ── */
 const Marquee = () => {
   const items = [
-    { text: 'Trusted by 1,000+ Plant Parents', Icon: IcShield },
-    { text: 'Background Verified Experts', Icon: IcShield },
-    { text: '2-Day Intensive Training', Icon: IcScissors },
-    { text: 'Certified Realistic Care', Icon: IcLeaf },
-    { text: 'Serving Noida & Greater Noida', Icon: IcMap },
+    { text: '1200+ Homes Served', Icon: IcShield },
+    { text: 'Verified Experts', Icon: IcShield },
+    { text: '4.9 ⭐ Rating', Icon: IcStar },
+    { text: 'Serving: Noida', Icon: IcMap },
+    { text: 'Serving: Greater Noida', Icon: IcMap },
+    { text: 'Serving: Greater Noida West', Icon: IcMap },
+    { text: 'Serving: Ghaziabad', Icon: IcMap },
+    { text: '🚀 Launching Soon: Gurugram', Icon: IcMap },
   ];
   return (
     <div style={{ background: 'var(--forest)', padding: '20px 0', overflow: 'hidden', borderTop: '1px solid rgba(255,255,255,0.1)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
@@ -508,18 +511,27 @@ const Marquee = () => {
   );
 };
 
-const CityMarquee = ({ zones }: { zones: any[] }) => {
-  if (!zones?.length) return null;
+const SERVICEABLE_CITIES = [
+  { name: 'Noida', active: true },
+  { name: 'Greater Noida', active: true },
+  { name: 'Greater Noida West', active: true },
+  { name: 'Ghaziabad', active: true },
+  { name: 'Gurugram', active: false },
+];
+
+const CityMarquee = () => {
   return (
     <div style={{ background: 'var(--bg-elevated)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '14px 0', overflow: 'hidden' }}>
       <div className="marquee-container" style={{ gap: '60px' }}>
-        <div className="marquee-scroller" style={{ animationDuration: '40s', gap: '80px' }}>
-          {[...Array(3)].map((_, i) => (
+        <div className="marquee-scroller" style={{ animationDuration: '30s', gap: '80px' }}>
+          {[...Array(4)].map((_, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '80px' }}>
-              {zones.map((z, zi) => (
+              {SERVICEABLE_CITIES.map((city, zi) => (
                 <div key={zi} style={{ display: 'flex', alignItems: 'center', gap: '12px', whiteSpace: 'nowrap' }}>
-                  <span style={{ color: 'var(--earth)' }}><IcMap /></span>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>NOW SERVING: {z.name}</span>
+                  <span style={{ color: city.active ? 'var(--earth)' : 'var(--sage)' }}><IcMap /></span>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: city.active ? 'var(--forest)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                    {city.active ? `NOW SERVING: ${city.name}` : `🚀 COMING SOON: ${city.name}`}
+                  </span>
                 </div>
               ))}
             </div>
@@ -634,28 +646,28 @@ export default function HomePage() {
               </div>
 
               {/* Hero title structure */}
-              <div style={{ marginBottom: 20, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {/* Row 1: Typewriter */}
                 <TypeWriter words={dynamicWords} />
 
-                {/* Row 2: Brand + Tag */}
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
+                {/* Row 2: Brand + Tag — inline so "hai na!" never wraps alone */}
+                <div style={{ display: 'block', lineHeight: 1.1 }}>
                   <span className="typewriter-gradient" style={{
-                    fontSize: 'clamp(2.8rem, 6vw, 4.2rem)',
+                    fontSize: 'clamp(2rem, 8vw, 4.2rem)',
                     fontWeight: 900,
                     letterSpacing: '-0.03em',
                     color: '#fff',
                     textShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                    lineHeight: 1.1
                   }}>
                     GharKaMali
                   </span>
                   <span style={{
-                    fontSize: '1.2rem',
+                    fontSize: 'clamp(0.9rem, 3vw, 1.2rem)',
                     color: 'rgba(255,255,255,0.8)',
                     fontWeight: 700,
                     letterSpacing: '0.02em',
-                    fontStyle: 'italic'
+                    fontStyle: 'italic',
+                    marginLeft: 10,
                   }}>
                     hai na!
                   </span>
@@ -663,18 +675,26 @@ export default function HomePage() {
               </div>
 
               <p className="hero-subtitle" style={{ maxWidth: 580, marginBottom: 44, fontWeight: 500, color: 'rgba(255,255,255,0.92)', textShadow: '0 2px 8px rgba(0,0,0,0.4)', fontSize: 'clamp(1rem, 1.4vw, 1.18rem)', lineHeight: 1.8 }}>
-                Certified realistic plant care experts at your home starting just{' '}
-                <strong style={{ color: 'var(--gold)', fontWeight: 800 }}>₹349</strong>.
-                Ensuring your green spaces thrive in every season.
+                Professional plant care services across Noida, Greater Noida, Greater Noida West, and Ghaziabad. Launching soon in Gurugram. We take care of watering, pruning, pest control, and plant health—so your plants always stay green.
               </p>
 
               <div className="hero-cta-row" style={{ display: 'flex', gap: 14, justifyContent: 'flex-start', flexWrap: 'wrap', position: 'relative' }}>
                 <Link href="/book?type=on-demand" className="btn btn-primary btn-lg btn-3d-plant" style={{ position: 'relative', overflow: 'visible', padding: '12px 28px' }}>
-                  Book Professional Visit <IcArrow />
+                  Book Mali Visit @ ₹349 <IcArrow />
                 </Link>
-                <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-lg btn-3d-plant" style={{ borderColor: 'rgba(255,255,255,0.4)', color: '#fff', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', position: 'relative', overflow: 'visible', padding: '12px 28px' }}>
-                  <IcWhatsApp /> Chat with Experts
+                <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-lg hero-wa-btn" style={{ borderColor: 'rgba(255,255,255,0.4)', color: '#fff', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', padding: '13px 28px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  Get Free Plant Advice on WhatsApp
                 </a>
+              </div>
+
+              {/* Value Add */}
+              <div style={{ display: 'flex', gap: 20, marginTop: 24, flexWrap: 'wrap' }}>
+                {['Up to 10 plants serviced', '1kg compost included', '30–45 minute visit'].map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.9)', fontSize: '0.88rem', fontWeight: 600 }}>
+                    <span style={{ color: '#4ade80', fontWeight: 900 }}>✔</span>
+                    {item}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -686,10 +706,10 @@ export default function HomePage() {
               maxWidth: '340px',
             }}>
               {[
-                { num: 1200, suffix: '+', label: 'Visits Done' },
-                { num: 25, suffix: '+', label: 'Certified Experts' },
-                { num: 4.9, suffix: '★', label: 'Avg Rating' },
-                { num: 55, suffix: '+', label: 'Societies' },
+                { num: 4.9, suffix: '★', label: '⭐ Rating' },
+                { num: 1200, suffix: '+', label: '🏡 Homes Served' },
+                { num: 0, suffix: '', label: '🛡 Verified Experts' },
+                { num: 55, suffix: '+', label: 'Societies Covered' },
               ].map(s => (
                 <div key={s.label} className="hero-stat-card" style={{
                   background: 'rgba(255,255,255,0.12)',
@@ -706,7 +726,7 @@ export default function HomePage() {
                     lineHeight: 1.1,
                     marginBottom: 4,
                   }}>
-                    {s.label === 'Avg Rating' ? `4.9★` : <Counter end={s.num} suffix={s.suffix} />}
+                    {s.label === '⭐ Rating' ? `4.9★` : s.label === '🛡 Verified Experts' ? `✓` : <Counter end={s.num} suffix={s.suffix} />}
                   </div>
                   <div style={{
                     fontSize: '0.62rem',
@@ -724,11 +744,41 @@ export default function HomePage() {
 
         <div style={{ padding: '0', width: '100%', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 10 }}>
           <Marquee />
-          <CityMarquee zones={zones} />
+          <CityMarquee />
         </div>
       </section>
 
 
+
+      {/* ═══ SERVICE AREA ═══ */}
+      <section className="section s-reveal" style={{ background: 'var(--bg-sage)', padding: 'clamp(48px,6vw,80px) 0' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <div className="section-divider-line" />
+            <span className="overline overline-dot">Coverage</span>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Serving Across NCR</h2>
+            <p style={{ color: 'var(--text-2)', fontSize: '1.05rem', maxWidth: 520, margin: '14px auto 0', lineHeight: 1.7, fontWeight: 500 }}>
+              We are currently providing expert gardening services in:
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap', marginBottom: 32 }}>
+            {['Noida', 'Greater Noida', 'Greater Noida West', 'Ghaziabad'].map((city, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1.5px solid var(--border-gold)', borderRadius: 99, padding: '12px 28px', fontWeight: 800, color: 'var(--forest)', fontSize: '0.95rem', boxShadow: 'var(--sh-sm)' }}>
+                <span style={{ color: 'var(--earth)' }}><IcMap /></span>
+                {city}
+              </div>
+            ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--forest)', border: '1.5px solid var(--forest)', borderRadius: 99, padding: '12px 28px', fontWeight: 800, color: '#fff', fontSize: '0.95rem', boxShadow: 'var(--sh-sm)' }}>
+              🚀 Gurugram — Launching Soon
+            </div>
+          </div>
+
+          <p style={{ textAlign: 'center', color: 'var(--sage)', fontSize: '0.88rem', fontWeight: 600 }}>
+            Check availability in your society while booking.
+          </p>
+        </div>
+      </section>
 
       {/* ═══ PROFESSIONAL GARDENING MADE SIMPLE ═══ */}
       <section className="section s-reveal" style={{ background: '#fff', overflow: 'hidden' }}>
@@ -736,17 +786,16 @@ export default function HomePage() {
           <div className="prof-gardening-grid">
             <div className="prof-gardening-content s-reveal s-reveal-d1">
               <span className="overline" style={{ color: 'var(--earth)' }}>Service Excellence</span>
-              <h2 className="display-2 heading-two-tone" style={{ marginTop: 12, textAlign: 'left', width: 'auto' }}>Professional gardening <br /> made <span>simple.</span></h2>
+              <h2 className="display-2 heading-two-tone" style={{ marginTop: 12, textAlign: 'left', width: 'auto' }}>Why Choose <span>GharKaMali?</span></h2>
               <p style={{ color: 'var(--text-2)', fontSize: '1.1rem', marginTop: 24, lineHeight: 1.8, maxWidth: 500, fontWeight: 500 }}>
-                We bring the expertise of certified horticulturists to your doorstep. From regular maintenance to complete transformations, we ensure your green space stays vibrant and healthy through science-backed protocols.
+                We solve all of this with expert home gardening services at your doorstep.
               </p>
 
               <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {[
-                  'Personalized plant care plans',
-                  'Organic and sustainable practices',
-                  'Transparent pricing with no hidden costs',
-                  'Expert advice for every plant species'
+                  'No time to take care of your plants?',
+                  'Plants drying or turning yellow?',
+                  'Not sure what your plants need?'
                 ].map((item, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, color: 'var(--forest)', fontWeight: 700 }}>
                     <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', boxShadow: 'var(--sh-sm)' }}>✓</div>
@@ -756,7 +805,7 @@ export default function HomePage() {
               </div>
 
               <div style={{ marginTop: 44 }}>
-                <Link href="/book" className="btn btn-primary btn-lg">Book Professional Visit</Link>
+                <Link href="/book" className="btn btn-primary btn-lg">Book Your First Visit</Link>
               </div>
             </div>
 
@@ -801,9 +850,9 @@ export default function HomePage() {
           <div style={{ textAlign: 'center', marginBottom: 'clamp(48px,6vw,80px)' }}>
             <div className="section-divider-line" />
             <span className="overline overline-dot">Proactive Maintenance</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Plant Utilities</h2>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>What You Get in ₹349 Visit</h2>
             <p style={{ color: 'var(--text-2)', fontSize: '1.05rem', maxWidth: 540, margin: '14px auto 0', lineHeight: 1.7, fontWeight: 500 }}>
-              Essential protocols maintained by our experts for every plant in your care.
+              Everything your plants need, covered in a single expert visit.
             </p>
           </div>
 
@@ -817,11 +866,11 @@ export default function HomePage() {
             padding: '20px'
           }}>
             {[
-              { title: 'Watering Strategy', desc: 'Precision moisture monitoring for every species.', Icon: IcDroplet },
-              { title: 'Organic Nutrition', desc: 'Premium fertilizers for lush green growth.', Icon: IcLeaf },
-              { title: 'Pest Screening', desc: 'Proactive detection of infestations and diseases.', Icon: IcShield },
-              { title: 'Growth Pruning', desc: 'Shaping plants for better health and aesthetics.', Icon: IcScissors },
-              { title: 'Soil Restoration', desc: 'Revitalizing soil health with organic amendments.', Icon: IcMap },
+              { title: 'Complete check-up of your plants', desc: 'Thorough inspection of every plant for health, pest signs, and growth issues.', Icon: IcLeaf },
+              { title: 'Proper watering and cleaning', desc: 'Right amount of water for each plant type, plus leaf cleaning for better growth.', Icon: IcDroplet },
+              { title: 'Pruning and trimming', desc: 'Removing dead and excess growth to keep your plants looking fresh and healthy.', Icon: IcScissors },
+              { title: 'Pest inspection and basic treatment', desc: 'Early detection and on-spot treatment to protect your plants from damage.', Icon: IcShield },
+              { title: 'Soil health check', desc: 'Assessing and improving soil condition for stronger roots and better nutrition.', Icon: IcMap },
             ].map((item, i) => (
               <div
                 key={i}
@@ -882,7 +931,7 @@ export default function HomePage() {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 'clamp(40px,6vw,80px)' }}>
             <div className="section-divider-line" />
             <span className="overline overline-dot">Streamlined System</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Booking to bloom in 3 steps</h2>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Book in 3 Simple Steps</h2>
           </div>
 
           {/* Desktop: horizontal row with GSAP-style expand from stack */}
@@ -971,14 +1020,14 @@ export default function HomePage() {
           <div className="gm-home-right">
 
             <div className="gm-home-headline">
-              <span className="gm-hl-white">Green</span>
-              <span className="gm-hl-gold">Makeover</span>
+              <span className="gm-hl-white">Real</span>
+              <span className="gm-hl-gold">Transformations</span>
             </div>
 
             <div className="gm-home-rule" />
 
             <p className="gm-home-sub">
-              Professional plant setups for balconies, terraces &amp; interiors — designed, delivered, and installed.
+              See how we bring plants back to life in homes across NCR — balconies, terraces, and interiors transformed.
             </p>
 
             <div className="gm-adjustable-badge">
@@ -1158,18 +1207,18 @@ export default function HomePage() {
             <div style={{ position: 'absolute', left: -40, bottom: -40, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
             <h2 className="heading-two-tone" style={{ fontSize: 'clamp(2rem,5.5vw,4.2rem)', fontWeight: 900, marginBottom: 24, lineHeight: 1.1, position: 'relative', fontStyle: 'normal' }}>
-              Ready for a Professional<br />
-              <span>Garden Transformation?</span>
+              Give Your Plants the<br />
+              <span>Care They Deserve</span>
             </h2>
             <p style={{ color: 'var(--text-2)', fontSize: 'clamp(0.95rem,1.4vw,1.2rem)', maxWidth: 640, margin: '0 auto 44px', lineHeight: 1.8, fontWeight: 500 }}>
-              Join Noida's most elite plant care society. Secure your spot for a premium visit and let our realistic experts handle the rest.
+              Book your first visit today and experience professional plant care at home.
             </p>
             <div className="final-cta-actions" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="/book?type=on-demand" className="btn btn-primary btn-xl btn-3d-plant" style={{ position: 'relative', overflow: 'visible' }}>
-                Book Your Slot <IcArrow />
+                Book Now @ ₹349 <IcArrow />
               </Link>
               <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-xl btn-3d-plant" style={{ background: '#fff', border: '2px solid var(--forest)', color: 'var(--forest)', position: 'relative', overflow: 'visible' }}>
-                <IcWhatsApp /> Discuss on WhatsApp
+                <IcWhatsApp /> Chat with Us
               </a>
             </div>
           </div>
@@ -1181,7 +1230,7 @@ export default function HomePage() {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 52 }}>
             <div className="section-divider-line" />
             <span className="overline overline-dot">Social Proof</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Voices from Noida Societies</h2>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Trusted by Homes Across NCR</h2>
           </div>
         </div>
         {/* Infinite Marquee — duplicated for seamless loop */}
@@ -1248,7 +1297,7 @@ export default function HomePage() {
             <div style={{ textAlign: 'center', marginBottom: 64 }}>
               <div className="section-divider-line" />
               <span className="overline overline-dot">Subscription Experience</span>
-              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, letterSpacing: '-0.02em' }}>Pick Your <span style={{ color: 'var(--earth)', fontStyle: 'normal' }}>Botanical Plan</span></h2>
+              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, letterSpacing: '-0.02em' }}>Choose a <span style={{ color: 'var(--earth)', fontStyle: 'normal' }}>Monthly Plant Care Plan</span></h2>
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center', marginBottom: 64 }}>
@@ -1293,7 +1342,7 @@ export default function HomePage() {
             <div style={{ textAlign: 'center' }}>
               <div style={{ height: 1.5, background: 'linear-gradient(90deg, transparent, var(--border-gold), transparent)', marginBottom: 48, maxWidth: 400, margin: '0 auto 48px' }} />
               <Link href="/plans" className="btn btn-outline btn-lg" style={{ borderColor: 'var(--forest)', color: 'var(--forest)', padding: '16px 52px', fontSize: '1rem', fontWeight: 800 }}>
-                View All Exclusive Plans
+                Start Monthly Care
               </Link>
             </div>
           </div>

@@ -688,31 +688,87 @@ html.snap {
 @media (max-width: 900px) {
   .hero-split-layout {
     grid-template-columns: 1fr;
-    padding-top: 80px;
-    padding-bottom: 110px;
-    gap: 20px;
+    padding-top: 100px;
+    padding-bottom: 130px;
+    gap: 28px;
+    text-align: center;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .hero-left-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .hero-left-col .typewriter-container {
+    justify-content: center;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .hero-left-col > div {
+    text-align: center;
+    width: 100%;
+  }
+
+  .hero-cta-row .btn {
+    font-size: 0.82rem !important;
+    padding: 13px 20px !important;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  .hero-wa-btn {
+    font-size: 0.7rem !important;
+    padding: 13px 20px !important;
+    letter-spacing: 0 !important;
+    white-space: normal !important;
+    line-height: 1.4;
   }
 
   .hero-right-col {
-    gap: 12px;
+    gap: 10px;
+    max-width: 100% !important;
+    grid-template-columns: 1fr 1fr !important;
+    width: 100% !important;
   }
 
   .hero-stat-card {
-    padding: 16px 12px;
-    border-radius: 16px;
+    padding: 14px 10px;
+    border-radius: 14px;
   }
 
   .hero-stat-card .stat-num {
-    font-size: 1.8rem !important;
+    font-size: 1.4rem !important;
   }
 
   .hero-subtitle {
     margin-bottom: 24px !important;
-    font-size: 0.95rem !important;
+    font-size: 0.88rem !important;
+    text-align: center !important;
+    line-height: 1.75 !important;
+    max-width: 100% !important;
+    width: 100%;
   }
 
   .hero-cta-row {
     margin-bottom: 0px !important;
+    justify-content: center !important;
+    flex-direction: column !important;
+    width: 100%;
+    gap: 10px !important;
+  }
+
+  .hero-cta-row a,
+  .hero-cta-row > * {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center;
   }
 }
 
@@ -5262,7 +5318,7 @@ section:has(.marquee-container) {
 /* ═══════════════════════════════════════════════════════
    NAV DARK MENU FIXES
 ═══════════════════════════════════════════════════════ */
-@media(max-width:960px) {
+@media(max-width:860px) {
   .nav-desktop-links {
     display: none !important
   }
@@ -7635,6 +7691,8 @@ body {
   justify-content: center;
   gap: clamp(20px, 3.2vh, 36px);
   padding: clamp(48px, 7vw, 110px) clamp(36px, 5vw, 80px);
+  overflow: hidden;
+  min-width: 0;
 }
 
 /* Service label */
@@ -7659,23 +7717,25 @@ body {
 
 .gm-hl-white {
   display: block;
-  font-size: clamp(3rem, 6vw, 5.5rem);
+  font-size: clamp(2rem, 3.5vw, 3.6rem);
   font-weight: 900;
   color: rgba(255, 255, 255, 0.92);
-  letter-spacing: -0.05em;
-  line-height: 0.95;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  word-break: break-word;
 }
 
 .gm-hl-gold {
   display: block;
-  font-size: clamp(3rem, 6vw, 5.5rem);
+  font-size: clamp(2rem, 3.5vw, 3.6rem);
   font-weight: 900;
   background: linear-gradient(110deg, #edcf87 0%, #f5dea0 50%, #c9a84c 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: -0.05em;
-  line-height: 0.95;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  word-break: break-word;
 }
 
 /* Thin divider rule */
