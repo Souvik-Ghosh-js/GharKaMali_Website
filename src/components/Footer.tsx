@@ -38,6 +38,7 @@ const NAV_COLS = [
       { href: '/notifications', label: 'Notifications' },
       { href: '/shop/orders', label: 'Track Orders' },
       { href: '/login', label: 'Sign In' },
+      { href: '/terms', label: 'Terms & Privacy' },
     ],
   },
 ];

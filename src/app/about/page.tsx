@@ -186,6 +186,28 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* ══ JOURNEY ══ */}
+      <section style={{ padding: 'clamp(40px,6vw,80px) 0', background: '#fff' }}>
+        <div className="container">
+          <div style={{ position: 'relative', background: 'linear-gradient(135deg, #f0faf2 0%, #e8f5ea 100%)', borderRadius: 24, padding: 'clamp(28px,4vw,48px)', border: '1.5px solid var(--border-gold)', boxShadow: 'var(--sh-md)', overflow: 'hidden' }}>
+            <div className="journey-card-deco" />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <h3 style={{ color: 'var(--forest)', fontSize: '1.6rem', fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ color: 'var(--earth)' }}><IcLeaf /></span> From Scratch
+              </h3>
+              <div style={{ color: 'var(--text-2)', lineHeight: 1.7, fontSize: '0.95rem', fontWeight: 400 }}>
+                <p style={{ marginBottom: 12 }}>Every journey begins with a small problem. We noticed that many people love plants but taking care of them is not always easy. Busy schedules, lack of plant care knowledge, and difficulty finding a reliable plant expert often lead to plants slowly losing their health.</p>
+                <p style={{ marginBottom: 12 }}>This everyday problem sparked the idea of GharKaMali – a reliable and trustworthy platform for plant care. The journey was not easy. There were many challenges, rejections, and countless sleepless nights while building the right team, creating systems, and solving day-to-day problems.</p>
+                <p style={{ marginBottom: 12 }}>Step by step, the belief in the vision kept growing stronger. What started as a simple idea gradually became a dream to build something that could truly help people and contribute positively to society.</p>
+                <p style={{ color: '#011208', fontWeight: 500, fontSize: '0.95rem', lineHeight: 1.7 }}>
+                  Today, we are proud to share an important milestone – the GharKaMali website is now live, serving homes in Noida, Greater Noida, Greater Noida West, and Ghaziabad. And this is just the beginning of our journey to help homes keep their plants healthy and green.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ══ MISSION ══ */}
       <section className="mission-section" style={{ padding: 'clamp(64px,8vw,104px) 0', background: 'var(--cream)' }}>
         <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'clamp(36px,5vw,72px)', alignItems: 'center' }}>

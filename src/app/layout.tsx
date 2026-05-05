@@ -9,8 +9,16 @@ import NotificationListener from '@/components/NotificationListener';
 export const metadata: Metadata = {
   title: { default: 'GharKaMali — Expert Plant Care at Home | Starting ₹349', template: '%s | GharKaMali' },
   description: 'Expert plant care at your home starting just ₹349. Professional gardeners in Noida & Greater Noida. Book your garden visit today!',
-  keywords: ['gardening', 'garden care', 'plants', 'gardener', 'home garden', 'plant care', 'Noida gardener', 'plant service', 'GharKaMali'],
-  openGraph: { type: 'website', locale: 'en_IN', siteName: 'GharKaMali' },
+  keywords: ['gardening', 'garden care', 'plants', 'gardener', 'home garden', 'plant care', 'Noida gardener', 'plant service', 'GharKaMali', 'gardener near me', 'mali near me', 'plant care near me', 'home gardening service', 'garden maintenance near me'],
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    siteName: 'GharKaMali',
+    title: 'GharKaMali — Expert Plant Care at Home | Starting ₹349',
+    description: 'Expert plant care at your home starting just ₹349. Professional gardeners in Noida & Greater Noida. Book your garden visit today!',
+    url: 'https://gharkamali.com',
+    images: [{ url: 'https://gharkamali.com/og-image.jpg', width: 1200, height: 630, alt: 'GharKaMali — Professional Gardening Service' }],
+  },
   icons: {
     icon: '/favicon.ico',
   },

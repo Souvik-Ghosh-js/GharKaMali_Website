@@ -18,8 +18,22 @@ const IcShield= () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none
 const IcBack  = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>;
 const IcWA    = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>;
 
-const WA_URL = 'https://wa.me/919876543210?text=Hi%20GharKaMali!%20I%20want%20to%20know%20more%20about%20a%20product.';
-const PLACEHOLDER = 'https://images.unsplash.com/photo-1597055110188-591ff1130d2e?w=800&h=800&fit=crop';
+const WA_URL = 'https://wa.me/919643701701?text=Hi%20GharKaMali!%20I%20want%20to%20know%20more%20about%20a%20product.';
+const PLACEHOLDER = '/no-img.svg';
+
+const DETAIL_TABS = [
+  { id: 'highlights',  label: 'Highlights' },
+  { id: 'description', label: 'Description' },
+  { id: 'faq',         label: 'FAQ' },
+  { id: 'tags',        label: 'Tags' },
+];
+
+const FAQ_DEFAULT = [
+  { q: 'Is this product safe for indoor plants?', a: 'Yes, all our products are tested and safe for both indoor and outdoor use.' },
+  { q: 'How long does delivery take?', a: 'We deliver within 2–4 business days across Noida, Greater Noida, and Ghaziabad.' },
+  { q: 'Can I return if not satisfied?', a: 'We offer a 7-day easy return policy on all products.' },
+  { q: 'How do I use this product?', a: 'Detailed usage instructions are included in the packaging. You can also WhatsApp us for expert guidance.' },
+];
 
 export default function ProductDetailPage() {
   const params  = useParams();
@@ -32,6 +46,7 @@ export default function ProductDetailPage() {
   const [qty, setQty]           = useState(1);
   const [zoomed, setZoomed]     = useState(false);
   const [zoomPos, setZoomPos]   = useState({ x: 50, y: 50 });
+  const [activeTab, setActiveTab] = useState('highlights');
   const imgRef = useRef<HTMLDivElement>(null);
 
   const { addItem } = useCart();
@@ -155,17 +170,17 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        <div className="container" style={{ paddingTop: 40, paddingBottom: 80 }}>
+        <div className="container" style={{ paddingTop: 32, paddingBottom: 80 }}>
 
           {/* ── MAIN GRID ── */}
-          <div className="pdp-grid" style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 64, alignItems: 'start' }}>
+          <div className="pdp-grid" style={{ display: 'grid', gridTemplateColumns: '0.8fr 1fr', gap: 56, alignItems: 'start' }}>
 
             {/* LEFT — Gallery */}
-            <div className="pdp-gallery" style={{ opacity: 0 }}>
+            <div className="pdp-gallery" style={{ opacity: 0, position: 'sticky', top: 'calc(var(--nav-h) + 20px)' }}>
               {/* Main image + zoom */}
               <div
                 ref={imgRef}
-                style={{ position: 'relative', borderRadius: 28, overflow: 'hidden', aspectRatio: '1/1', background: 'var(--bg-elevated)', border: '1.5px solid var(--border-gold)', boxShadow: 'var(--sh-md)', cursor: zoomed ? 'crosshair' : 'zoom-in' }}
+                style={{ position: 'relative', borderRadius: 20, overflow: 'hidden', height: 'calc(100vh - var(--nav-h) - 120px)', minHeight: 420, background: 'var(--bg-elevated)', border: '1.5px solid var(--border-gold)', boxShadow: 'var(--sh-md)', cursor: zoomed ? 'crosshair' : 'zoom-in' }}
                 onMouseEnter={() => setZoomed(true)}
                 onMouseLeave={() => setZoomed(false)}
                 onMouseMove={(e) => {
@@ -205,24 +220,10 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {/* Trust badges */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginTop: 20 }}>
-                {[
-                  { icon: <IcTruck />,  title: 'Free Delivery',  sub: 'On orders ₹499+' },
-                  { icon: <IcShield />, title: '7-Day Return',   sub: 'Easy no-hassle' },
-                  { icon: <IcCheck />,  title: 'Certified',      sub: '100% organic' },
-                ].map((t) => (
-                  <div key={t.title} style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 14, padding: '12px 10px', textAlign: 'center' }}>
-                    <div style={{ color: 'var(--forest)', display: 'flex', justifyContent: 'center', marginBottom: 5 }}>{t.icon}</div>
-                    <div style={{ fontWeight: 800, fontSize: '0.77rem', color: 'var(--forest)' }}>{t.title}</div>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 2 }}>{t.sub}</div>
-                  </div>
-                ))}
-              </div>
             </div>
 
             {/* RIGHT — Info */}
-            <div className="pdp-info" style={{ opacity: 0, position: 'sticky', top: 'calc(var(--nav-h) + 20px)' }}>
+            <div className="pdp-info" style={{ opacity: 0 }}>
               {/* Category */}
               <div style={{ color: 'var(--earth)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', fontSize: '0.75rem', marginBottom: 12 }}>
                 {product.category?.name || 'Garden Marketplace'}
@@ -307,40 +308,143 @@ export default function ProductDetailPage() {
                 </a>
               </div>
 
-              {/* Meta row */}
-              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', padding: '14px 18px', background: 'rgba(3,65,26,0.03)', border: '1px solid var(--border)', borderRadius: 14, fontSize: '0.8rem', color: 'var(--text-2)' }}>
-                {product.sku && <span><strong>SKU:</strong> {product.sku}</span>}
-                <span><strong>Category:</strong> {product.category?.name || '—'}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* ── PRODUCT DETAILS TABLE ── */}
-          <div style={{ marginTop: 80, background: '#fff', borderRadius: 24, border: '1px solid var(--border)', overflow: 'hidden', boxShadow: 'var(--sh-sm)' }}>
-            <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--border)', background: 'linear-gradient(135deg,rgba(3,65,26,0.03),transparent)' }}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 800, color: 'var(--forest)' }}>Product Details</h2>
-            </div>
-            <div style={{ padding: '28px 32px', display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) 1fr', gap: 40 }} className="pdt-table-grid">
-              <div>
-                <h3 style={{ fontWeight: 800, color: 'var(--forest)', marginBottom: 14, fontSize: '0.95rem' }}>About this product</h3>
-                <p style={{ color: 'var(--text-2)', fontSize: '0.93rem', lineHeight: 1.85, fontWeight: 500 }}>
-                  {product.description || 'Quality horticultural product curated by GharKaMali experts.'}
-                </p>
-              </div>
-              <div>
-                <h3 style={{ fontWeight: 800, color: 'var(--forest)', marginBottom: 14, fontSize: '0.95rem' }}>Specifications</h3>
+              {/* Trust badges */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 24 }}>
                 {[
-                  ['Category',  product.category?.name || 'Garden'],
-                  ['Price',     `₹${price.toLocaleString('en-IN')}`],
-                  ['MRP',       mrp > 0 ? `₹${mrp.toLocaleString('en-IN')}` : null],
-                  ['Status',    'In Stock'],
-                ].filter(s => s[1] !== null).map(([label, value]) => (
-                  <div key={label} style={{ display: 'flex', gap: 16, padding: '9px 0', borderBottom: '1px solid var(--border)' }}>
-                    <span style={{ fontWeight: 700, color: 'var(--forest)', minWidth: 90, fontSize: '0.85rem' }}>{label}</span>
-                    <span style={{ color: 'var(--text-2)', fontSize: '0.85rem' }}>{value}</span>
+                  { icon: <IcTruck />,  title: 'Free Delivery', sub: 'On orders ₹499+' },
+                  { icon: <IcShield />, title: '7-Day Return',  sub: 'Easy no-hassle' },
+                  { icon: <IcCheck />,  title: 'Certified',     sub: '100% organic' },
+                ].map((t) => (
+                  <div key={t.title} style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 14, padding: '12px 10px', textAlign: 'center' }}>
+                    <div style={{ color: 'var(--forest)', display: 'flex', justifyContent: 'center', marginBottom: 5 }}>{t.icon}</div>
+                    <div style={{ fontWeight: 800, fontSize: '0.77rem', color: 'var(--forest)' }}>{t.title}</div>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 2 }}>{t.sub}</div>
                   </div>
                 ))}
               </div>
+
+              {/* Meta row */}
+              {product.sku && (
+                <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', padding: '14px 18px', background: 'rgba(3,65,26,0.03)', border: '1px solid var(--border)', borderRadius: 14, fontSize: '0.8rem', color: 'var(--text-2)' }}>
+                  <span><strong>SKU:</strong> {product.sku}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── PRODUCT DETAIL TABS ── */}
+          <div style={{ marginTop: 80, background: '#fff', borderRadius: 24, border: '1px solid var(--border)', overflow: 'hidden', boxShadow: 'var(--sh-sm)' }}>
+            {/* Tab bar */}
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', overflowX: 'auto', scrollbarWidth: 'none' }}>
+              {DETAIL_TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    padding: '18px 28px',
+                    fontWeight: 700,
+                    fontSize: '0.88rem',
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    color: activeTab === tab.id ? 'var(--forest)' : 'var(--text-2)',
+                    borderBottom: activeTab === tab.id ? '2.5px solid var(--forest)' : '2.5px solid transparent',
+                    transition: 'all 0.2s',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab content */}
+            <div style={{ padding: '32px' }}>
+
+              {/* Highlights */}
+              {activeTab === 'highlights' && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px,1fr) 1fr', gap: 40 }} className="pdt-table-grid">
+                  <div>
+                    <h3 style={{ fontWeight: 800, color: 'var(--forest)', marginBottom: 14, fontSize: '0.95rem' }}>Product Highlights</h3>
+                    {product.features && Array.isArray(product.features) && product.features.length > 0 ? (
+                      product.features.map((f: string) => (
+                        <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                          <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(3,65,26,0.08)', border: '1px solid rgba(3,65,26,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', flexShrink: 0 }}><IcCheck /></div>
+                          <span style={{ color: 'var(--text-2)', fontSize: '0.9rem', fontWeight: 600 }}>{f}</span>
+                        </div>
+                      ))
+                    ) : (
+                      ['100% organic & safe', 'Expert-curated quality', 'Tested for indoor & outdoor use', 'Eco-friendly packaging', 'Suitable for all plant types'].map(f => (
+                        <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                          <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(3,65,26,0.08)', border: '1px solid rgba(3,65,26,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', flexShrink: 0 }}><IcCheck /></div>
+                          <span style={{ color: 'var(--text-2)', fontSize: '0.9rem', fontWeight: 600 }}>{f}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <div>
+                    <h3 style={{ fontWeight: 800, color: 'var(--forest)', marginBottom: 14, fontSize: '0.95rem' }}>Specifications</h3>
+                    {[
+                      ['Category', product.category?.name || 'Garden'],
+                      ['Price',    `₹${price.toLocaleString('en-IN')}`],
+                      ['MRP',      mrp > 0 ? `₹${mrp.toLocaleString('en-IN')}` : null],
+                      ['Status',   'In Stock'],
+                      product.sku ? ['SKU', product.sku] : null,
+                    ].filter(Boolean).filter((s: any) => s[1] !== null).map(([label, value]: any) => (
+                      <div key={label} style={{ display: 'flex', gap: 16, padding: '9px 0', borderBottom: '1px solid var(--border)' }}>
+                        <span style={{ fontWeight: 700, color: 'var(--forest)', minWidth: 90, fontSize: '0.85rem' }}>{label}</span>
+                        <span style={{ color: 'var(--text-2)', fontSize: '0.85rem' }}>{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Description */}
+              {activeTab === 'description' && (
+                <div style={{ maxWidth: 680 }}>
+                  <h3 style={{ fontWeight: 800, color: 'var(--forest)', marginBottom: 16, fontSize: '1.1rem' }}>About this Product</h3>
+                  <p style={{ color: 'var(--text-2)', fontSize: '0.97rem', lineHeight: 1.9, fontWeight: 500 }}>
+                    {product.description || 'Quality horticultural product curated by GharKaMali experts for your garden health and plant care needs.'}
+                  </p>
+                  {product.long_description && (
+                    <p style={{ color: 'var(--text-2)', fontSize: '0.97rem', lineHeight: 1.9, fontWeight: 500, marginTop: 16 }}>
+                      {product.long_description}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* FAQ */}
+              {activeTab === 'faq' && (
+                <div style={{ maxWidth: 680 }}>
+                  <h3 style={{ fontWeight: 800, color: 'var(--forest)', marginBottom: 20, fontSize: '1.1rem' }}>Frequently Asked Questions</h3>
+                  {(product.faqs && Array.isArray(product.faqs) && product.faqs.length > 0 ? product.faqs : FAQ_DEFAULT).map((faq: any, i: number) => (
+                    <div key={i} style={{ marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid var(--border)' }}>
+                      <div style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '0.95rem', marginBottom: 8 }}>Q. {faq.q || faq.question}</div>
+                      <div style={{ color: 'var(--text-2)', fontSize: '0.9rem', lineHeight: 1.75 }}>{faq.a || faq.answer}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Tags */}
+              {activeTab === 'tags' && (
+                <div>
+                  <h3 style={{ fontWeight: 800, color: 'var(--forest)', marginBottom: 16, fontSize: '1.1rem' }}>Product Tags</h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                    {(product.tags && Array.isArray(product.tags) && product.tags.length > 0
+                      ? product.tags
+                      : ['gardening', 'plants', 'organic', product.category?.name || 'garden care', 'GharKaMali', 'home garden', 'plant care']
+                    ).map((tag: string) => (
+                      <span key={tag} style={{ padding: '8px 16px', background: 'rgba(3,65,26,0.07)', border: '1.5px solid rgba(3,65,26,0.12)', borderRadius: 99, fontSize: '0.82rem', fontWeight: 700, color: 'var(--forest)' }}>
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
