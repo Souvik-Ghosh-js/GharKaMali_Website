@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/store/auth';
-import { createComplaint, getMyComplaints } from '@/lib/api';
+import { createComplaint, getMyComplaints, getMyBookings } from '@/lib/api';
 
 const TYPES = [
   { value: 'service_quality', label: 'Service Quality', icon: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="m9 12 2 2 4-4" /></svg> },
@@ -33,17 +33,24 @@ export default function ComplaintsPage() {
   const [type, setType] = useState<typeof TYPES[number]['value']>('service_quality');
   const [desc, setDesc] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
 
   useEffect(() => { if (!isLoading && !isAuthenticated) router.replace('/login?redirect=/complaints'); }, [isAuthenticated, isLoading]);
 
   const { data, isLoading: cLoad } = useQuery({ queryKey: ['complaints'], queryFn: getMyComplaints, enabled: isAuthenticated });
   const complaints: any[] = Array.isArray(data) ? data : (data as any)?.complaints ?? [];
 
+  const { data: bookingsData } = useQuery({ queryKey: ['my-bookings-all'], queryFn: () => getMyBookings({ limit: 50 }), enabled: isAuthenticated && showForm });
+  const bookings: any[] = Array.isArray((bookingsData as any)?.bookings) ? (bookingsData as any).bookings : Array.isArray(bookingsData) ? bookingsData as any[] : [];
+
   const createMut = useMutation({
-    mutationFn: () => createComplaint({ type, description: desc, priority, geofence_id: (useAuth.getState().user as any)?.geofence_id }),
+    mutationFn: () => {
+      if (!selectedBookingId) throw new Error('Please select the order this complaint is about');
+      return createComplaint({ type, description: desc, priority, booking_id: selectedBookingId, geofence_id: (useAuth.getState().user as any)?.geofence_id });
+    },
     onSuccess: () => {
       toast.success('Complaint filed. We\'ll respond within 24 hours.');
-      setShowForm(false); setDesc(''); setType('service_quality');
+      setShowForm(false); setDesc(''); setType('service_quality'); setSelectedBookingId(null);
       qc.invalidateQueries({ queryKey: ['complaints'] });
     },
     onError: (e: any) => toast.error(e.message),
@@ -166,10 +173,40 @@ export default function ComplaintsPage() {
       </div>
 
       {showForm && (
-        <div className="modal-bg" onClick={() => setShowForm(false)}>
+        <div className="modal-bg" onClick={() => { setShowForm(false); setSelectedBookingId(null); }}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 540, padding: '36px', background: '#fff', color: 'var(--forest)' }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.8rem', marginBottom: 10, color: 'var(--forest)' }}>File a Complaint</h2>
             <p style={{ color: 'var(--sage)', fontSize: '1rem', marginBottom: 32, fontWeight: 500 }}>We take every complaint seriously and respond within 24 hours</p>
+
+            <div style={{ marginBottom: 28 }}>
+              <label className="form-label">Select Order <span style={{ color: '#dc2626' }}>*</span></label>
+              <p style={{ fontSize: '0.85rem', color: 'var(--sage)', marginBottom: 12, fontWeight: 500 }}>Which booking is this complaint about?</p>
+              {bookings.length === 0 ? (
+                <div style={{ padding: '18px 20px', borderRadius: 16, border: '1.5px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--sage)', fontSize: '0.9rem', fontWeight: 500 }}>
+                  No bookings found. Complaints must be linked to a booking.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 240, overflowY: 'auto', paddingRight: 4 }}>
+                  {bookings.map((b: any) => {
+                    const isSelected = selectedBookingId === b.id;
+                    const date = b.scheduled_date ? new Date(b.scheduled_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+                    return (
+                      <button key={b.id} onClick={() => setSelectedBookingId(b.id)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 16, border: `2px solid ${isSelected ? 'var(--forest)' : 'var(--border)'}`, background: isSelected ? 'var(--bg-elevated)' : '#fff', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s var(--ease)' }}>
+                        <div style={{ width: 10, height: 10, borderRadius: '50%', border: `2px solid ${isSelected ? 'var(--forest)' : 'var(--border)'}`, background: isSelected ? 'var(--forest)' : 'transparent', flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--forest)', fontFamily: 'var(--font-mono)' }}>{b.booking_number || `#${b.id}`}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--sage)', fontWeight: 500, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{date} · {b.service_address || b.zone?.name || '—'}</div>
+                        </div>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 800, padding: '3px 10px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.05em', background: b.status === 'completed' ? '#DCFCE7' : b.status === 'cancelled' ? '#FEE2E2' : '#FEF9C3', color: b.status === 'completed' ? '#16A34A' : b.status === 'cancelled' ? '#DC2626' : '#CA8A04', flexShrink: 0 }}>
+                          {b.status}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             <div style={{ marginBottom: 24 }}>
               <label className="form-label">Issue Type</label>
@@ -206,9 +243,9 @@ export default function ComplaintsPage() {
             </div>
 
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setShowForm(false)} className="btn btn-outline" style={{ flex: 1, justifyContent: 'center' }}>Cancel</button>
-              <button onClick={() => createMut.mutate()} disabled={!desc.trim() || createMut.isPending}
-                className="btn btn-primary" style={{ flex: 2, justifyContent: 'center', opacity: (!desc.trim() || createMut.isPending) ? 0.5 : 1 }}>
+              <button onClick={() => { setShowForm(false); setSelectedBookingId(null); }} className="btn btn-outline" style={{ flex: 1, justifyContent: 'center' }}>Cancel</button>
+              <button onClick={() => createMut.mutate()} disabled={!selectedBookingId || !desc.trim() || createMut.isPending}
+                className="btn btn-primary" style={{ flex: 2, justifyContent: 'center', opacity: (!selectedBookingId || !desc.trim() || createMut.isPending) ? 0.5 : 1 }}>
                 {createMut.isPending ? <><div className="btn-spinner" /> Submitting…</> : 'Submit Complaint'}
               </button>
             </div>

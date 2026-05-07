@@ -28,12 +28,6 @@ const DETAIL_TABS = [
   { id: 'tags',        label: 'Tags' },
 ];
 
-const FAQ_DEFAULT = [
-  { q: 'Is this product safe for indoor plants?', a: 'Yes, all our products are tested and safe for both indoor and outdoor use.' },
-  { q: 'How long does delivery take?', a: 'We deliver within 2–4 business days across Noida, Greater Noida, and Ghaziabad.' },
-  { q: 'Can I return if not satisfied?', a: 'We offer a 7-day easy return policy on all products.' },
-  { q: 'How do I use this product?', a: 'Detailed usage instructions are included in the packaging. You can also WhatsApp us for expert guidance.' },
-];
 
 export default function ProductDetailPage() {
   const params  = useParams();
@@ -268,7 +262,7 @@ export default function ProductDetailPage() {
                 </p>
               )}
 
-              {/* Features (if provided by API) */}
+              {/* Features */}
               {product.features && Array.isArray(product.features) && product.features.length > 0 && (
                 <div style={{ marginBottom: 28 }}>
                   {product.features.map((f: string) => (
@@ -375,12 +369,7 @@ export default function ProductDetailPage() {
                         </div>
                       ))
                     ) : (
-                      ['100% organic & safe', 'Expert-curated quality', 'Tested for indoor & outdoor use', 'Eco-friendly packaging', 'Suitable for all plant types'].map(f => (
-                        <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                          <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(3,65,26,0.08)', border: '1px solid rgba(3,65,26,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', flexShrink: 0 }}><IcCheck /></div>
-                          <span style={{ color: 'var(--text-2)', fontSize: '0.9rem', fontWeight: 600 }}>{f}</span>
-                        </div>
-                      ))
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>No highlights added for this product yet.</p>
                     )}
                   </div>
                   <div>
@@ -405,13 +394,18 @@ export default function ProductDetailPage() {
               {activeTab === 'description' && (
                 <div style={{ maxWidth: 680 }}>
                   <h3 style={{ fontWeight: 800, color: 'var(--forest)', marginBottom: 16, fontSize: '1.1rem' }}>About this Product</h3>
-                  <p style={{ color: 'var(--text-2)', fontSize: '0.97rem', lineHeight: 1.9, fontWeight: 500 }}>
-                    {product.description || 'Quality horticultural product curated by GharKaMali experts for your garden health and plant care needs.'}
-                  </p>
+                  {product.description && (
+                    <p style={{ color: 'var(--text-2)', fontSize: '0.97rem', lineHeight: 1.9, fontWeight: 500 }}>
+                      {product.description}
+                    </p>
+                  )}
                   {product.long_description && (
                     <p style={{ color: 'var(--text-2)', fontSize: '0.97rem', lineHeight: 1.9, fontWeight: 500, marginTop: 16 }}>
                       {product.long_description}
                     </p>
+                  )}
+                  {!product.description && !product.long_description && (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>No description added for this product yet.</p>
                   )}
                 </div>
               )}
@@ -420,12 +414,16 @@ export default function ProductDetailPage() {
               {activeTab === 'faq' && (
                 <div style={{ maxWidth: 680 }}>
                   <h3 style={{ fontWeight: 800, color: 'var(--forest)', marginBottom: 20, fontSize: '1.1rem' }}>Frequently Asked Questions</h3>
-                  {(product.faqs && Array.isArray(product.faqs) && product.faqs.length > 0 ? product.faqs : FAQ_DEFAULT).map((faq: any, i: number) => (
-                    <div key={i} style={{ marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid var(--border)' }}>
-                      <div style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '0.95rem', marginBottom: 8 }}>Q. {faq.q || faq.question}</div>
-                      <div style={{ color: 'var(--text-2)', fontSize: '0.9rem', lineHeight: 1.75 }}>{faq.a || faq.answer}</div>
-                    </div>
-                  ))}
+                  {product.faqs && Array.isArray(product.faqs) && product.faqs.length > 0 ? (
+                    product.faqs.map((faq: any, i: number) => (
+                      <div key={i} style={{ marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid var(--border)' }}>
+                        <div style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '0.95rem', marginBottom: 8 }}>Q. {faq.q || faq.question}</div>
+                        <div style={{ color: 'var(--text-2)', fontSize: '0.9rem', lineHeight: 1.75 }}>{faq.a || faq.answer}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>No FAQs added for this product yet.</p>
+                  )}
                 </div>
               )}
 
@@ -433,16 +431,17 @@ export default function ProductDetailPage() {
               {activeTab === 'tags' && (
                 <div>
                   <h3 style={{ fontWeight: 800, color: 'var(--forest)', marginBottom: 16, fontSize: '1.1rem' }}>Product Tags</h3>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                    {(product.tags && Array.isArray(product.tags) && product.tags.length > 0
-                      ? product.tags
-                      : ['gardening', 'plants', 'organic', product.category?.name || 'garden care', 'GharKaMali', 'home garden', 'plant care']
-                    ).map((tag: string) => (
-                      <span key={tag} style={{ padding: '8px 16px', background: 'rgba(3,65,26,0.07)', border: '1.5px solid rgba(3,65,26,0.12)', borderRadius: 99, fontSize: '0.82rem', fontWeight: 700, color: 'var(--forest)' }}>
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
+                  {product.tags && Array.isArray(product.tags) && product.tags.length > 0 ? (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                      {product.tags.map((tag: string) => (
+                        <span key={tag} style={{ padding: '8px 16px', background: 'rgba(3,65,26,0.07)', border: '1.5px solid rgba(3,65,26,0.12)', borderRadius: 99, fontSize: '0.82rem', fontWeight: 700, color: 'var(--forest)' }}>
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>No tags added for this product yet.</p>
+                  )}
                 </div>
               )}
             </div>
