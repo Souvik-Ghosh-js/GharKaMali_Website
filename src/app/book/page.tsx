@@ -240,7 +240,36 @@ function BookFlow() {
   const isOnDemand = selectedPlan?.name?.toLowerCase().includes('demand') || selectedPlan?.plan_type === 'on_demand';
   const maxPlants = isOnDemand ? 1000 : (selectedPlan?.max_plants || 50);
 
+  const bookFaqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'How do I book a gardening service with GharKaMali?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Select your plan (Basic, Standard, or Premium), choose your preferred date and time slot, enter your address, and complete the payment. A certified plant expert will arrive at your doorstep at the scheduled time.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'What gardening plans does GharKaMali offer?',
+        acceptedAnswer: { '@type': 'Answer', text: 'GharKaMali offers three subscription plans: Basic (2 visits/month, up to 10 plants), Standard (4 visits/month, up to 20 plants with fertilizer), and Premium (8 visits/month, unlimited plants with a dedicated expert and 24/7 WhatsApp support). Plans start at ₹349.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'Can I cancel or reschedule my gardening booking?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Yes. You can reschedule or cancel your booking from the My Bookings section in your account. Cancellations made 24 hours in advance are eligible for a full refund to your wallet.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'Does GharKaMali service my area?',
+        acceptedAnswer: { '@type': 'Answer', text: 'GharKaMali currently serves Noida and Greater Noida. Enter your pincode on the booking page — you will immediately see whether your area is serviceable and which slots are available.' },
+      },
+    ],
+  };
+
   return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(bookFaqSchema) }} />
     <div style={{ minHeight: '100vh', background: 'linear-gradient(165deg, #eef6ee 0%, #fffdf5 55%, #f5f0e8 100%)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <Navbar />
 
@@ -605,6 +634,7 @@ function BookFlow() {
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
     </div>
+    </>
   );
 }
 

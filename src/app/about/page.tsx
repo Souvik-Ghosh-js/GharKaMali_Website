@@ -134,8 +134,36 @@ export default function AboutPage() {
     init();
   }, []);
 
+  const aboutFaqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'What is GharKaMali?',
+        acceptedAnswer: { '@type': 'Answer', text: 'GharKaMali is a professional home gardening service based in Noida, offering certified plant experts for regular garden care, plant health consultations, and maintenance visits starting at ₹349.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'Which areas does GharKaMali serve?',
+        acceptedAnswer: { '@type': 'Answer', text: 'GharKaMali currently serves Noida, Greater Noida, and surrounding Delhi NCR areas. Enter your pincode on the booking page to check serviceability in your locality.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'Are GharKaMali gardeners verified and trained?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Yes. Every plant expert at GharKaMali undergoes a thorough background check, skill assessment, and hands-on training before being assigned to customers. You can open your door with complete confidence.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'How do I book a gardening service with GharKaMali?',
+        acceptedAnswer: { '@type': 'Answer', text: 'You can book a gardening visit directly on our website at gharkamali.com/book, or through our mobile app. Choose your plan, pick a convenient date and time, and a certified plant expert will arrive at your doorstep.' },
+      },
+    ],
+  };
+
   return (
     <SmoothScrollProvider>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutFaqSchema) }} />
       {/* transparent so navbar stays invisible until scroll on dark hero */}
       <Navbar transparent />
 

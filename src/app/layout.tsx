@@ -17,7 +17,15 @@ export const metadata: Metadata = {
     title: 'GharKaMali — Expert Plant Care at Home | Starting ₹349',
     description: 'Expert plant care at your home starting just ₹349. Professional gardeners in Noida & Greater Noida. Book your garden visit today!',
     url: 'https://gharkamali.com',
-    images: [{ url: 'https://gharkamali.com/og-image.jpg', width: 1200, height: 630, alt: 'GharKaMali — Professional Gardening Service' }],
+    images: [{ url: 'https://gharkamali.com/logo.png', width: 1200, height: 630, alt: 'GharKaMali — Professional Gardening Service' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@gharkamali',
+    creator: '@gharkamali',
+    title: 'GharKaMali — Expert Plant Care at Home | Starting ₹349',
+    description: 'Expert plant care at your home starting just ₹349. Professional gardeners in Noida & Greater Noida. Book your garden visit today!',
+    images: ['https://gharkamali.com/logo.png'],
   },
   icons: {
     icon: '/favicon.ico',
@@ -46,17 +54,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             gtag('config', 'GA_MEASUREMENT_ID');
           `
         }} />
-        {/* ── Schema Markup — LocalBusiness + Service ─────────────────── */}
+        {/* ── Schema Markup — LocalBusiness + Organization ──────────── */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
-              '@type': 'LocalBusiness',
+              '@type': ['LocalBusiness', 'Organization'],
               name: 'GharKaMali',
+              legalName: 'GharKaMali',
               description: 'Expert plant care at your home. Professional gardening services starting ₹349/month.',
               url: 'https://gharkamali.com',
+              logo: 'https://gharkamali.com/logo.png',
+              image: 'https://gharkamali.com/logo.png',
               telephone: '+91-9999999999',
+              email: 'hello@gharkamali.com',
               address: {
                 '@type': 'PostalAddress',
                 addressLocality: 'Noida',
@@ -65,10 +77,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               },
               areaServed: ['Noida', 'Greater Noida', 'Delhi NCR'],
               priceRange: '₹349 - ₹1499',
-              image: 'https://gharkamali.com/logo.png',
               sameAs: [
                 'https://www.instagram.com/gharkamali',
                 'https://www.facebook.com/gharkamali',
+                'https://twitter.com/gharkamali',
+                'https://www.youtube.com/@gharkamali',
+                'https://www.linkedin.com/company/gharkamali',
               ],
               hasOfferCatalog: {
                 '@type': 'OfferCatalog',

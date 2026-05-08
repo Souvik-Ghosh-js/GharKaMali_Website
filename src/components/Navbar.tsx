@@ -1,11 +1,11 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
 import { useQuery } from '@tanstack/react-query';
-import { getNotifications } from '@/lib/api';
+import { getNotifications, getShopProducts } from '@/lib/api';
 
 const Ic = {
   Menu: () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="4" y1="7" x2="20" y2="7" /><line x1="8" y1="12" x2="20" y2="12" /><line x1="4" y1="17" x2="20" y2="17" /></svg>,
@@ -58,11 +58,43 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
   const [hubOpen, setHubOpen] = useState(false);
   const [menuScrolled, setMenuScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchWrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (!hubOpen) setMenuScrolled(false);
   }, [hubOpen]);
+
+  // Live search debounce
+  const runSearch = useCallback((q: string) => {
+    if (searchDebounce.current) clearTimeout(searchDebounce.current);
+    if (!q.trim()) { setSearchResults([]); setSearchOpen(false); return; }
+    searchDebounce.current = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const data: any = await getShopProducts({ search: q.trim(), limit: 6 });
+        const items = Array.isArray(data) ? data : (data?.data ?? []);
+        setSearchResults(items.slice(0, 6));
+        setSearchOpen(true);
+      } catch { setSearchResults([]); }
+      finally { setSearchLoading(false); }
+    }, 320);
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   useEffect(() => {
     if (hubOpen) {
@@ -81,8 +113,16 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
     if (q) {
       router.push(`/shop?search=${encodeURIComponent(q)}`);
       setSearchQuery('');
+      setSearchOpen(false);
       setHubOpen(false);
     }
+  };
+
+  const goToProduct = (p: any) => {
+    router.push(`/shop/${p.slug || p.id}`);
+    setSearchQuery('');
+    setSearchOpen(false);
+    setHubOpen(false);
   };
 
   useEffect(() => {
@@ -223,23 +263,70 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
           </div>
 
           {/* Desktop search bar */}
-          <form onSubmit={handleSearch} className="nav-search-wrap" style={{ position: 'relative', display: hubOpen ? 'none' : 'flex', alignItems: 'center', flexShrink: 0 }}>
-            <span style={{ position: 'absolute', left: 11, color: isLight ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-            </span>
-            <input
-              ref={searchRef}
-              type="search"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search plants, tools…"
-              className="nav-search-input"
-              aria-label="Search"
-              style={{ background: isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)', border: `1.5px solid ${isLight ? 'rgba(255,255,255,0.3)' : 'var(--border-mid)'}`, borderRadius: 99, padding: '8px 16px 8px 34px', fontSize: '0.82rem', color: isLight ? '#fff' : 'var(--text)', outline: 'none', width: 200, transition: 'all 0.3s', fontFamily: 'var(--font-body)', backdropFilter: isLight ? 'blur(8px)' : 'none' }}
-              onFocus={e => { e.currentTarget.style.width = '240px'; e.currentTarget.style.borderColor = isLight ? '#fff' : 'var(--forest)'; e.currentTarget.style.background = isLight ? 'rgba(255,255,255,0.9)' : '#fff'; e.currentTarget.style.color = 'var(--forest)'; }}
-              onBlur={e => { e.currentTarget.style.width = '200px'; e.currentTarget.style.borderColor = isLight ? 'rgba(255,255,255,0.3)' : 'var(--border-mid)'; e.currentTarget.style.background = isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)'; e.currentTarget.style.color = isLight ? '#fff' : 'var(--text)'; }}
-            />
-          </form>
+          <div ref={searchWrapRef} className="nav-search-wrap" style={{ position: 'relative', display: hubOpen ? 'none' : 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <form onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 11, color: isLight ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', pointerEvents: 'none', zIndex: 1 }}>
+                {searchLoading
+                  ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 0.8s linear infinite' }}><circle cx="12" cy="12" r="9" strokeDasharray="40" strokeDashoffset="10"/></svg>
+                  : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                }
+              </span>
+              <input
+                ref={searchRef}
+                type="search"
+                value={searchQuery}
+                onChange={e => { setSearchQuery(e.target.value); runSearch(e.target.value); }}
+                onKeyDown={e => { if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery(''); } }}
+                placeholder="Search plants, tools…"
+                className="nav-search-input"
+                aria-label="Search"
+                autoComplete="off"
+                style={{ background: isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)', border: `1.5px solid ${isLight ? 'rgba(255,255,255,0.3)' : 'var(--border-mid)'}`, borderRadius: 99, padding: '8px 16px 8px 34px', fontSize: '0.82rem', color: isLight ? '#fff' : 'var(--text)', outline: 'none', width: 200, transition: 'all 0.3s', fontFamily: 'var(--font-body)', backdropFilter: isLight ? 'blur(8px)' : 'none' }}
+                onFocus={e => { e.currentTarget.style.width = '260px'; e.currentTarget.style.borderColor = isLight ? '#fff' : 'var(--forest)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = 'var(--forest)'; if (searchQuery && searchResults.length > 0) setSearchOpen(true); }}
+                onBlur={e => { e.currentTarget.style.width = '200px'; e.currentTarget.style.borderColor = isLight ? 'rgba(255,255,255,0.3)' : 'var(--border-mid)'; e.currentTarget.style.background = isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)'; e.currentTarget.style.color = isLight ? '#fff' : 'var(--text)'; }}
+              />
+            </form>
+            {/* Instant search dropdown */}
+            {searchOpen && searchResults.length > 0 && (
+              <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 340, background: '#fff', borderRadius: 18, boxShadow: '0 16px 60px rgba(3,65,26,0.18), 0 4px 20px rgba(0,0,0,0.08)', border: '1px solid rgba(3,65,26,0.1)', overflow: 'hidden', zIndex: 3000 }}>
+                {searchResults.map((p, i) => {
+                  const price = Number(p.price);
+                  const mrp = Number(p.mrp);
+                  const disc = mrp > price ? Math.round((1 - price / mrp) * 100) : 0;
+                  return (
+                    <button key={p.id} onMouseDown={() => goToProduct(p)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '10px 14px', background: 'none', border: 'none', borderBottom: i < searchResults.length - 1 ? '1px solid rgba(3,65,26,0.06)' : 'none', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s', fontFamily: 'var(--font-body)' }}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.04)'}
+                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}
+                    >
+                      <div style={{ width: 44, height: 44, borderRadius: 10, background: 'linear-gradient(135deg,#f0f7f2,#e8f5ed)', flexShrink: 0, overflow: 'hidden', border: '1px solid rgba(3,65,26,0.08)' }}>
+                        {p.images?.[0] || p.thumbnail
+                          ? <img src={p.images?.[0] || p.thumbnail} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                          : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--forest)', opacity: 0.3 }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></div>
+                        }
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--forest)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+                        <div style={{ fontSize: '0.68rem', color: 'var(--earth)', fontWeight: 600, marginTop: 1 }}>{typeof p.category === 'string' ? p.category : p.category?.name || 'General'}</div>
+                      </div>
+                      <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                        <div style={{ fontWeight: 900, fontSize: '0.85rem', color: 'var(--forest)' }}>₹{price.toLocaleString('en-IN')}</div>
+                        {disc > 0 && <div style={{ fontSize: '0.6rem', color: '#16a34a', fontWeight: 800, background: '#dcfce7', borderRadius: 99, padding: '1px 6px', marginTop: 2 }}>{disc}% off</div>}
+                      </div>
+                    </button>
+                  );
+                })}
+                <button onMouseDown={() => { const q = searchQuery.trim(); if (q) { router.push(`/shop?search=${encodeURIComponent(q)}`); setSearchQuery(""); setSearchOpen(false); setHubOpen(false); } }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', padding: '10px 14px', background: 'rgba(3,65,26,0.04)', border: 'none', borderTop: '1px solid rgba(3,65,26,0.08)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.78rem', color: 'var(--forest)', transition: 'background 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.08)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.04)'}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  See all results for &quot;{searchQuery}&quot;
+                </button>
+              </div>
+            )}
+          </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             {!hubOpen && (
@@ -309,26 +396,71 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
           </div>
 
           {/* Search bar inside menu — visible on all devices */}
-          <form onSubmit={handleSearch} style={{ marginBottom: 28, position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          <form onSubmit={handleSearch} style={{ marginBottom: searchOpen && searchResults.length > 0 ? 0 : 28, position: 'relative' }}>
+            <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', pointerEvents: 'none', zIndex: 1 }}>
+              {searchLoading
+                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 0.8s linear infinite' }}><circle cx="12" cy="12" r="9" strokeDasharray="40" strokeDashoffset="10"/></svg>
+                : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+              }
             </span>
             <input
               type="search"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => { setSearchQuery(e.target.value); runSearch(e.target.value); }}
+              onKeyDown={e => { if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery(''); } }}
               placeholder="Search plants, tools, products…"
-              style={{ width: '100%', padding: '13px 16px 13px 44px', background: 'rgba(3,65,26,0.05)', border: '1.5px solid rgba(3,65,26,0.12)', borderRadius: 16, fontSize: '0.92rem', color: 'var(--text)', outline: 'none', fontFamily: 'var(--font-body)', transition: 'all 0.25s' }}
+              style={{ width: '100%', padding: '13px 16px 13px 44px', background: 'rgba(3,65,26,0.05)', border: '1.5px solid rgba(3,65,26,0.12)', borderRadius: searchOpen && searchResults.length > 0 ? '16px 16px 0 0' : 16, fontSize: '0.92rem', color: 'var(--text)', outline: 'none', fontFamily: 'var(--font-body)', transition: 'border-color 0.25s, background 0.25s', boxSizing: 'border-box' }}
               onFocus={e => { e.currentTarget.style.borderColor = 'var(--forest)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(3,65,26,0.08)'; }}
               onBlur={e => { e.currentTarget.style.borderColor = 'rgba(3,65,26,0.12)'; e.currentTarget.style.background = 'rgba(3,65,26,0.05)'; e.currentTarget.style.boxShadow = 'none'; }}
               aria-label="Search"
+              autoComplete="off"
             />
-            {searchQuery && (
-              <button type="submit" style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 10, padding: '6px 14px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>
+            {searchQuery && !searchLoading && (
+              <button type="submit" style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 10, padding: '6px 14px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
                 Go
               </button>
             )}
           </form>
+          {/* Inline results inside menu */}
+          {searchOpen && searchResults.length > 0 && (
+            <div style={{ background: '#fff', border: '1.5px solid var(--forest)', borderTop: 'none', borderRadius: '0 0 16px 16px', overflow: 'hidden', marginBottom: 20, boxShadow: '0 8px 32px rgba(3,65,26,0.12)' }}>
+              {searchResults.map((p, i) => {
+                const price = Number(p.price);
+                const mrp = Number(p.mrp);
+                const disc = mrp > price ? Math.round((1 - price / mrp) * 100) : 0;
+                return (
+                  <button key={p.id} onMouseDown={() => goToProduct(p)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '12px 16px', background: 'none', border: 'none', borderBottom: i < searchResults.length - 1 ? '1px solid rgba(3,65,26,0.06)' : 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-body)' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.04)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}
+                  >
+                    <div style={{ width: 48, height: 48, borderRadius: 10, background: 'linear-gradient(135deg,#f0f7f2,#e8f5ed)', flexShrink: 0, overflow: 'hidden', border: '1px solid rgba(3,65,26,0.08)' }}>
+                      {p.images?.[0] || p.thumbnail
+                        ? <img src={p.images?.[0] || p.thumbnail} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--forest)', opacity: 0.3 }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></div>
+                      }
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--forest)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--earth)', fontWeight: 600, marginTop: 2 }}>{typeof p.category === 'string' ? p.category : p.category?.name || 'General'}</div>
+                    </div>
+                    <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                      <div style={{ fontWeight: 900, fontSize: '0.9rem', color: 'var(--forest)' }}>₹{price.toLocaleString('en-IN')}</div>
+                      {disc > 0 && <div style={{ fontSize: '0.62rem', color: '#16a34a', fontWeight: 800, background: '#dcfce7', borderRadius: 99, padding: '1px 6px', marginTop: 2 }}>{disc}% off</div>}
+                    </div>
+                  </button>
+                );
+              })}
+              <button onMouseDown={() => { const q = searchQuery.trim(); if (q) { router.push(`/shop?search=${encodeURIComponent(q)}`); setSearchQuery(""); setSearchOpen(false); setHubOpen(false); } }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', padding: '12px 16px', background: 'rgba(3,65,26,0.04)', border: 'none', borderTop: '1px solid rgba(3,65,26,0.08)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.82rem', color: 'var(--forest)' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.08)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.04)'}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                See all results for &quot;{searchQuery}&quot;
+              </button>
+            </div>
+          )}
 
           {/* ── GREEN MAKEOVER FEATURE CARD ── */}
           <Link
@@ -445,6 +577,7 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
         }
         @keyframes menuOrb1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,-30px) scale(1.1)}}
         @keyframes menuOrb2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-30px,25px) scale(1.08)}}
+        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
       `}</style>
     </>
   );

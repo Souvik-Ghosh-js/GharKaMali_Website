@@ -208,10 +208,18 @@ function ShopPageInner() {
             {/* Row 1: Search + Sort */}
             <div style={{ display: 'flex', gap: 10, flex: '1 1 100%', alignItems: 'center' }} className="search-sort-row">
               <div style={{ position: 'relative', flex: 1 }}>
-                <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--forest)', opacity: 0.5 }}><IcSearch /></div>
+                <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--forest)', opacity: 0.5, display: 'flex', alignItems: 'center', pointerEvents: 'none' }}><IcSearch /></div>
                 <input type="text" placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)}
-                  style={{ width: '100%', padding: '12px 16px 12px 42px', background: '#fff', border: '1.5px solid var(--border)', borderRadius: 16, color: 'var(--forest)', fontSize: '0.9rem', fontFamily: 'var(--font-body)', fontWeight: 600, outline: 'none', boxSizing: 'border-box', boxShadow: 'var(--sh-xs)' }}
+                  style={{ width: '100%', padding: `12px ${search ? '40px' : '16px'} 12px 42px`, background: '#fff', border: `1.5px solid ${search ? 'var(--forest)' : 'var(--border)'}`, borderRadius: 16, color: 'var(--forest)', fontSize: '0.9rem', fontFamily: 'var(--font-body)', fontWeight: 600, outline: 'none', boxSizing: 'border-box', boxShadow: 'var(--sh-xs)', transition: 'border-color 0.2s' }}
                 />
+                {search && (
+                  <button onClick={() => setSearch('')}
+                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', width: 24, height: 24, borderRadius: '50%', background: 'var(--forest)', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                    aria-label="Clear search"
+                  >
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                )}
               </div>
               <select value={sort} onChange={e => setSort(e.target.value)}
                 style={{ flex: '0 0 auto', padding: '12px 16px', borderRadius: 16, border: '1.5px solid var(--border)', background: '#fff', color: 'var(--forest)', fontWeight: 700, fontSize: '0.85rem', fontFamily: 'var(--font-body)', cursor: 'pointer', outline: 'none', boxShadow: 'var(--sh-xs)' }}>
