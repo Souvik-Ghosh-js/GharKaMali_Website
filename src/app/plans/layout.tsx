@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     title: 'Monthly Plant Care Plans — GharKaMali | Starting ₹349/month',
     description: 'Affordable monthly plans for professional home garden care. Regular visits, health reports, and 24/7 support.',
     url: 'https://gharkamali.com/plans',
-    images: [{ url: '/hero-visual.png', width: 1200, height: 630, alt: 'GharKaMali Plant Care Plans' }],
+    images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'GharKaMali Plant Care Plans' }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     creator: '@gharkamali',
     title: 'Monthly Plant Care Plans — GharKaMali | Starting ₹349/month',
     description: 'Affordable monthly plans for professional home garden care. Book your first visit today.',
-    images: [{ url: '/hero-visual.png', alt: 'GharKaMali Plant Care Plans' }],
+    images: [{ url: '/logo.png', alt: 'GharKaMali Plant Care Plans' }],
   },
 };
 

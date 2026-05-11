@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     title: 'About GharKaMali — Professional Home Gardening Service',
     description: "India's most trusted home gardening service. Reliable, affordable, expert plant care at your doorstep.",
     url: 'https://gharkamali.com/about',
-    images: [{ url: '/hero-visual.png', width: 1200, height: 630, alt: 'About GharKaMali' }],
+    images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'About GharKaMali' }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     creator: '@gharkamali',
     title: 'About GharKaMali — Professional Home Gardening Service',
     description: "India's most trusted home gardening service. Reliable, affordable, expert plant care at your doorstep.",
-    images: [{ url: '/hero-visual.png', alt: 'About GharKaMali' }],
+    images: [{ url: '/logo.png', alt: 'About GharKaMali' }],
   },
 };
 

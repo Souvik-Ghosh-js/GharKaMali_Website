@@ -914,7 +914,7 @@ export default function HomePage() {
 
             <div className="prof-gardening-visual s-reveal s-reveal-d2" style={{ position: 'relative' }}>
               <div style={{ position: 'relative', borderRadius: 32, overflow: 'hidden', boxShadow: 'var(--sh-xl)', border: '8px solid #fff', transform: 'rotate(1.5deg)' }}>
-                <img src="/hero-visual.png" alt="GharKaMali gardener caring for balcony plants" style={{ width: '100%', height: 'auto', maxHeight: '440px', objectFit: 'cover', display: 'block' }} />
+                <img src="/logo.png" alt="GharKaMali gardener caring for balcony plants" style={{ width: '100%', height: 'auto', maxHeight: '440px', objectFit: 'cover', display: 'block' }} />
                 <div style={{ position: 'absolute', top: 20, left: 20, background: 'rgba(3,65,26,0.85)', color: '#fff', padding: '8px 20px', borderRadius: 99, fontSize: '0.75rem', fontWeight: 800, backdropFilter: 'blur(12px)', boxShadow: 'var(--sh-sm)' }}>TRANSFORMATION COMPLETE</div>
               </div>
 

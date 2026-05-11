@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     title: 'GharKaMali Blog — Gardening Tips & Plant Care Guides',
     description: 'Expert advice on growing and maintaining a beautiful home garden. Free guides by certified botanists.',
     url: 'https://gharkamali.com/blogs',
-    images: [{ url: '/hero-visual.png', width: 1200, height: 630, alt: 'GharKaMali Gardening Blog' }],
+    images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'GharKaMali Gardening Blog' }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     creator: '@gharkamali',
     title: 'GharKaMali Blog — Gardening Tips & Plant Care Guides',
     description: 'Expert advice on growing and maintaining a beautiful home garden.',
-    images: [{ url: '/hero-visual.png', alt: 'GharKaMali Gardening Blog' }],
+    images: [{ url: '/logo.png', alt: 'GharKaMali Gardening Blog' }],
   },
 };
 

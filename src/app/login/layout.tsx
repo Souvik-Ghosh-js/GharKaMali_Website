@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     title: 'Login — GharKaMali',
     description: 'Sign in to manage your garden care bookings.',
     url: 'https://gharkamali.com/login',
-    images: [{ url: '/hero-visual.png', width: 1200, height: 630, alt: 'GharKaMali Login' }],
+    images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'GharKaMali Login' }],
   },
 };
 

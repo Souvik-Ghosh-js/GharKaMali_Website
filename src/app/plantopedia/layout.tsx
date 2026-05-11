@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     title: 'Plantopedia — Plant Care Encyclopedia by GharKaMali',
     description: 'Your complete guide to growing and caring for plants at home. Hundreds of plant profiles with expert care tips.',
     url: 'https://gharkamali.com/plantopedia',
-    images: [{ url: '/hero-visual.png', width: 1200, height: 630, alt: 'Plantopedia — GharKaMali Plant Encyclopedia' }],
+    images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'Plantopedia — GharKaMali Plant Encyclopedia' }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     creator: '@gharkamali',
     title: 'Plantopedia — Plant Care Encyclopedia by GharKaMali',
     description: 'Your complete guide to growing and caring for plants at home.',
-    images: [{ url: '/hero-visual.png', alt: 'Plantopedia — GharKaMali Plant Encyclopedia' }],
+    images: [{ url: '/logo.png', alt: 'Plantopedia — GharKaMali Plant Encyclopedia' }],
   },
 };
 

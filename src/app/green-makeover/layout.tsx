@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     title: 'Garden & Balcony Makeover Services — GharKaMali',
     description: 'Transform your balcony or garden with expert design and plant care. Complete makeover services in Noida & Greater Noida.',
     url: 'https://gharkamali.com/green-makeover',
-    images: [{ url: '/hero-visual.png', width: 1200, height: 630, alt: 'Garden Makeover — GharKaMali' }],
+    images: [{ url: '/logo.png', width: 1200, height: 630, alt: 'Garden Makeover — GharKaMali' }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     creator: '@gharkamali',
     title: 'Garden & Balcony Makeover Services — GharKaMali',
     description: 'Transform your balcony or garden with expert design and plant care.',
-    images: [{ url: '/hero-visual.png', alt: 'Garden Makeover — GharKaMali' }],
+    images: [{ url: '/logo.png', alt: 'Garden Makeover — GharKaMali' }],
   },
 };
 
