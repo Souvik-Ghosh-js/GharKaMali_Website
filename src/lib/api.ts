@@ -188,12 +188,31 @@ export const markAllRead = () => req('/notifications/read-all', { method: 'PUT' 
 export const createComplaint = (b: {
   type: 'service_quality' | 'late_arrival' | 'no_show' | 'rude_behavior' | 'billing' | 'damage' | 'other';
   description: string;
+  subject?: string;
+  department_id?: number;
   booking_id?: number;
   geofence_id?: number;
   priority?: 'low' | 'medium' | 'high';
-}) => req('/complaints', { method: 'POST', body: JSON.stringify(b) });
+  attachments?: File[];
+}) => {
+  const fd = new FormData();
+  Object.entries(b).forEach(([k, v]) => {
+    if (k === 'attachments') return;
+    if (v != null) fd.append(k, String(v));
+  });
+  (b.attachments || []).forEach(f => fd.append('attachments', f));
+  return req('/complaints', { method: 'POST', body: fd });
+};
 
 export const getMyComplaints = () => req('/complaints/my');
+export const getComplaintDetail = (id: number) => req(`/complaints/${id}`);
+export const addComplaintComment = (id: number, comment: string, attachments: File[] = []) => {
+  const fd = new FormData();
+  if (comment) fd.append('comment', comment);
+  attachments.forEach(f => fd.append('attachments', f));
+  return req(`/complaints/${id}/comments`, { method: 'POST', body: fd });
+};
+export const getComplaintDepartments = () => req('/complaints/departments');
 
 // ─── GARDENER ─────────────────────────────────────────────────────────────────
 export const getGardenerProfile = () => req('/gardener/profile');
