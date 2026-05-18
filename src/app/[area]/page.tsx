@@ -3,20 +3,26 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { SERVING_AREAS, getArea } from '@/lib/areas';
+import { SERVING_AREAS, fetchAreas, fetchArea, fetchTemplate, renderTpl } from '@/lib/areas';
 
-// Pre-render all known areas
+// Pre-render the hardcoded fallback areas at build. New cities added in the
+// admin City SEO page will be served on-demand via dynamicParams (default).
 export function generateStaticParams() {
   return SERVING_AREAS.map(a => ({ area: a.slug }));
 }
 
+// Re-validate every 60s so admin edits propagate without a redeploy
+export const revalidate = 60;
+
 export async function generateMetadata({ params }: { params: { area: string } }): Promise<Metadata> {
-  const a = getArea(params.area);
+  const a = await fetchArea(params.area);
   if (!a) return {};
-  const title = `Gardeners in ${a.name}, ${a.city} | GharKaMali`;
-  const description = `Professional plant care and gardening services in ${a.name}, ${a.city}. Book a certified gardener visit today — starting at just ₹349.`;
+  const tpl = await fetchTemplate();
+  const title = renderTpl(tpl.title, a.name);
+  const description = renderTpl(tpl.meta_description, a.name);
+  const keywords = renderTpl(tpl.meta_keywords, a.name);
   return {
-    title, description,
+    title, description, keywords,
     alternates: { canonical: `/${a.slug}` },
     openGraph: { title, description, url: `/${a.slug}`, images: ['/logo.png'] },
     twitter: { card: 'summary_large_image', title, description, images: ['/logo.png'] },
@@ -40,9 +46,18 @@ const STEPS = [
   { n: '03', title: 'Plants flourish', desc: 'Sit back. We watch over your green space.' },
 ];
 
-export default function AreaPage({ params }: { params: { area: string } }) {
-  const a = getArea(params.area);
+export default async function AreaPage({ params }: { params: { area: string } }) {
+  const [a, tpl, allAreas] = await Promise.all([
+    fetchArea(params.area),
+    fetchTemplate(),
+    fetchAreas(),
+  ]);
   if (!a) notFound();
+
+  // Template-driven copy (admin → City SEO → Global Template). All occurrences
+  // of {city} are replaced with the area name.
+  const h1Text = renderTpl(tpl.h1, a.name);
+  const aboutText = a.blurb || renderTpl(tpl.about_text, a.name);
 
   return (
     <>
@@ -55,13 +70,15 @@ export default function AreaPage({ params }: { params: { area: string } }) {
           <div className="container" style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 760 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 99, padding: '5px 16px', marginBottom: 14 }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#c9a84c' }} />
-              <span style={{ fontSize: '0.66rem', fontWeight: 800, color: 'rgba(201,168,76,0.9)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Service Area · {a.city}</span>
+              <span style={{ fontSize: '0.66rem', fontWeight: 800, color: 'rgba(201,168,76,0.9)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+                Service Area{a.city ? ` · ${a.city}` : ''}
+              </span>
             </div>
             <h1 style={{ fontSize: 'clamp(1.8rem, 4.5vw, 3rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: 12 }}>
-              Professional Gardeners in<br /><span style={{ color: '#c9a84c' }}>{a.name}</span>
+              {h1Text}
             </h1>
             <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 'clamp(0.88rem, 1.3vw, 1rem)', marginBottom: 20, lineHeight: 1.7, maxWidth: 620, marginInline: 'auto' }}>
-              {a.blurb || `Expert plant care delivered right to your home in ${a.name}, ${a.city}. Trained gardeners, transparent pricing, and a clear visit report — every time.`}
+              {aboutText}
             </p>
             <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href={`/book?type=on-demand&area=${a.slug}`} className="btn btn-primary btn-lg">Book a Visit in {a.name}</Link>
@@ -125,7 +142,7 @@ export default function AreaPage({ params }: { params: { area: string } }) {
               </h2>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', maxWidth: 760, margin: '0 auto' }}>
-              {SERVING_AREAS.filter(x => x.slug !== a.slug).slice(0, 12).map(x => (
+              {allAreas.filter(x => x.slug !== a.slug).slice(0, 12).map(x => (
                 <Link key={x.slug} href={`/${x.slug}`}
                   style={{ padding: '7px 16px', background: 'var(--cream)', color: 'var(--forest)', borderRadius: 99, fontSize: '0.8rem', fontWeight: 700, border: '1.5px solid var(--border-gold)', textDecoration: 'none' }}>
                   {x.name}

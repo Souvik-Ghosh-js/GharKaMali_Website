@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { SERVING_AREAS } from '@/lib/areas';
+import { fetchAreas } from '@/lib/areas';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://gkm.gobt.in/api';
 
@@ -22,8 +22,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/complaints`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.4 },
   ];
 
-  // Service area pages (one per society/sector)
-  const areaPages: MetadataRoute.Sitemap = SERVING_AREAS.map(a => ({
+  // Service area pages — driven by admin City SEO list, falls back to
+  // hardcoded SERVING_AREAS if the API is unreachable.
+  const areas = await fetchAreas();
+  const areaPages: MetadataRoute.Sitemap = areas.map(a => ({
     url: `${base}/${a.slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,

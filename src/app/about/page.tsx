@@ -1,10 +1,10 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
-import { SERVING_AREAS } from '@/lib/areas';
+import { SERVING_AREAS, type ServingArea } from '@/lib/areas';
 
 const WA_URL = 'https://wa.me/919876543210?text=Hi%20GharKaMali!%20I%20want%20to%20know%20more.';
 
@@ -66,6 +66,20 @@ const TEAM = [
 ];
 
 export default function AboutPage() {
+  // Live areas from admin → City SEO list (with hardcoded fallback)
+  const [areas, setAreas] = useState<ServingArea[]>(SERVING_AREAS);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { fetchAreas } = await import('@/lib/areas');
+        const live = await fetchAreas();
+        if (!cancelled && live.length) setAreas(live);
+      } catch { /* keep fallback */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   useEffect(() => {
     const init = async () => {
       const gsap = (await import('gsap')).default;
@@ -317,7 +331,7 @@ export default function AboutPage() {
             <span style={{ fontSize: 'clamp(1rem,2vw,1.2rem)', fontWeight: 800, color: 'var(--forest)' }}>Noida & Greater Noida</span>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center', maxWidth: 760, margin: '0 auto' }}>
-            {SERVING_AREAS.slice(0, 10).map((a) => (
+            {areas.slice(0, 10).map((a) => (
               <Link key={a.slug} href={`/${a.slug}`}
                 style={{ padding: '8px 18px', background: 'var(--cream)', color: 'var(--forest)', borderRadius: 99, fontSize: '0.82rem', fontWeight: 700, border: '1.5px solid var(--border-gold)', textDecoration: 'none', transition: 'transform 0.2s, background 0.2s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--forest)'; (e.currentTarget as HTMLElement).style.color = '#fff'; }}
@@ -326,9 +340,11 @@ export default function AboutPage() {
                 {a.name}
               </Link>
             ))}
-            <Link href="/about#serve" style={{ padding: '8px 18px', background: 'var(--forest)', color: '#fff', borderRadius: 99, fontSize: '0.82rem', fontWeight: 700, border: '1.5px solid var(--border-gold)', textDecoration: 'none' }}>
-              + {SERVING_AREAS.length - 10}+ more societies
-            </Link>
+            {areas.length > 10 && (
+              <Link href="/about#serve" style={{ padding: '8px 18px', background: 'var(--forest)', color: '#fff', borderRadius: 99, fontSize: '0.82rem', fontWeight: 700, border: '1.5px solid var(--border-gold)', textDecoration: 'none' }}>
+                + {areas.length - 10}+ more societies
+              </Link>
+            )}
           </div>
         </div>
       </section>
