@@ -112,6 +112,16 @@ export const trackBooking = (booking_id: number) =>
 export const rescheduleBooking = (booking_id: number, new_date: string, new_time?: string) =>
   req('/payments/reschedule', { method: 'POST', body: JSON.stringify({ booking_id, new_date, ...(new_time ? { new_time } : {}) }) });
 
+// Time-extension addon (on-demand only). Reads zone-configured block size + price.
+export const getTimeAddons = (booking_id: number) =>
+  req(`/bookings/${booking_id}/time-addons`);
+
+export const requestTimeAddon = (booking_id: number, blocks: number = 1) =>
+  req(`/bookings/${booking_id}/time-addon`, {
+    method: 'POST',
+    body: JSON.stringify({ blocks }),
+  });
+
 export const addBookingAddons = (id: number, addons: { addon_id: number; quantity: number }[]) =>
   req(`/bookings/${id}/addons`, {
     method: 'POST',

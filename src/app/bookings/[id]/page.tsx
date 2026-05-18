@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/store/auth';
-import { getBooking, cancelBooking, rateBooking, rescheduleBooking, initiatePayment } from '@/lib/api';
+import { getBooking, cancelBooking, rateBooking, rescheduleBooking, initiatePayment, getTimeAddons, requestTimeAddon } from '@/lib/api';
 
 /* ─── Icons ──────────────────────────────────────────────────────────────────── */
 const IcPlan     = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>;
@@ -101,6 +101,31 @@ export default function BookingDetailPage() {
     mutationFn: () => cancelBooking(parseInt(id), cancelReason),
     onSuccess: () => { toast.success('Booking cancelled.'); setShowCancel(false); refetch(); },
     onError: (e: any) => toast.error(e.message),
+  });
+
+  // Time addon is only available once the customer has shared the OTP and the
+  // gardener has started the visit (status flips to `in_progress`).
+  const timeAddonEligible =
+    booking?.booking_type === 'ondemand'
+    && status === 'in_progress'
+    && booking?.otp_verified === true;
+  const { data: timeAddonInfo, refetch: refetchTimeAddons } = useQuery({
+    queryKey: ['booking-time-addons', id],
+    queryFn: () => getTimeAddons(parseInt(id)),
+    enabled: !!booking && timeAddonEligible,
+    refetchInterval: 30_000,
+  });
+  const timeAddonConfig = timeAddonInfo?.config;
+  const timeAddonTotals = timeAddonInfo?.totals;
+
+  const requestTimeAddonMut = useMutation({
+    mutationFn: (blocks: number) => requestTimeAddon(parseInt(id), blocks),
+    onSuccess: (res: any) => {
+      toast.success(res?.message || 'Extra time added! Gardener has been notified.');
+      refetch();
+      refetchTimeAddons();
+    },
+    onError: (e: any) => toast.error(e.message || 'Could not add time'),
   });
 
   const rescheduleMut = useMutation({
@@ -369,6 +394,38 @@ export default function BookingDetailPage() {
                   </div>
                 )}
               </div>
+
+              {/* Time-extension addon — on-demand only, while gardener is active */}
+              {timeAddonEligible && timeAddonConfig?.configured && (
+                <div style={{ background:'var(--bg-card)', borderRadius:24, padding:'18px 20px', border:'1px solid var(--border)' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+                    <IcClock />
+                    <h3 style={{ fontWeight:700, fontSize:'0.95rem', margin:0 }}>Need more time?</h3>
+                  </div>
+                  <p style={{ fontSize:'0.78rem', color:'var(--text-muted)', marginBottom:12, lineHeight:1.5 }}>
+                    Extend this visit in blocks of <strong>{timeAddonConfig.block_minutes} min</strong> at <strong>₹{timeAddonConfig.block_price}</strong> per block.
+                  </p>
+                  {(timeAddonTotals?.extra_time_minutes ?? 0) > 0 && (
+                    <div style={{ fontSize:'0.78rem', background:'rgba(11,61,46,0.06)', color:'var(--forest)', padding:'8px 12px', borderRadius:10, marginBottom:12, fontWeight:600 }}>
+                      Already added: {timeAddonTotals.extra_time_minutes} mins (+₹{Number(timeAddonTotals.extra_time_amount).toLocaleString('en-IN')})
+                    </div>
+                  )}
+                  <button
+                    onClick={() => requestTimeAddonMut.mutate(1)}
+                    disabled={requestTimeAddonMut.isPending}
+                    className="btn btn-forest w-full"
+                    style={{ justifyContent:'center', padding:'12px' }}>
+                    {requestTimeAddonMut.isPending
+                      ? 'Adding…'
+                      : `+ Add ${timeAddonConfig.block_minutes} mins (₹${timeAddonConfig.block_price})`}
+                  </button>
+                </div>
+              )}
+              {timeAddonEligible && timeAddonInfo && !timeAddonConfig?.configured && (
+                <div style={{ background:'var(--cream)', borderRadius:18, padding:'14px 16px', border:'1px solid var(--border)', fontSize:'0.78rem', color:'var(--text-muted)' }}>
+                  Time extensions are not available in this zone.
+                </div>
+              )}
 
               {/* Action buttons */}
               {status === 'pending' && booking.payment_status !== 'paid' && (
