@@ -27,7 +27,6 @@ const NAV_COLS = [
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/bookings', label: 'My Bookings' },
       { href: '/subscriptions', label: 'Subscriptions' },
-      { href: '/wallet', label: 'Wallet' },
       { href: '/profile', label: 'Profile' },
     ],
   },
@@ -38,6 +37,8 @@ const NAV_COLS = [
       { href: '/notifications', label: 'Notifications' },
       { href: '/shop/orders', label: 'Track Orders' },
       { href: '/login', label: 'Sign In' },
+      { href: '/terms', label: 'Terms & Privacy' },
+      { href: '/careers', label: 'Join as Gardener' },
     ],
   },
 ];
@@ -145,10 +146,10 @@ export default function Footer() {
             {/* Socials */}
             <div className="footer-social-row" style={{ display: 'flex', flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'nowrap', justifyContent: 'center' }}>
               {[
-                { Icon: IcInsta,    href: 'https://www.instagram.com/gharkamali',         label: 'Instagram' },
-                { Icon: IcYT,       href: 'https://www.youtube.com/@gharkamali',          label: 'YouTube' },
-                { Icon: IcFacebook, href: 'https://www.facebook.com/gharkamali',          label: 'Facebook' },
-                { Icon: IcLinkedIn, href: 'https://www.linkedin.com/company/gharkamali',  label: 'LinkedIn' },
+                { Icon: IcInsta, href: 'https://www.instagram.com/gharkamali', label: 'Instagram' },
+                { Icon: IcYT, href: 'https://www.youtube.com/@gharkamali', label: 'YouTube' },
+                { Icon: IcFacebook, href: 'https://www.facebook.com/gharkamali', label: 'Facebook' },
+                { Icon: IcLinkedIn, href: 'https://www.linkedin.com/company/gharkamali', label: 'LinkedIn' },
                 { Icon: IcWhatsApp, href: WA_URL, label: 'WhatsApp' },
               ].map(s => (
                 <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}

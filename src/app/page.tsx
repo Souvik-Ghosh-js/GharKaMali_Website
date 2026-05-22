@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '@/components/Navbar';
@@ -164,11 +164,9 @@ const AppDownloadPopup = () => {
     <div className="app-popup-overlay" onClick={() => setShow(false)}>
       <div className="app-popup-box" onClick={e => e.stopPropagation()}>
         <button className="close" onClick={() => setShow(false)}>×</button>
-        <div className="app-popup-icon" style={{ background: '#fff', padding: 8, overflow: 'hidden' }}>
-          <img src="/logo.png" alt="GharKaMali" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-        </div>
+        <div className="app-popup-icon"><IcLeaf /></div>
         <h3 style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--forest)', marginBottom: 12 }}>Join the Green Club</h3>
-        <p style={{ color: 'var(--text-2)', fontSize: '1rem', lineHeight: 1.6, marginBottom: 32, fontWeight: 500 }}>
+        <p style={{ color: 'var(--text-2)', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: 32, fontWeight: 500 }}>
           Download the GharKaMali app to track your plant growth, get digital health reports, and manage bookings instantly.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -198,29 +196,137 @@ const REVIEWS = [
   { name: 'Suresh Verma', city: 'Noida, Sector 62', society: 'Godrej Properties', rating: 5, avatar: 'S', text: 'Professional, punctual, and truly knowledgeable. My terrace garden has never looked better. Highly recommend!' },
 ];
 
+/* ── SHARED AUTO-SCROLL MARQUEE (JS-driven, seamless loop + nav buttons) ── */
+function ScrollMarquee({ id, speed = 0.55, gap = 24, children }: {
+  id: string;
+  speed?: number;
+  gap?: number;
+  children: React.ReactNode;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number>(0);
+  const pausedRef = useRef(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const tick = () => {
+      if (!pausedRef.current) {
+        el.scrollLeft += speed;
+        const half = el.scrollWidth / 2;
+        if (el.scrollLeft >= half) el.scrollLeft -= half;
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [speed]);
+
+  const skip = (dir: number) => {
+    const el = containerRef.current;
+    if (!el) return;
+    const half = el.scrollWidth / 2;
+    let next = el.scrollLeft + dir * 324;
+    if (next < 0) next += half;
+    if (next >= half) next -= half;
+    el.scrollLeft = next;
+  };
+
+  const navBtnStyle: React.CSSProperties = {
+    width: 44, height: 44, borderRadius: '50%',
+    border: '1px solid var(--border)', background: '#fff', color: 'var(--forest)',
+    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: 'var(--sh-md)', pointerEvents: 'auto', flexShrink: 0, padding: 0,
+  };
+
+  return (
+    <div style={{ position: 'relative', margin: '0 -20px', padding: '0 20px' }}>
+      <div
+        ref={containerRef}
+        id={id}
+        style={{ overflowX: 'hidden', padding: '20px 0', scrollbarWidth: 'none' }}
+        onMouseEnter={() => { pausedRef.current = true; }}
+        onMouseLeave={() => { pausedRef.current = false; }}
+      >
+        <div style={{ display: 'flex', gap, width: 'max-content' }}>
+          {children}
+        </div>
+      </div>
+      {/* Nav buttons */}
+      <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, transform: 'translateY(-50%)', display: 'flex', justifyContent: 'space-between', pointerEvents: 'none', zIndex: 10, padding: '0 10px' }}>
+        <button className="btn btn-white btn-sm" style={navBtnStyle} onClick={() => skip(-1)}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--forest)'; e.currentTarget.style.color = '#fff'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = 'var(--forest)'; }}>
+          <span style={{ transform: 'rotate(180deg)', display: 'inline-flex' }}><IcArrow /></span>
+        </button>
+        <button className="btn btn-white btn-sm" style={navBtnStyle} onClick={() => skip(1)}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--forest)'; e.currentTarget.style.color = '#fff'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = 'var(--forest)'; }}>
+          <IcArrow />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TestimonialsSection({ reviews }: { reviews: any[] }) {
+  return (
+    <section className="section section-overflow trust-section s-reveal" id="testimonials">
+      <div className="container">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 32 }}>
+          <div className="section-divider-line" />
+          <span className="overline overline-dot">Social Proof</span>
+          <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Trusted by Homes Across NCR</h2>
+        </div>
+
+        <ScrollMarquee id="testimonials-track" speed={0.5} gap={24}>
+          {[...reviews, ...reviews].map((r, i) => (
+            <div key={i} className="testimonial-marquee-card">
+              <Stars />
+              <p style={{ color: 'var(--forest)', fontSize: '0.88rem', lineHeight: 1.7, margin: '16px 0', fontStyle: 'normal', fontWeight: 600 }}>
+                &ldquo;{r.comment || r.text}&rdquo;
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{ width: 44, height: 44, borderRadius: '25%', background: 'var(--bg-elevated)', border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', fontWeight: 900, fontSize: '0.9rem', flexShrink: 0 }}>
+                  {r.customer?.name?.[0] || r.avatar || 'U'}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--forest)' }}>{r.customer?.name || r.name}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--earth)', fontWeight: 700 }}>{r.customer?.city || r.society}</div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 2 }}>{r.city || 'Noida'}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </ScrollMarquee>
+      </div>
+    </section>
+  );
+}
+
 const BEFORE_AFTER = [
-  { before: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&h=800&fit=crop', after: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&h=800&fit=crop', label: 'Organic Recovery', desc: 'Revitalized a dying terrace garden using specialized organic nutrition and root cleaning.' },
-  { before: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=800&h=800&fit=crop', after: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=800&h=800&fit=crop', label: 'Pest Eradication', desc: 'Completely removed severe Mealybug infestation and restored leaf shine for 20+ pots.' },
-  { before: 'https://images.unsplash.com/photo-1509587584298-0f3b3a3a1797?w=800&h=800&fit=crop', after: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=800&fit=crop', label: 'Balcony Makeover', desc: 'Corrected overwatering damage and rearranged species for optimal sunlight exposure.' },
-  { before: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&h=800&fit=crop', after: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&h=800&fit=crop', label: 'Expert Pruning', desc: 'Precise shaping and dead foliage removal to encourage lush new growth and symmetry.' },
-  { before: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=800&h=800&fit=crop', after: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=800&h=800&fit=crop', label: 'Soil Health', desc: 'Deep root analysis and custom organic fertilizer application for thriving plants.' },
-  { before: 'https://images.unsplash.com/photo-1509587584298-0f3b3a3a1797?w=800&h=800&fit=crop', after: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=800&fit=crop', label: 'Digital Report', desc: 'Real-time plant health analytics and WhatsApp-based before/after photo documentation.' },
+  { before: '/img-1.jpeg', after: '/img-2.jpeg', label: 'Organic Recovery', desc: 'Revitalized a dying terrace garden using specialized organic nutrition and root cleaning.' },
+  { before: '/img-3.jpeg', after: '/img-4.jpeg', label: 'Pest Eradication', desc: 'Completely removed severe Mealybug infestation and restored leaf shine for 20+ pots.' },
+  { before: '/img-5.jpeg', after: '/img-6.jpeg', label: 'Balcony Makeover', desc: 'Corrected overwatering damage and rearranged species for optimal sunlight exposure.' },
+  { before: '/img-7.jpeg', after: '/img-8.jpeg', label: 'Expert Pruning', desc: 'Precise shaping and dead foliage removal to encourage lush new growth and symmetry.' },
+  { before: '/img-9.jpeg', after: '/img-10.jpeg', label: 'Soil Health', desc: 'Deep root analysis and custom organic fertilizer application for thriving plants.' },
+  { before: '/img-11.jpeg', after: '/img-12.jpeg', label: 'Digital Report', desc: 'Real-time plant health analytics and WhatsApp-based before/after photo documentation.' },
 ];
 
 const MAKEOVER_SLIDES = [
   {
-    before: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=900&h=1200&fit=crop',
-    after: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=900&h=1200&fit=crop',
+    before: '/img-13.jpeg',
+    after: '/img-14.jpeg',
     label: 'Balcony', tag: 'Balcony Paradise',
   },
   {
-    before: 'https://images.unsplash.com/photo-1509587584298-0f3b3a3a1797?w=900&h=1200&fit=crop',
-    after: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=900&h=1200&fit=crop',
+    before: '/img-15.jpeg',
+    after: '/img-16.jpeg',
     label: 'Indoor', tag: 'Indoor Sanctuary',
   },
   {
-    before: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=900&h=1200&fit=crop',
-    after: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=900&h=1200&fit=crop',
+    before: '/img-1.jpeg',
+    after: '/img-6.jpeg',
     label: 'Terrace', tag: 'Terrace Garden',
   },
 ];
@@ -278,8 +384,8 @@ const GreenMakeoverSlider = () => {
       >
         {MAKEOVER_SLIDES.map((slide, i) => (
           <div key={i} style={{ position: 'absolute', inset: 0, opacity: i === activeSlide ? 1 : 0, transition: 'opacity 1.2s ease' }}>
-            <img src={slide.after} alt="After" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-            <img src={slide.before} alt="Before" draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }} />
+            <img src={slide.after} alt={`${slide.tag} – after GharKaMali plant care`} draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={slide.before} alt={`${slide.tag} – before GharKaMali plant care`} draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }} />
           </div>
         ))}
         {/* Divider */}
@@ -304,7 +410,7 @@ const GreenMakeoverSlider = () => {
             onClick={() => { setActiveSlide(i); posRef.current = 50; setSliderPos(50); animDirRef.current = 1; }}
             style={{ flex: 1, position: 'relative', cursor: 'pointer', background: 'transparent', border: 'none', padding: 0, overflow: 'hidden', borderBottom: i === activeSlide ? '3px solid var(--gold)' : '3px solid rgba(255,255,255,0.1)', transition: 'all 0.3s ease', outline: 'none' }}
           >
-            <img src={slide.after} alt={slide.label} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: i === activeSlide ? 'brightness(1)' : 'brightness(0.4)' }} />
+            <img src={slide.after} alt={`${slide.label} garden transformation thumbnail`} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: i === activeSlide ? 'brightness(1)' : 'brightness(0.4)' }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 8 }}>
               <span style={{ color: '#fff', fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{slide.label}</span>
             </div>
@@ -385,8 +491,8 @@ const ServicesAccordion = () => {
                     <s.Icon />
                   </div>
                   <div>
-                    <h3 style={{ fontSize: '1.8rem', fontWeight: 900, margin: '0 0 8px 0', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>{s.title}</h3>
-                    <p style={{ fontSize: '1rem', fontWeight: 500, margin: 0, opacity: 0.9, maxWidth: 500, lineHeight: 1.6 }}>{s.desc}</p>
+                    <h3 style={{ fontSize: '1.5rem', fontWeight: 900, margin: '0 0 8px 0', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>{s.title}</h3>
+                    <p style={{ fontSize: '0.88rem', fontWeight: 500, margin: 0, opacity: 0.9, maxWidth: 500, lineHeight: 1.6 }}>{s.desc}</p>
                   </div>
                 </div>
               </div>
@@ -414,7 +520,7 @@ const ServicesAccordion = () => {
                   <s.Icon />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--forest)', margin: '0 0 6px 0' }}>{s.title}</h3>
+                  <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--forest)', margin: '0 0 6px 0' }}>{s.title}</h3>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-2)', margin: 0, lineHeight: 1.6 }}>{s.desc}</p>
                 </div>
               </div>
@@ -436,12 +542,7 @@ const WA_URL = 'https://wa.me/919876543210?text=Hi%20GharKaMali!%20I%20want%20to
 
 /* ── HERO SLIDESHOW ── */
 const HeroSlideshow = () => {
-  const images = [
-    'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1600&h=900&fit=crop',
-    'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=1600&h=900&fit=crop',
-    'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1600&h=900&fit=crop',
-    'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&h=900&fit=crop'
-  ];
+  const images = ['/bg-1.jpg', '/bg-2.jpg', '/bg-3.webp'];
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
@@ -462,9 +563,8 @@ const HeroSlideshow = () => {
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               opacity: i === idx ? 0.7 : 0,
-              transition: 'opacity 1.5s ease-in-out',
-              transform: i === idx ? 'scale(1.05)' : 'scale(1)',
-              transitionDelay: i === idx ? '0s' : '0s',
+              transition: 'opacity 1.5s ease-in-out, transform 6s ease-in-out',
+              transform: i === idx ? 'scale(1.06)' : 'scale(1)',
             }}
           />
         ))}
@@ -504,7 +604,7 @@ const Marquee = () => {
           {[...items, ...items, ...items].map((item, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', whiteSpace: 'nowrap' }}>
               <span style={{ color: 'var(--gold)' }}><item.Icon /></span>
-              <span style={{ fontSize: '0.92rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.text}</span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{item.text}</span>
             </div>
           ))}
         </div>
@@ -531,7 +631,7 @@ const CityMarquee = () => {
               {SERVICEABLE_CITIES.map((city, zi) => (
                 <div key={zi} style={{ display: 'flex', alignItems: 'center', gap: '12px', whiteSpace: 'nowrap' }}>
                   <span style={{ color: city.active ? 'var(--earth)' : 'var(--sage)' }}><IcMap /></span>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: city.active ? 'var(--forest)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: city.active ? 'var(--forest)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                     {city.active ? `NOW SERVING: ${city.name}` : `🚀 COMING SOON: ${city.name}`}
                   </span>
                 </div>
@@ -648,45 +748,48 @@ export default function HomePage() {
               </div>
 
               {/* Hero title structure */}
-              <div style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <h1 style={{ marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 12, fontFamily: 'inherit', margin: '0 0 28px' }}>
                 {/* Row 1: Typewriter */}
-                <TypeWriter words={dynamicWords} />
+                <div style={{ fontSize: 'clamp(1.1rem, 2.2vw, 1.5rem)', fontWeight: 600, color: 'var(--gold)', letterSpacing: '0.05em' }}>
+                  <TypeWriter words={dynamicWords} />
+                </div>
 
-                {/* Row 2: Brand + Tag — inline so "hai na!" never wraps alone.
-                    Rendered as <h1> for SEO (one and only H1 on the page). */}
-                <h1 style={{ display: 'block', lineHeight: 1.1, margin: 0, padding: 0, fontWeight: 900 }}>
+                {/* Row 2: Brand + Tag — inline so "hai na!" never wraps alone */}
+                <div style={{ display: 'block', lineHeight: 1.05 }}>
                   <span className="typewriter-gradient" style={{
-                    fontSize: 'clamp(2rem, 8vw, 4.2rem)',
+                    fontSize: 'clamp(2.8rem, 8.5vw, 5.2rem)',
                     fontWeight: 900,
-                    letterSpacing: '-0.03em',
+                    letterSpacing: '-0.04em',
                     color: '#fff',
-                    textShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                    textShadow: '0 8px 32px rgba(0,0,0,0.45)',
                   }}>
                     GharKaMali
                   </span>
-                  <span style={{
-                    fontSize: 'clamp(0.9rem, 3vw, 1.2rem)',
-                    color: 'rgba(255,255,255,0.8)',
-                    fontWeight: 700,
-                    letterSpacing: '0.02em',
+                  <div style={{
+                    fontSize: 'clamp(1rem, 2.5vw, 1.6rem)',
+                    color: 'rgba(255,255,255,0.85)',
+                    fontWeight: 600,
+                    letterSpacing: '0.12em',
                     fontStyle: 'italic',
-                    marginLeft: 10,
+                    marginTop: -4,
+                    marginLeft: 4,
+                    textTransform: 'lowercase'
                   }}>
                     hai na!
-                  </span>
-                </h1>
-              </div>
+                  </div>
+                </div>
+              </h1>
 
-              <p className="hero-subtitle" style={{ maxWidth: 580, marginBottom: 44, fontWeight: 500, color: 'rgba(255,255,255,0.92)', textShadow: '0 2px 8px rgba(0,0,0,0.4)', fontSize: 'clamp(1rem, 1.4vw, 1.18rem)', lineHeight: 1.8 }}>
-                Professional plant care services across Noida, Greater Noida, Greater Noida West, and Ghaziabad. Launching soon in Gurugram. We take care of watering, pruning, pest control, and plant health—so your plants always stay green.
+              <p className="hero-subtitle" style={{ maxWidth: 640, marginBottom: 28, fontWeight: 500, color: 'rgba(255,255,255,0.82)', textShadow: '0 2px 8px rgba(0,0,0,0.3)', fontSize: 'clamp(0.9rem, 1.8vw, 1rem)', lineHeight: 1.7 }}>
+                Professional plant care services across Noida, Greater Noida, Greater Noida West, and Ghaziabad. We take care of watering, pruning, pest control, and plant health—so your plants always stay green.
               </p>
 
               <div className="hero-cta-row" style={{ display: 'flex', gap: 14, justifyContent: 'flex-start', flexWrap: 'wrap', position: 'relative' }}>
-                <Link href="/book?type=on-demand" className="btn btn-primary btn-lg btn-3d-plant" style={{ position: 'relative', overflow: 'visible', padding: '12px 28px' }}>
+                <Link href="/book?type=on-demand" className="btn btn-primary btn-md btn-3d-plant" style={{ position: 'relative', overflow: 'visible', padding: '11px 24px' }}>
                   Book Mali Visit @ ₹349 <IcArrow />
                 </Link>
-                <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-lg hero-wa-btn" style={{ borderColor: 'rgba(255,255,255,0.4)', color: '#fff', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', padding: '13px 28px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  Get Free Plant Advice on WhatsApp
+                <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-md hero-wa-btn" style={{ borderColor: 'rgba(255,255,255,0.4)', color: '#fff', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', padding: '11px 22px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  Free Plant Advice
                 </a>
               </div>
 
@@ -754,43 +857,40 @@ export default function HomePage() {
 
 
       {/* ═══ SERVICE AREA ═══ */}
-      <section className="section s-reveal" style={{ background: 'var(--bg-sage)', padding: 'clamp(48px,6vw,80px) 0' }}>
+      <section className="section section-half s-reveal" style={{ background: 'var(--bg-sage)' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <div className="section-divider-line" />
             <span className="overline overline-dot">Coverage</span>
             <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Serving Across NCR</h2>
-            <p style={{ color: 'var(--text-2)', fontSize: '1.05rem', maxWidth: 520, margin: '14px auto 0', lineHeight: 1.7, fontWeight: 500 }}>
+            <p style={{ color: 'var(--text-2)', fontSize: '0.88rem', maxWidth: 520, margin: '14px auto 0', lineHeight: 1.7, fontWeight: 500 }}>
               We are currently providing expert gardening services in:
             </p>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap', marginBottom: 32 }}>
+          <div className="city-pills-grid" style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
             {['Noida', 'Greater Noida', 'Greater Noida West', 'Ghaziabad'].map((city, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', border: '1.5px solid var(--border-gold)', borderRadius: 99, padding: '12px 28px', fontWeight: 800, color: 'var(--forest)', fontSize: '0.95rem', boxShadow: 'var(--sh-sm)' }}>
+              <div key={i} className="city-pill" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: '1.5px solid var(--border-gold)', borderRadius: 99, padding: '9px 20px', fontWeight: 600, color: 'var(--forest)', fontSize: '0.88rem', boxShadow: 'var(--sh-sm)' }}>
                 <span style={{ color: 'var(--earth)' }}><IcMap /></span>
                 {city}
               </div>
             ))}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--forest)', border: '1.5px solid var(--forest)', borderRadius: 99, padding: '12px 28px', fontWeight: 800, color: '#fff', fontSize: '0.95rem', boxShadow: 'var(--sh-sm)' }}>
+            <div className="city-pill" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--forest)', border: '1.5px solid var(--forest)', borderRadius: 99, padding: '9px 20px', fontWeight: 600, color: '#fff', fontSize: '0.88rem', boxShadow: 'var(--sh-sm)' }}>
               🚀 Gurugram — Launching Soon
             </div>
           </div>
 
-          <p style={{ textAlign: 'center', color: 'var(--sage)', fontSize: '0.88rem', fontWeight: 600 }}>
-            Check availability in your society while booking.
-          </p>
         </div>
       </section>
 
       {/* ═══ PROFESSIONAL GARDENING MADE SIMPLE ═══ */}
-      <section className="section s-reveal" style={{ background: '#fff', overflow: 'hidden' }}>
+      <section className="section section-overflow s-reveal" style={{ background: '#fff', paddingBottom: 60 }}>
         <div className="container">
           <div className="prof-gardening-grid">
             <div className="prof-gardening-content s-reveal s-reveal-d1">
               <span className="overline" style={{ color: 'var(--earth)' }}>Service Excellence</span>
-              <h2 className="display-2 heading-two-tone" style={{ marginTop: 12, textAlign: 'left', width: 'auto' }}>Why Choose <span>GharKaMali?</span></h2>
-              <p style={{ color: 'var(--text-2)', fontSize: '1.1rem', marginTop: 24, lineHeight: 1.8, maxWidth: 500, fontWeight: 500 }}>
+              <h2 className="display-1 heading-two-tone" style={{ marginTop: 12, textAlign: 'left', width: 'auto', lineHeight: 1.15 }}>Why Choose <span>GharKaMali?</span></h2>
+              <p style={{ color: 'var(--text-2)', fontSize: '0.9rem', marginTop: 24, lineHeight: 1.8, maxWidth: 500, fontWeight: 500 }}>
                 We solve all of this with expert home gardening services at your doorstep.
               </p>
 
@@ -800,8 +900,8 @@ export default function HomePage() {
                   'Plants drying or turning yellow?',
                   'Not sure what your plants need?'
                 ].map((item, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, color: 'var(--forest)', fontWeight: 700 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', boxShadow: 'var(--sh-sm)' }}>✓</div>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, color: 'var(--forest)', fontWeight: 600, fontSize: '0.92rem' }}>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', boxShadow: 'var(--sh-sm)', flexShrink: 0 }}>✓</div>
                     {item}
                   </div>
                 ))}
@@ -814,13 +914,7 @@ export default function HomePage() {
 
             <div className="prof-gardening-visual s-reveal s-reveal-d2" style={{ position: 'relative' }}>
               <div style={{ position: 'relative', borderRadius: 32, overflow: 'hidden', boxShadow: 'var(--sh-xl)', border: '8px solid #fff', transform: 'rotate(1.5deg)' }}>
-                <img
-                  src="https://images.unsplash.com/photo-1598902108854-10e335adac99?w=1200&h=800&fit=crop"
-                  alt="Balcony Transformation"
-                  loading="lazy"
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/img-2.jpeg'; }}
-                  style={{ width: '100%', height: 'auto', display: 'block' }}
-                />
+                <img src="/logo.png" alt="GharKaMali gardener caring for balcony plants" style={{ width: '100%', height: 'auto', maxHeight: '440px', objectFit: 'cover', display: 'block' }} />
                 <div style={{ position: 'absolute', top: 20, left: 20, background: 'rgba(3,65,26,0.85)', color: '#fff', padding: '8px 20px', borderRadius: 99, fontSize: '0.75rem', fontWeight: 800, backdropFilter: 'blur(12px)', boxShadow: 'var(--sh-sm)' }}>TRANSFORMATION COMPLETE</div>
               </div>
 
@@ -832,78 +926,76 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Certification Ticker */}
-        <div className="s-reveal s-reveal-d3" style={{ marginTop: 100, background: 'var(--bg-elevated)', padding: '28px 0', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', position: 'relative' }}>
-          <div className="marquee-container" style={{ maskImage: 'none' }}>
-            <div className="marquee-scroller" style={{ animationDuration: '25s', gap: '80px' }}>
-              {[...Array(6)].map((_, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>2 Days Intensive Training</span>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
-                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>Background Verified Experts</span>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
-                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>Eco-friendly Solutions</span>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
-                </div>
-              ))}
-            </div>
+      {/* Certification Ticker — Seamless Bridge */}
+      <div className="s-reveal s-reveal-d3" style={{ background: 'var(--bg-elevated)', padding: '24px 0', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', position: 'relative', zIndex: 12 }}>
+        <div className="marquee-container" style={{ maskImage: 'none' }}>
+          <div className="marquee-scroller" style={{ animationDuration: '25s', gap: '80px' }}>
+            {[...Array(6)].map((_, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>2 Days Intensive Training</span>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>Background Verified Experts</span>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>Eco-friendly Solutions</span>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
+              </div>
+            ))}
           </div>
         </div>
-      </section>
+      </div>
 
 
       {/* ═══ PLANT UTILITIES ═══ */}
-      <section className="section s-reveal" style={{ background: 'var(--bg-sage)' }}>
+      <section className="section section-half s-reveal" style={{ background: 'var(--bg-sage)', paddingBottom: 60 }}>
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: 'clamp(48px,6vw,80px)' }}>
+          <div style={{ textAlign: 'center', marginBottom: 34 }}>
             <div className="section-divider-line" />
-            <span className="overline overline-dot">Proactive Maintenance</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>What You Get in ₹349 Visit</h2>
-            <p style={{ color: 'var(--text-2)', fontSize: '1.05rem', maxWidth: 540, margin: '14px auto 0', lineHeight: 1.7, fontWeight: 500 }}>
+            <span className="overline overline-dot">Included in Every Visit</span>
+            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 18 }}>What You Get in ₹349 Visit</h2>
+            <p style={{ color: 'var(--text-2)', fontSize: '0.88rem', maxWidth: 480, margin: '8px auto 0', lineHeight: 1.6, fontWeight: 500 }}>
               Everything your plants need, covered in a single expert visit.
             </p>
           </div>
 
-          {/* Utilities Grid - Precise 3-2 Layout */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(6, 1fr)',
-            gap: '30px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '20px',
             maxWidth: '1200px',
             margin: '0 auto',
-            padding: '20px'
           }}>
             {[
-              { title: 'Complete check-up of your plants', desc: 'Thorough inspection of every plant for health, pest signs, and growth issues.', Icon: IcLeaf },
-              { title: 'Proper watering and cleaning', desc: 'Right amount of water for each plant type, plus leaf cleaning for better growth.', Icon: IcDroplet },
-              { title: 'Pruning and trimming', desc: 'Removing dead and excess growth to keep your plants looking fresh and healthy.', Icon: IcScissors },
-              { title: 'Pest inspection and basic treatment', desc: 'Early detection and on-spot treatment to protect your plants from damage.', Icon: IcShield },
-              { title: 'Soil health check', desc: 'Assessing and improving soil condition for stronger roots and better nutrition.', Icon: IcMap },
+              { title: 'Complete plant check-up', desc: 'Inspection for health, pest signs, and growth issues.', Icon: IcLeaf },
+              { title: 'Watering & cleaning', desc: 'Right amount of water per plant type, plus leaf cleaning.', Icon: IcDroplet },
+              { title: 'Pruning & trimming', desc: 'Removing dead growth to keep plants fresh and healthy.', Icon: IcScissors },
+              { title: 'Pest inspection & treatment', desc: 'Early detection and on-spot treatment against damage.', Icon: IcShield },
+              { title: 'Soil health check', desc: 'Improving soil condition for stronger roots and nutrition.', Icon: IcMap },
             ].map((item, i) => (
               <div
                 key={i}
                 className="utility-card"
                 style={{
-                  gridColumn: i < 3 ? 'span 2' : (i === 3 ? '2 / span 2' : '4 / span 2'),
+                  gridColumn: 'auto',
                   background: '#fff',
-                  padding: 'clamp(30px, 4vh, 45px) 30px',
-                  border: '1.5px solid var(--border)',
+                  padding: '20px 20px',
+                  border: '1px solid var(--border)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   textAlign: 'center',
-                  borderRadius: 28,
+                  borderRadius: 16,
                   boxShadow: 'var(--sh-sm)',
                   transition: 'all 0.3s ease-out',
                   cursor: 'pointer',
                 }}
               >
-                <div style={{ color: 'var(--forest)', width: 64, height: 64, borderRadius: '20px', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, border: '1px solid var(--border-gold)' }}>
+                <div style={{ color: 'var(--forest)', width: 40, height: 40, borderRadius: '12px', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, border: '1px solid var(--border-gold)', flexShrink: 0 }}>
                   <item.Icon />
                 </div>
-                <h3 style={{ fontSize: '1.3rem', color: 'var(--forest)', fontWeight: 800, marginBottom: 12 }}>{item.title}</h3>
-                <p style={{ color: 'var(--sage)', fontSize: '0.9rem', lineHeight: 1.6, fontWeight: 500 }}>{item.desc}</p>
+                <h3 style={{ fontSize: '0.88rem', color: 'var(--forest)', fontWeight: 800, marginBottom: 6, lineHeight: 1.3 }}>{item.title}</h3>
+                <p style={{ color: 'var(--sage)', fontSize: '0.78rem', lineHeight: 1.5, fontWeight: 500, margin: 0 }}>{item.desc}</p>
               </div>
             ))}
           </div>
@@ -915,9 +1007,8 @@ export default function HomePage() {
             border-color: var(--gold) !important;
           }
           @media (min-width: 1025px) {
-            .utility-card:nth-child(1), .utility-card:nth-child(2), .utility-card:nth-child(3) { grid-column: span 2; }
-            .utility-card:nth-child(4) { grid-column: 2 / span 2; }
-            .utility-card:nth-child(5) { grid-column: 4 / span 2; }
+            div { grid-template-columns: repeat(5, 1fr) !important; }
+            .utility-card { grid-column: auto; }
           }
           @media (max-width: 1024px) {
             div { grid-template-columns: repeat(2, 1fr) !important; padding: 10px !important; }
@@ -932,7 +1023,7 @@ export default function HomePage() {
 
 
       {/* ═══ HOW IT WORKS — horizontal GSAP-style stack-expand ═══ */}
-      <section className="section s-reveal" style={{ position: 'relative', zIndex: 11, overflow: 'hidden', padding: 'clamp(56px,9vw,130px) 0 clamp(72px,10vw,140px)' }}>
+      <section className="section section-overflow s-reveal" style={{ position: 'relative', zIndex: 11, paddingTop: 0 }}>
         {/* Subtle radial blob decorations */}
         <div style={{ position: 'absolute', top: -80, right: -80, width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -60, left: -60, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -1053,72 +1144,57 @@ export default function HomePage() {
       </section>
 
       {/* ═══ BRAND STORY ═══ */}
-      <section className="section brand-story-section s-reveal" id="brand-story" style={{ background: 'linear-gradient(180deg, #fff 0%, #eef7ee 60%, #e2f0e2 100%)' }}>
+      <section className="section section-overflow brand-story-section s-reveal" id="brand-story" style={{ background: 'linear-gradient(180deg, #fff 0%, #eef7ee 60%, #e2f0e2 100%)' }}>
         {/* Decorative blobs */}
         <div style={{ position: 'absolute', top: -40, left: '10%', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -40, right: '8%', width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div className="container" style={{ position: 'relative' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 32 }}>
-            <div className="section-divider-line" />
-            <span className="overline overline-dot">Our Brand Story</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Professional gardening made simple</h2>
-          </div>
+          <div className="brand-story-inner">
+            {/* Left side: Vision Content */}
+            <div style={{ textAlign: 'left' }}>
+              <div className="section-divider-line" style={{ margin: '0 0 16px' }} />
+              <span className="overline overline-dot" style={{ justifyContent: 'flex-start' }}>Our Brand Story</span>
+              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, textAlign: 'left', width: 'auto' }}>Professional gardening made simple</h2>
 
-          <div className="brand-story-grid">
-            {/* Left Column: Vision & Values */}
-            <div className="brand-story-left">
-              <div style={{ marginBottom: 24 }}>
-                <h3 style={{ color: 'var(--forest)', fontSize: '1.6rem', fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ marginTop: 40 }}>
+                <h3 style={{ color: 'var(--forest)', fontSize: '1.5rem', fontWeight: 700, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ color: 'var(--earth)' }}><IcSun /></span> Our Vision
                 </h3>
-                <p style={{ color: 'var(--text-2)', lineHeight: 1.8, fontSize: '1.05rem', fontWeight: 500 }}>
+                <p style={{ color: 'var(--text-2)', lineHeight: 1.9, fontSize: '0.88rem', fontWeight: 500 }}>
                   At GharKaMali, our vision is to make plant care simple, reliable, and accessible for every home. In today&apos;s busy lifestyle, many people love plants but struggle to maintain them due to lack of time or proper guidance. We aim to become a trusted platform for professional plant care services that help homes and communities keep their plants healthy, green, and thriving.
                 </p>
               </div>
-
-              <div>
-                <h3 style={{ color: 'var(--forest)', fontSize: '1.6rem', fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ color: 'var(--earth)' }}><IcShield /></span> Our Values
-                </h3>
-                <div className="values-grid">
-                  {[
-                    { title: 'Trust', desc: 'Providing reliable and honest services that customers can depend on.' },
-                    { title: 'Care', desc: 'Treating every plant with attention, responsibility, and genuine care.' },
-                    { title: 'Quality', desc: 'Delivering professional gardening solutions that actually work.' },
-                    { title: 'Sustainability', desc: 'Encouraging greener homes and healthier living spaces.' }
-                  ].map((v, i) => (
-                    <div key={i} className="value-card">
-                      <div style={{ fontWeight: 600, color: 'var(--forest)', marginBottom: 6, fontSize: '1rem' }}>{v.title}</div>
-                      <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', lineHeight: 1.6, margin: 0 }}>{v.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
 
-            {/* Right Column: Journey */}
-            <div className="journey-card">
-              {/* Decoration */}
-              <div className="journey-card-deco" />
-
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <h3 style={{ color: 'var(--forest)', fontSize: '1.6rem', fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ color: 'var(--earth)' }}><IcLeaf /></span> From Scratch
-                </h3>
-                <div style={{ color: 'var(--text-2)', lineHeight: 1.7, fontSize: '0.9rem', fontWeight: 400 }}>
-                  <p style={{ marginBottom: 12 }}>Every journey begins with a small problem. We noticed that many people love plants but taking care of them is not always easy. Busy schedules, lack of plant care knowledge, and difficulty finding a reliable plant expert often lead to plants slowly losing their health.</p>
-                  <p style={{ marginBottom: 12 }}>This everyday problem sparked the idea of GharKaMali – a reliable and trustworthy platform for plant care. The journey was not easy. There were many challenges, rejections, and countless sleepless nights while building the right team, creating systems, and solving day-to-day problems.</p>
-                  <p style={{ marginBottom: 12 }}>Step by step, the belief in the vision kept growing stronger. What started as a simple idea gradually became a dream to build something that could truly help people and contribute positively to society.</p>
-                  <p className="journey-milestone" style={{
-                    color: '#011208',
-                    fontWeight: 400,
-                    fontSize: '0.95rem',
-                    lineHeight: 1.7
-                  }}>
-                    Today, we are proud to share an important milestone – the GharKaMali website is now live, serving homes in Noida and Greater Noida West. And this is just the beginning of our journey to help homes keep their plants healthy and green.
-                  </p>
+            {/* Right side: 2x2 Values Grid */}
+            <div className="brand-values-grid">
+              {[
+                { title: 'Trust', desc: 'Providing reliable and honest services that customers can depend on.', Icon: IcShield },
+                { title: 'Care', desc: 'Treating every plant with attention, responsibility, and genuine care.', Icon: IcLeaf },
+                { title: 'Quality', desc: 'Delivering professional gardening solutions that actually work.', Icon: IcStar },
+                { title: 'Sustainability', desc: 'Encouraging greener homes and healthier living spaces.', Icon: IcSun }
+              ].map((v, i) => (
+                <div key={i} className="value-card card" style={{
+                  textAlign: 'left',
+                  padding: '32px 24px',
+                  background: '#fff',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 16,
+                  border: '1.5px solid var(--border-gold)',
+                  borderRadius: 24,
+                  boxShadow: 'var(--sh-md)',
+                  transition: 'all 0.4s var(--ease)'
+                }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--bg-sage)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', fontSize: '1.2rem' }}>
+                    <v.Icon />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 900, color: 'var(--forest)', marginBottom: 8, fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{v.title}</div>
+                    <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>{v.desc}</p>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -1128,83 +1204,40 @@ export default function HomePage() {
       {shopProducts?.length > 0 && (
         <section className="section marketplace-section s-reveal" style={{ background: 'var(--bg)' }}>
           <div className="container">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 52, flexWrap: 'wrap', gap: 20 }}>
-              <div style={{ maxWidth: 540 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 32, flexWrap: 'wrap', gap: 20 }}>
+              <div style={{ maxWidth: 540, textAlign: 'left' }}>
                 <div className="section-divider-line" style={{ margin: '0 0 16px' }} />
-                <span className="overline overline-dot">GharKaMali Market</span>
-                <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 10 }}>Premium Plant Utilities</h2>
-                <p className="lead">Curated organic fertilizers, elite tools, and exotic species.</p>
+                <span className="overline overline-dot" style={{ justifyContent: 'flex-start' }}>GharKaMali Market</span>
+                <h2 className="display" style={{ color: 'var(--forest)', marginTop: 10, textAlign: 'left' }}>Premium Plant Utilities</h2>
+                <p className="lead" style={{ textAlign: 'left', marginLeft: 0 }}>Curated organic fertilizers, elite tools, and exotic species.</p>
               </div>
               <Link href="/shop" className="btn btn-outline btn-3d-plant" style={{ background: '#fff', fontWeight: 700, borderColor: 'var(--forest)', color: 'var(--forest)', position: 'relative', overflow: 'visible' }}>
                 Explore Marketplace
               </Link>
             </div>
-            <div className="marketplace-container" style={{ position: 'relative', margin: '0 -20px', padding: '0 20px' }}>
-              <div className="testimonials-marquee-outer" id="shop-track" style={{
-                padding: '20px 0',
-                overflowX: 'auto',
-                scrollBehavior: 'smooth',
-                msOverflowStyle: 'none',
-                scrollbarWidth: 'none'
-              }}>
-                <div className="shop-marquee-track" style={{
-                  display: 'flex',
-                  gap: '24px',
-                  width: 'max-content',
-                  animation: 'marquee-shop 40s linear infinite'
-                }}
-                  onMouseEnter={(e) => (e.currentTarget.style.animationPlayState = 'paused')}
-                  onMouseLeave={(e) => (e.currentTarget.style.animationPlayState = 'running')}
-                >
-                  {[...shopProducts, ...shopProducts].map((p: any, idx: number) => (
-                    <Link key={`${p._id || p.id}-${idx}`} href={`/shop/${p.slug || p._id || p.id}`} className="card shop-card-animate" style={{
-                      padding: 12,
-                      borderRadius: 24,
-                      display: 'block',
-                      textDecoration: 'none',
-                      width: '300px',
-                      flexShrink: 0,
-                      border: '1px solid var(--border)',
-                      background: '#fff',
-                      boxShadow: 'var(--sh-sm)',
-                      transition: 'transform 0.3s ease'
-                    }}>
-                      <div style={{ position: 'relative', width: '100%', height: 260, borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
-                        <img
-                          src={p.thumbnail || p.images?.[0] || '/img-1.jpeg'}
-                          alt={p.name}
-                          loading="lazy"
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/img-1.jpeg'; }}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                        <div style={{ position: 'absolute', top: 12, right: 12, background: 'var(--forest)', color: '#fff', fontSize: '0.75rem', padding: '6px 12px', borderRadius: 99, fontWeight: 800, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>₹{p.price}</div>
-                      </div>
-                      <div style={{ padding: '0 4px' }}>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--earth)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{p.category?.name || p.category || 'Premium Care'}</div>
-                        <h3 style={{ fontSize: '1.2rem', color: 'var(--forest)', fontWeight: 900, marginBottom: 10, lineHeight: 1.2 }}>{p.name}</h3>
-                        <div style={{ display: 'flex', gap: 2 }}><Stars /></div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              {/* Navigation Buttons - Aligned left/right over the cards */}
-              <div className="marketplace-nav-buttons" style={{ position: 'absolute', top: '50%', left: 0, right: 0, transform: 'translateY(-50%)', display: 'flex', justifyContent: 'space-between', pointerEvents: 'none', zIndex: 10, padding: '0 10px' }}>
-                <button
-                  onClick={() => document.getElementById('shop-track')?.scrollBy({ left: -324, behavior: 'smooth' })}
-                  className="btn btn-white btn-sm" style={{ width: 44, height: 44, borderRadius: '50%', padding: 0, boxShadow: 'var(--sh-md)', border: '1px solid var(--border)', pointerEvents: 'auto' }}
-                >
-                  <span style={{ transform: 'rotate(180deg)', display: 'inline-block' }}><IcArrow /></span>
-                </button>
-                <button
-                  onClick={() => document.getElementById('shop-track')?.scrollBy({ left: 324, behavior: 'smooth' })}
-                  className="btn btn-white btn-sm" style={{ width: 44, height: 44, borderRadius: '50%', padding: 0, boxShadow: 'var(--sh-md)', border: '1px solid var(--border)', pointerEvents: 'auto' }}
-                >
-                  <IcArrow />
-                </button>
-              </div>
-            </div>
+            <ScrollMarquee id="shop-track" speed={0.55} gap={24}>
+              {[...shopProducts, ...shopProducts].map((p: any, i: number) => (
+                <Link key={`${p._id || p.id}-${i}`} href={`/shop/${p.slug || p._id || p.id}`} className="card shop-card-animate" style={{
+                  padding: 12, borderRadius: 24, display: 'block', textDecoration: 'none',
+                  width: '300px', flexShrink: 0, border: '1px solid var(--border)',
+                  background: '#fff', boxShadow: 'var(--sh-sm)', transition: 'transform 0.3s ease'
+                }}>
+                  <div style={{ position: 'relative', width: '100%', height: 260, borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
+                    {p.thumbnail || p.images?.[0] ? (
+                      <img src={p.thumbnail || p.images?.[0]} alt={p.name || 'GharKaMali product'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <img src="/no-img.svg" alt="No image available" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    )}
+                    <div style={{ position: 'absolute', top: 12, right: 12, background: 'var(--forest)', color: '#fff', fontSize: '0.75rem', padding: '6px 12px', borderRadius: 99, fontWeight: 800, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>₹{p.price}</div>
+                  </div>
+                  <div style={{ padding: '0 4px' }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--earth)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{p.category?.name || p.category || 'Premium Care'}</div>
+                    <h3 style={{ fontSize: '0.95rem', color: 'var(--forest)', fontWeight: 900, marginBottom: 10, lineHeight: 1.2 }}>{p.name}</h3>
+                    <div style={{ display: 'flex', gap: 2 }}><Stars /></div>
+                  </div>
+                </Link>
+              ))}
+            </ScrollMarquee>
           </div>
         </section>
       )}
@@ -1221,11 +1254,11 @@ export default function HomePage() {
             <div style={{ position: 'absolute', right: -60, top: -60, width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle, rgba(237,207,135,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', left: -40, bottom: -40, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-            <h2 className="heading-two-tone" style={{ fontSize: 'clamp(2rem,5.5vw,4.2rem)', fontWeight: 900, marginBottom: 24, lineHeight: 1.1, position: 'relative', fontStyle: 'normal' }}>
+            <h2 className="heading-two-tone" style={{ fontWeight: 700, marginBottom: 16, lineHeight: 1.15, position: 'relative', fontStyle: 'normal' }}>
               Give Your Plants the<br />
               <span>Care They Deserve</span>
             </h2>
-            <p style={{ color: 'var(--text-2)', fontSize: 'clamp(0.95rem,1.4vw,1.2rem)', maxWidth: 640, margin: '0 auto 44px', lineHeight: 1.8, fontWeight: 500 }}>
+            <p style={{ color: 'var(--text-2)', fontSize: 'clamp(0.88rem, 1.4vw, 1rem)', maxWidth: 640, margin: '0 auto 32px', lineHeight: 1.75, fontWeight: 500 }}>
               Book your first visit today and experience professional plant care at home.
             </p>
             <div className="final-cta-actions" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -1240,46 +1273,14 @@ export default function HomePage() {
         </div>
       </section>
       {/* ═══ TESTIMONIALS ═══ */}
-      <section className="section trust-section s-reveal" id="testimonials">
-        <div className="container">
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 52 }}>
-            <div className="section-divider-line" />
-            <span className="overline overline-dot">Social Proof</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Trusted by Homes Across NCR</h2>
-          </div>
-        </div>
-        {/* Infinite Marquee — duplicated for seamless loop */}
-        <div className="testimonials-marquee-outer" style={{ paddingBottom: 8 }}>
-          <div className="testimonials-marquee-track">
-            {/* Original set */}
-            {[...activeReviews, ...activeReviews].map((r, i) => (
-              <div key={i} className="testimonial-marquee-card">
-                <Stars />
-                <p style={{ color: 'var(--forest)', fontSize: '1rem', lineHeight: 1.7, margin: '16px 0', fontStyle: 'normal', fontWeight: 600 }}>
-                  &ldquo;{r.comment || r.text}&rdquo;
-                </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: '25%', background: 'var(--bg-elevated)', border: '1.5px solid var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', fontWeight: 900, fontSize: '1.1rem', flexShrink: 0 }}>
-                    {r.customer?.name?.[0] || r.avatar || 'U'}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--forest)' }}>{r.customer?.name || r.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--earth)', fontWeight: 700 }}>{r.customer?.city || r.society}</div>
-                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 2 }}>{r.city || 'Noida'}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <TestimonialsSection reviews={activeReviews} />
 
 
       {/* ═══ BLOG JOURNAL ═══ */}
       {blogs?.length > 0 && (
         <section className="section s-reveal" style={{ position: 'relative', zIndex: 11 }}>
           <div className="container">
-            <div style={{ textAlign: 'center', marginBottom: 52 }}>
+            <div style={{ textAlign: 'center', marginBottom: 32 }}>
               <div className="section-divider-line" />
               <span className="overline overline-dot">Botanical Journal</span>
               <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Learn Realistic Plant Care</h2>
@@ -1288,17 +1289,11 @@ export default function HomePage() {
               {blogs?.length > 0 ? blogs.slice(0, 3).map((b: any, bi: number) => (
                 <Link key={b._id} href={`/blogs/${b.slug}`} className={`s-reveal s-reveal-d${bi + 1}`} style={{ display: 'flex', flexDirection: 'column', gap: 18, textDecoration: 'none' }}>
                   <div className="blog-img-zoom" style={{ position: 'relative', aspectRatio: '16/10' }}>
-                    <img
-                      src={b.thumbnail || '/img-3.jpeg'}
-                      alt={b.title}
-                      loading="lazy"
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/img-3.jpeg'; }}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
+                    <img src={b.thumbnail || '/img-2.jpeg'} alt={b.title || 'GharKaMali plant care blog'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <div style={{ position: 'absolute', top: 16, left: 16, background: 'rgba(255,255,255,0.92)', padding: '6px 16px', borderRadius: 99, fontSize: '0.72rem', fontWeight: 800, color: 'var(--forest)', backdropFilter: 'blur(8px)' }}>{b.category?.name || 'Expert Tips'}</div>
                   </div>
                   <div style={{ padding: '0 8px' }}>
-                    <h3 style={{ fontSize: '1.35rem', color: 'var(--forest)', fontWeight: 800, marginBottom: 8, lineHeight: 1.3 }}>{b.title}</h3>
+                    <h3 style={{ fontSize: '1.15rem', color: 'var(--forest)', fontWeight: 800, marginBottom: 8, lineHeight: 1.3 }}>{b.title}</h3>
                     <p style={{ color: 'var(--text-2)', fontSize: '0.95rem', lineHeight: 1.7, opacity: 0.8 }}>Expert insights on modern plant care and garden health...</p>
                   </div>
                 </Link>
@@ -1315,13 +1310,13 @@ export default function HomePage() {
       {plans.length > 0 && (
         <section className="section s-reveal" style={{ zIndex: 11 }}>
           <div className="container">
-            <div style={{ textAlign: 'center', marginBottom: 64 }}>
+            <div style={{ textAlign: 'center', marginBottom: 32 }}>
               <div className="section-divider-line" />
               <span className="overline overline-dot">Subscription Experience</span>
               <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, letterSpacing: '-0.02em' }}>Choose a <span style={{ color: 'var(--earth)', fontStyle: 'normal' }}>Monthly Plant Care Plan</span></h2>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center', marginBottom: 64 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center', marginBottom: 32 }}>
               {(plans.filter((p: any) => p.is_featured === 1).length > 0
                 ? plans.filter((p: any) => p.is_featured === 1)
                 : plans.slice(0, 3)
@@ -1344,12 +1339,12 @@ export default function HomePage() {
                     {plan.is_best_value === 1 && <div style={{ position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)', background: 'var(--gold)', color: 'var(--forest)', padding: '4px 16px', borderRadius: 99, fontSize: '0.65rem', fontWeight: 900, whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(201,168,76,0.3)', zIndex: 5 }}>BEST VALUE</div>}
 
                     <div style={{ fontSize: '0.7rem', fontWeight: 800, color: isDark ? 'rgba(255,255,255,0.6)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{plan.plan_type}</div>
-                    <h3 style={{ fontSize: '1.8rem', fontWeight: 900, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 10, letterSpacing: '-0.02em' }}>{plan.name}</h3>
+                    <h3 style={{ fontSize: '1.5rem', fontWeight: 900, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 10, letterSpacing: '-0.02em' }}>{plan.name}</h3>
                     <p style={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'var(--text-2)', fontSize: '0.92rem', marginBottom: 32, lineHeight: 1.6 }}>{plan.tagline || plan.description || 'Elevate your living space with our premium botanical maintenance plans.'}</p>
 
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 36 }}>
                       <span style={{ fontSize: '2.8rem', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', letterSpacing: '-0.02er' }}>₹{plan.price}</span>
-                      <span style={{ fontSize: '1rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 600 }}>/month</span>
+                      <span style={{ fontSize: '0.88rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 600 }}>/month</span>
                     </div>
 
                     <Link href={`/book?plan=${plan.id}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'} btn-lg`} style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '0.88rem' }}>
@@ -1361,8 +1356,8 @@ export default function HomePage() {
             </div>
 
             <div style={{ textAlign: 'center' }}>
-              <div style={{ height: 1.5, background: 'linear-gradient(90deg, transparent, var(--border-gold), transparent)', marginBottom: 48, maxWidth: 400, margin: '0 auto 48px' }} />
-              <Link href="/plans" className="btn btn-outline btn-lg" style={{ borderColor: 'var(--forest)', color: 'var(--forest)', padding: '16px 52px', fontSize: '1rem', fontWeight: 800 }}>
+              <div style={{ height: 1.5, background: 'linear-gradient(90deg, transparent, var(--border-gold), transparent)', marginBottom: 28, maxWidth: 400, margin: '0 auto 48px' }} />
+              <Link href="/plans" className="btn btn-outline btn-lg" style={{ borderColor: 'var(--forest)', color: 'var(--forest)', padding: '16px 52px', fontSize: '0.88rem', fontWeight: 800 }}>
                 Start Monthly Care
               </Link>
             </div>

@@ -266,76 +266,41 @@ export default function PlansPage() {
     return () => window.removeEventListener('resize', resize);
   }, []);
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQS.map(f => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  };
+
   return (
     <SmoothScrollProvider>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Navbar />
       <div style={{ background:'var(--bg)', paddingTop:'var(--nav-h)', minHeight:'100svh' }}>
         
-        {/* HERO — high-impact, value-led, matches brand reference */}
-        <div className="plans-hero" style={{
-          position:'relative',
-          padding:'clamp(40px, 6vw, 72px) 0 clamp(72px, 10vw, 120px)',
-          overflow:'hidden', textAlign:'center',
-          background:'linear-gradient(180deg, #FFF8EC 0%, rgba(255,248,236,0.6) 40%, var(--bg) 100%)',
-        }}>
-          {/* Decorative orbs that draw the eye */}
-          <div style={{ position:'absolute', top:'-10%', left:'-8%', width:'380px', height:'380px', borderRadius:'50%', background:'radial-gradient(circle, rgba(201,168,76,0.18) 0%, transparent 70%)', filter:'blur(40px)', pointerEvents:'none' }} />
-          <div style={{ position:'absolute', top:'10%', right:'-8%', width:'420px', height:'420px', borderRadius:'50%', background:'radial-gradient(circle, rgba(3,65,26,0.12) 0%, transparent 70%)', filter:'blur(50px)', pointerEvents:'none' }} />
-          <canvas ref={canvasRef} className="plans-hero-canvas" style={{ position:'absolute', inset:0, width:'100%', height:'100%' }} />
-
+        {/* HERO SECTION */}
+        <div style={{ position:'relative', padding:'100px 0 160px', overflow:'hidden', textAlign:'center', background:'linear-gradient(to bottom, rgba(3,65,26,0.05), transparent)' }}>
+          {/* Hero canvas — dots hidden on mobile to avoid clutter */}
+        <canvas ref={canvasRef} className="plans-hero-canvas" style={{ position:'absolute', inset:0, width:'100%', height:'100%' }} />
           <div className="container" style={{ position:'relative', zIndex:5 }}>
-            {/* Overline */}
-            <div style={{ display:'inline-flex', alignItems:'center', gap:10, background:'#fff', border:'1.5px solid var(--gold)', borderRadius:99, padding:'7px 22px', marginBottom:22, boxShadow:'0 4px 16px rgba(201,168,76,0.18)' }}>
-              <span className="pulse-dot" />
-              <span style={{ fontSize:'0.72rem', fontWeight:900, color:'var(--earth)', textTransform:'uppercase', letterSpacing:'0.28em' }}>Transparent Pricing</span>
-            </div>
-
-            {/* Headline */}
-            <h1 style={{
-              fontFamily:'var(--font-display)',
-              fontSize:'clamp(2.2rem, 6vw, 4.2rem)',
-              fontWeight:900, color:'var(--forest)',
-              margin:'0 0 18px',
-              letterSpacing:'-0.035em', lineHeight:1.02,
-            }}>
-              Invest in your{' '}
-              <span style={{
-                fontStyle:'italic',
-                background:'linear-gradient(135deg, var(--earth) 0%, var(--gold) 100%)',
-                WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text',
-              }}>
-                garden&rsquo;s
-              </span>{' '}
-              future<span style={{ color:'var(--earth)' }}>.</span>
-            </h1>
-
-            {/* Subtitle */}
-            <p style={{
-              fontSize:'clamp(0.95rem, 1.4vw, 1.12rem)',
-              color:'var(--text-2)', maxWidth:620,
-              margin:'0 auto 24px', lineHeight:1.7, fontWeight:500,
-            }}>
-              Certified plant experts, fair and transparent pricing, and a satisfaction promise.
-              Pick a plan that fits your green space — <strong style={{ color:'var(--forest)' }}>change or cancel anytime</strong>.
-            </p>
-
-            {/* Trust strip — gives the eye somewhere to land */}
-            <div style={{ display:'inline-flex', flexWrap:'wrap', justifyContent:'center', gap:'10px 22px', padding:'10px 22px', background:'rgba(255,255,255,0.7)', backdropFilter:'blur(8px)', border:'1px solid var(--border-gold)', borderRadius:99 }}>
-              {[
-                { ic:'✓', t:'No lock-in contracts' },
-                { ic:'★', t:'Vetted specialists' },
-                { ic:'💬', t:'WhatsApp updates' },
-                { ic:'🛡', t:'Satisfaction promise' },
-              ].map((b,i) => (
-                <div key={i} style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:'0.78rem', fontWeight:700, color:'var(--forest)' }}>
-                  <span style={{ color:'var(--earth)' }}>{b.ic}</span> {b.t}
-                </div>
-              ))}
-            </div>
+             <div style={{ display:'inline-flex', alignItems:'center', gap:10, background:'rgba(201,168,76,0.15)', border:'1.5px solid var(--gold)', borderRadius:99, padding:'10px 24px', marginBottom:32 }}>
+                <span className="pulse-dot" />
+                <span style={{ fontSize:'0.75rem', fontWeight:800, color:'var(--earth)', textTransform:'uppercase', letterSpacing:'0.25em' }}>Elevated Botanical Living</span>
+             </div>
+             <h1 className="display-1" style={{ color:'var(--forest)', marginBottom:24, letterSpacing:'-0.03em' }}>
+               Invest in your <span style={{ fontStyle:'normal', color:'var(--earth)' }}>garden’s</span> future
+             </h1>
+             <p style={{ fontSize:'1.2rem', color:'var(--sage)', maxWidth:520, margin:'0 auto', lineHeight:1.8, fontWeight:500 }}>
+               Transparent pricing. Certified experts. No lock-in periods.<br/>Just flourish and bloom.
+             </p>
           </div>
         </div>
 
-        <div className="container" style={{ marginTop:'clamp(-80px, -8vw, -56px)', paddingBottom:'clamp(48px, 6vw, 80px)', position:'relative', zIndex:6 }}>
+        <div className="container" style={{ marginTop:-120, paddingBottom:120 }}>
           {isLoading ? (
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(320px,1fr))', gap:32 }}>
               {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height:560, borderRadius:40 }} />)}

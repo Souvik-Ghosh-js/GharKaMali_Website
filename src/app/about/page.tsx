@@ -1,10 +1,9 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
-import { SERVING_AREAS, type ServingArea } from '@/lib/areas';
 
 const WA_URL = 'https://wa.me/919876543210?text=Hi%20GharKaMali!%20I%20want%20to%20know%20more.';
 
@@ -66,20 +65,6 @@ const TEAM = [
 ];
 
 export default function AboutPage() {
-  // Live areas from admin → City SEO list (with hardcoded fallback)
-  const [areas, setAreas] = useState<ServingArea[]>(SERVING_AREAS);
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const { fetchAreas } = await import('@/lib/areas');
-        const live = await fetchAreas();
-        if (!cancelled && live.length) setAreas(live);
-      } catch { /* keep fallback */ }
-    })();
-    return () => { cancelled = true; };
-  }, []);
-
   useEffect(() => {
     const init = async () => {
       const gsap = (await import('gsap')).default;
@@ -149,13 +134,41 @@ export default function AboutPage() {
     init();
   }, []);
 
+  const aboutFaqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'What is GharKaMali?',
+        acceptedAnswer: { '@type': 'Answer', text: 'GharKaMali is a professional home gardening service based in Noida, offering certified plant experts for regular garden care, plant health consultations, and maintenance visits starting at ₹349.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'Which areas does GharKaMali serve?',
+        acceptedAnswer: { '@type': 'Answer', text: 'GharKaMali currently serves Noida, Greater Noida, and surrounding Delhi NCR areas. Enter your pincode on the booking page to check serviceability in your locality.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'Are GharKaMali gardeners verified and trained?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Yes. Every plant expert at GharKaMali undergoes a thorough background check, skill assessment, and hands-on training before being assigned to customers. You can open your door with complete confidence.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'How do I book a gardening service with GharKaMali?',
+        acceptedAnswer: { '@type': 'Answer', text: 'You can book a gardening visit directly on our website at gharkamali.com/book, or through our mobile app. Choose your plan, pick a convenient date and time, and a certified plant expert will arrive at your doorstep.' },
+      },
+    ],
+  };
+
   return (
     <SmoothScrollProvider>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutFaqSchema) }} />
       {/* transparent so navbar stays invisible until scroll on dark hero */}
       <Navbar transparent />
 
       {/* ══ HERO ══ */}
-      <section style={{ paddingTop: 'calc(var(--nav-h) + clamp(28px, 4vw, 48px))', paddingBottom: 'clamp(36px, 5vw, 60px)', background: 'var(--forest)', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ paddingTop: 'calc(var(--nav-h) + 80px)', paddingBottom: 100, background: 'var(--forest)', position: 'relative', overflow: 'hidden' }}>
         {/* decorative orbs */}
         <div style={{ position: 'absolute', top: -120, right: -100, width: 520, height: 520, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.18) 0%, transparent 65%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -80, left: -80, width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -163,14 +176,14 @@ export default function AboutPage() {
         <div style={{ position: 'absolute', top: '20%', right: '8%', opacity: 0.07, transform: 'rotate(30deg) scale(6)', color: '#fff', pointerEvents: 'none' }}><IcLeaf /></div>
 
         <div className="container about-hero" style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 760 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 99, padding: '5px 16px', marginBottom: 14 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 99, padding: '6px 20px', marginBottom: 28 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#c9a84c', display: 'inline-block', animation: 'pulse 2s ease infinite' }} />
-            <span style={{ fontSize: '0.66rem', fontWeight: 800, color: 'rgba(201,168,76,0.9)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Our Story</span>
+            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'rgba(201,168,76,0.9)', textTransform: 'uppercase', letterSpacing: '0.22em' }}>Our Story</span>
           </div>
-          <h1 style={{ fontSize: 'clamp(1.8rem, 4.5vw, 3rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: 12 }}>
+          <h1 style={{ fontSize: 'clamp(2.4rem,6vw,4.2rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: 22 }}>
             We make plant care<br /><span style={{ color: '#c9a84c' }}>simple & joyful</span>
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 'clamp(0.88rem, 1.3vw, 1rem)', marginBottom: 22, lineHeight: 1.7, maxWidth: 620, marginInline: 'auto' }}>
+          <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 'clamp(1rem,1.8vw,1.15rem)', marginBottom: 44, lineHeight: 1.85 }}>
             GharKaMali was born from a simple belief — every home deserves a thriving green space, and every plant parent deserves expert help to make it happen.
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -198,6 +211,28 @@ export default function AboutPage() {
               <div style={{ fontSize: '0.74rem', color: 'var(--sage)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 8 }}>{s.label}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ══ JOURNEY ══ */}
+      <section style={{ padding: 'clamp(40px,6vw,80px) 0', background: '#fff' }}>
+        <div className="container">
+          <div style={{ position: 'relative', background: 'linear-gradient(135deg, #f0faf2 0%, #e8f5ea 100%)', borderRadius: 24, padding: 'clamp(28px,4vw,48px)', border: '1.5px solid var(--border-gold)', boxShadow: 'var(--sh-md)', overflow: 'hidden' }}>
+            <div className="journey-card-deco" />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <h3 style={{ color: 'var(--forest)', fontSize: '1.6rem', fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ color: 'var(--earth)' }}><IcLeaf /></span> From Scratch
+              </h3>
+              <div style={{ color: 'var(--text-2)', lineHeight: 1.7, fontSize: '0.95rem', fontWeight: 400 }}>
+                <p style={{ marginBottom: 12 }}>Every journey begins with a small problem. We noticed that many people love plants but taking care of them is not always easy. Busy schedules, lack of plant care knowledge, and difficulty finding a reliable plant expert often lead to plants slowly losing their health.</p>
+                <p style={{ marginBottom: 12 }}>This everyday problem sparked the idea of GharKaMali – a reliable and trustworthy platform for plant care. The journey was not easy. There were many challenges, rejections, and countless sleepless nights while building the right team, creating systems, and solving day-to-day problems.</p>
+                <p style={{ marginBottom: 12 }}>Step by step, the belief in the vision kept growing stronger. What started as a simple idea gradually became a dream to build something that could truly help people and contribute positively to society.</p>
+                <p style={{ color: '#011208', fontWeight: 500, fontSize: '0.95rem', lineHeight: 1.7 }}>
+                  Today, we are proud to share an important milestone – the GharKaMali website is now live, serving homes in Noida, Greater Noida, Greater Noida West, and Ghaziabad. And this is just the beginning of our journey to help homes keep their plants healthy and green.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -330,21 +365,12 @@ export default function AboutPage() {
             <IcMap />
             <span style={{ fontSize: 'clamp(1rem,2vw,1.2rem)', fontWeight: 800, color: 'var(--forest)' }}>Noida & Greater Noida</span>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center', maxWidth: 760, margin: '0 auto' }}>
-            {areas.slice(0, 10).map((a) => (
-              <Link key={a.slug} href={`/${a.slug}`}
-                style={{ padding: '8px 18px', background: 'var(--cream)', color: 'var(--forest)', borderRadius: 99, fontSize: '0.82rem', fontWeight: 700, border: '1.5px solid var(--border-gold)', textDecoration: 'none', transition: 'transform 0.2s, background 0.2s' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--forest)'; (e.currentTarget as HTMLElement).style.color = '#fff'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--cream)'; (e.currentTarget as HTMLElement).style.color = 'var(--forest)'; }}
-              >
-                {a.name}
-              </Link>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center', maxWidth: 700, margin: '0 auto' }}>
+            {['ATS Pristine', 'Gaur City', 'Supertech Capetown', 'Godrej Properties', 'Mahagun Moderne', 'Sikka Karmic Greens', 'Amrapali Silicon City', 'Sector 62', 'Sector 78', 'Sector 137', '+ 45 more societies'].map((loc, i) => (
+              <span key={i} style={{ padding: '8px 18px', background: i === 10 ? 'var(--forest)' : 'var(--cream)', color: i === 10 ? '#fff' : 'var(--forest)', borderRadius: 99, fontSize: '0.82rem', fontWeight: 700, border: '1.5px solid var(--border-gold)' }}>
+                {loc}
+              </span>
             ))}
-            {areas.length > 10 && (
-              <Link href="/about#serve" style={{ padding: '8px 18px', background: 'var(--forest)', color: '#fff', borderRadius: 99, fontSize: '0.82rem', fontWeight: 700, border: '1.5px solid var(--border-gold)', textDecoration: 'none' }}>
-                + {areas.length - 10}+ more societies
-              </Link>
-            )}
           </div>
         </div>
       </section>

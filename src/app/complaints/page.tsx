@@ -6,9 +6,7 @@ import toast from 'react-hot-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/store/auth';
-import { createComplaint, getMyComplaints, getComplaintDepartments } from '@/lib/api';
-import { v, firstError } from '@/lib/validators';
-import Link from 'next/link';
+import { createComplaint, getMyComplaints, getMyBookings } from '@/lib/api';
 
 const TYPES = [
   { value: 'service_quality', label: 'Service Quality', icon: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="m9 12 2 2 4-4" /></svg> },
@@ -21,13 +19,10 @@ const TYPES = [
 ] as const;
 
 const STATUS_MAP: Record<string, [string, string]> = {
-  open: ['#FEE2E2', '#DC2626'],
-  in_progress: ['#DBEAFE', '#2563EB'],
-  awaiting_customer: ['#F3E8FF', '#7E22CE'],
-  in_review: ['#FEF9C3', '#CA8A04'],
+  open: ['#DBEAFE', '#2563EB'],
+  in_progress: ['#FEF9C3', '#CA8A04'],
   resolved: ['#DCFCE7', '#16A34A'],
   closed: ['#F3F4F6', '#4B5563'],
-  reopened: ['#FFEDD5', '#EA580C'],
 };
 
 export default function ComplaintsPage() {
@@ -37,32 +32,25 @@ export default function ComplaintsPage() {
   const [showForm, setShowForm] = useState(false);
   const [type, setType] = useState<typeof TYPES[number]['value']>('service_quality');
   const [desc, setDesc] = useState('');
-  const [subject, setSubject] = useState('');
-  const [departmentId, setDepartmentId] = useState<number | ''>('');
-  const [bookingId, setBookingId] = useState<string>('');
-  const [files, setFiles] = useState<File[]>([]);
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
 
   useEffect(() => { if (!isLoading && !isAuthenticated) router.replace('/login?redirect=/complaints'); }, [isAuthenticated, isLoading]);
 
   const { data, isLoading: cLoad } = useQuery({ queryKey: ['complaints'], queryFn: getMyComplaints, enabled: isAuthenticated });
   const complaints: any[] = Array.isArray(data) ? data : (data as any)?.complaints ?? [];
-  const { data: deptsData } = useQuery({ queryKey: ['complaint-depts'], queryFn: getComplaintDepartments, enabled: isAuthenticated });
-  const departments: any[] = Array.isArray(deptsData) ? deptsData : [];
+
+  const { data: bookingsData } = useQuery({ queryKey: ['my-bookings-all'], queryFn: () => getMyBookings({ limit: 50 }), enabled: isAuthenticated && showForm });
+  const bookings: any[] = Array.isArray((bookingsData as any)?.bookings) ? (bookingsData as any).bookings : Array.isArray(bookingsData) ? bookingsData as any[] : [];
 
   const createMut = useMutation({
-    mutationFn: () => createComplaint({
-      type, description: desc, priority,
-      subject: subject.trim() || undefined,
-      department_id: departmentId ? Number(departmentId) : undefined,
-      booking_id: bookingId ? Number(bookingId) : undefined,
-      attachments: files,
-      geofence_id: (useAuth.getState().user as any)?.geofence_id,
-    }),
+    mutationFn: () => {
+      if (!selectedBookingId) throw new Error('Please select the order this complaint is about');
+      return createComplaint({ type, description: desc, priority, booking_id: selectedBookingId, geofence_id: (useAuth.getState().user as any)?.geofence_id });
+    },
     onSuccess: () => {
-      toast.success('Ticket filed. We\'ll respond within 24 hours.');
-      setShowForm(false); setDesc(''); setType('service_quality');
-      setSubject(''); setDepartmentId(''); setBookingId(''); setFiles([]);
+      toast.success('Complaint filed. We\'ll respond within 24 hours.');
+      setShowForm(false); setDesc(''); setType('service_quality'); setSelectedBookingId(null);
       qc.invalidateQueries({ queryKey: ['complaints'] });
     },
     onError: (e: any) => toast.error(e.message),
@@ -120,7 +108,7 @@ export default function ComplaintsPage() {
                   const [bg, color] = STATUS_MAP[c.status] ?? ['#F3F4F6', '#4B5563'];
                   const typeInfo = TYPES.find(t => t.value === c.type);
                   return (
-                    <Link key={c.id} href={`/complaints/${c.id}`} className="card complaint-ticket-card" style={{
+                    <div key={c.id} className="card complaint-ticket-card" style={{
                       padding: '24px',
                       animation: `fade-up 0.5s var(--ease) ${i * 60}ms both`,
                       borderRadius: 24,
@@ -128,9 +116,7 @@ export default function ComplaintsPage() {
                       flexDirection: 'row',
                       flexWrap: 'wrap',
                       gap: 16,
-                      overflow: 'hidden',
-                      textDecoration: 'none',
-                      cursor: 'pointer',
+                      overflow: 'hidden'
                     }}>
                       <div style={{
                         width: 48, height: 48,
@@ -146,9 +132,9 @@ export default function ComplaintsPage() {
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
                           <h3 style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--forest)', margin: 0, fontFamily: 'var(--font-display)' }}>
-                            {c.subject || typeInfo?.label || c.type}
+                            {typeInfo?.label ?? c.type}
                           </h3>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--sage)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{c.ticket_number || `#${c.id}`}</span>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--sage)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>#{c.id}</span>
                         </div>
                         <p style={{ fontSize: '0.9rem', color: 'var(--sage)', margin: 0, fontWeight: 500, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                           {c.description}
@@ -177,7 +163,7 @@ export default function ComplaintsPage() {
                           <span style={{ color: 'var(--forest)', fontWeight: 500 }}>{c.resolution}</span>
                         </div>
                       )}
-                    </Link>
+                    </div>
                   );
                 })}
               </div>
@@ -187,10 +173,40 @@ export default function ComplaintsPage() {
       </div>
 
       {showForm && (
-        <div className="modal-bg" onClick={() => setShowForm(false)}>
+        <div className="modal-bg" onClick={() => { setShowForm(false); setSelectedBookingId(null); }}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 540, padding: '36px', background: '#fff', color: 'var(--forest)' }}>
             <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.8rem', marginBottom: 10, color: 'var(--forest)' }}>File a Complaint</h2>
             <p style={{ color: 'var(--sage)', fontSize: '1rem', marginBottom: 32, fontWeight: 500 }}>We take every complaint seriously and respond within 24 hours</p>
+
+            <div style={{ marginBottom: 28 }}>
+              <label className="form-label">Select Order <span style={{ color: '#dc2626' }}>*</span></label>
+              <p style={{ fontSize: '0.85rem', color: 'var(--sage)', marginBottom: 12, fontWeight: 500 }}>Which booking is this complaint about?</p>
+              {bookings.length === 0 ? (
+                <div style={{ padding: '18px 20px', borderRadius: 16, border: '1.5px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--sage)', fontSize: '0.9rem', fontWeight: 500 }}>
+                  No bookings found. Complaints must be linked to a booking.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 240, overflowY: 'auto', paddingRight: 4 }}>
+                  {bookings.map((b: any) => {
+                    const isSelected = selectedBookingId === b.id;
+                    const date = b.scheduled_date ? new Date(b.scheduled_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+                    return (
+                      <button key={b.id} onClick={() => setSelectedBookingId(b.id)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 16, border: `2px solid ${isSelected ? 'var(--forest)' : 'var(--border)'}`, background: isSelected ? 'var(--bg-elevated)' : '#fff', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s var(--ease)' }}>
+                        <div style={{ width: 10, height: 10, borderRadius: '50%', border: `2px solid ${isSelected ? 'var(--forest)' : 'var(--border)'}`, background: isSelected ? 'var(--forest)' : 'transparent', flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--forest)', fontFamily: 'var(--font-mono)' }}>{b.booking_number || `#${b.id}`}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--sage)', fontWeight: 500, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{date} · {b.service_address || b.zone?.name || '—'}</div>
+                        </div>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 800, padding: '3px 10px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: '0.05em', background: b.status === 'completed' ? '#DCFCE7' : b.status === 'cancelled' ? '#FEE2E2' : '#FEF9C3', color: b.status === 'completed' ? '#16A34A' : b.status === 'cancelled' ? '#DC2626' : '#CA8A04', flexShrink: 0 }}>
+                          {b.status}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             <div style={{ marginBottom: 24 }}>
               <label className="form-label">Issue Type</label>
@@ -217,29 +233,7 @@ export default function ComplaintsPage() {
               </div>
             </div>
 
-            <div className="form-group" style={{ marginBottom: 16 }}>
-              <label className="form-label">Subject (optional)</label>
-              <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Short title for your ticket"
-                style={{ width: '100%', background: '#fff', border: '1px solid var(--border-mid)', borderRadius: 14, padding: '12px 16px', fontSize: '0.95rem', color: 'var(--forest)', outline: 'none' }} />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-              <div className="form-group">
-                <label className="form-label">Department</label>
-                <select value={departmentId} onChange={e => setDepartmentId(e.target.value ? Number(e.target.value) : '')}
-                  style={{ width: '100%', background: '#fff', border: '1px solid var(--border-mid)', borderRadius: 14, padding: '12px 16px', fontSize: '0.95rem', color: 'var(--forest)', outline: 'none' }}>
-                  <option value="">— Auto-route —</option>
-                  {departments.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Order / Booking ID *</label>
-                <input value={bookingId} onChange={e => setBookingId(e.target.value)} placeholder="e.g. 1024" inputMode="numeric"
-                  style={{ width: '100%', background: '#fff', border: '1px solid var(--border-mid)', borderRadius: 14, padding: '12px 16px', fontSize: '0.95rem', color: 'var(--forest)', outline: 'none' }} />
-              </div>
-            </div>
-
-            <div className="form-group" style={{ marginBottom: 16 }}>
+            <div className="form-group" style={{ marginBottom: 28 }}>
               <label className="form-label">Describe the Issue <span style={{ color: 'var(--gold)' }}>*</span></label>
               <textarea placeholder="Please provide as much detail as possible..." value={desc} onChange={e => setDesc(e.target.value)}
                 style={{ width: '100%', minHeight: 120, resize: 'vertical', background: '#fff', border: '1px solid var(--border-mid)', borderRadius: 18, padding: '18px', color: 'var(--forest)', outline: 'none', transition: 'all 0.3s var(--ease)', fontSize: '1rem', fontWeight: 500 }}
@@ -248,32 +242,11 @@ export default function ComplaintsPage() {
               />
             </div>
 
-            <div className="form-group" style={{ marginBottom: 28 }}>
-              <label className="form-label">Attachments (optional — images, PDF, docs)</label>
-              <input type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
-                onChange={e => setFiles(Array.from(e.target.files || []))}
-                style={{ width: '100%', padding: '8px 0', fontSize: '0.9rem' }} />
-              {files.length > 0 && (
-                <div style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--sage)' }}>
-                  {files.length} file(s) ready to upload
-                </div>
-              )}
-            </div>
-
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setShowForm(false)} className="btn btn-outline" style={{ flex: 1, justifyContent: 'center' }}>Cancel</button>
-              <button onClick={() => {
-                const err = firstError([
-                  v.enumIn(type, ['service_quality','late_arrival','no_show','rude_behavior','billing','damage','other'], { field: 'type' }),
-                  v.text(desc, { field: 'description', min: 5, max: 2000 }),
-                  v.integer(bookingId, { field: 'booking_id', min: 1 }),
-                  v.text(subject, { field: 'subject', max: 255, optional: true }),
-                ]);
-                if (err) { toast.error(err); return; }
-                createMut.mutate();
-              }} disabled={!desc.trim() || !bookingId.trim() || createMut.isPending}
-                className="btn btn-primary" style={{ flex: 2, justifyContent: 'center', opacity: (!desc.trim() || !bookingId.trim() || createMut.isPending) ? 0.5 : 1 }}>
-                {createMut.isPending ? <><div className="btn-spinner" /> Submitting…</> : 'Submit Ticket'}
+              <button onClick={() => { setShowForm(false); setSelectedBookingId(null); }} className="btn btn-outline" style={{ flex: 1, justifyContent: 'center' }}>Cancel</button>
+              <button onClick={() => createMut.mutate()} disabled={!selectedBookingId || !desc.trim() || createMut.isPending}
+                className="btn btn-primary" style={{ flex: 2, justifyContent: 'center', opacity: (!selectedBookingId || !desc.trim() || createMut.isPending) ? 0.5 : 1 }}>
+                {createMut.isPending ? <><div className="btn-spinner" /> Submitting…</> : 'Submit Complaint'}
               </button>
             </div>
           </div>

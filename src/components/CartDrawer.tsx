@@ -50,15 +50,10 @@ export default function CartDrawer() {
   };
   const [orderNum, setOrderNum] = useState('');
   const [maliBooked, setMaliBooked] = useState<any>(null);
-
-  // GST claim
   const [applyGst, setApplyGst] = useState(false);
+  const [gstState, setGstState] = useState('Uttar Pradesh');
   const [gstin, setGstin] = useState('');
-  const [bizName, setBizName] = useState('');
-  // products only
-  const productItemsForGst = items.filter(i => !i.type || i.type === 'product');
-  const hasGstableProducts = productItemsForGst.length > 0;
-  const gstinValid = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gstin.trim().toUpperCase());
+  const [businessName, setBusinessName] = useState('');
   
   // Multi-Address Support
   const [savedLocs, setSavedLocs] = useState<any[]>([]);
@@ -106,14 +101,11 @@ export default function CartDrawer() {
         finalLng = parseFloat(loc.longitude);
       }
     } else {
-      const { v, firstError } = await import('@/lib/validators');
-      const err = firstError([
-        v.text(addrF.roomNo,   { field: 'flat/room number', min: 1, max: 100 }),
-        v.text(addrF.building, { field: 'building', min: 1, max: 255 }),
-        v.text(addrF.city,     { field: 'city', min: 2, max: 80 }),
-        v.pincode(addrF.pincode),
-      ]);
-      if (err) { toast.error(err); return; }
+      if (!addrF.roomNo.trim() || !addrF.building.trim() || !addrF.city.trim() || !addrF.pincode.trim()) {
+        toast.error('Please fill in all address fields');
+        return;
+      }
+      if (addrF.pincode.length !== 6) { toast.error('Please enter a valid 6-digit pincode'); return; }
     }
 
     setStep('processing');
@@ -127,15 +119,6 @@ export default function CartDrawer() {
 
       // 1. Process Shop Order if products exist
       if (productItems.length > 0) {
-        // Validate GST inputs if the user opted in
-        if (applyGst) {
-          if (!gstinValid) { toast.error('Please enter a valid 15-character GSTIN'); setStep('address'); return; }
-          if (!bizName.trim()) { toast.error('Business / Legal Name is required for GST claim'); setStep('address'); return; }
-        }
-        const shippingStateForOrder = (useSaved && selectedLocId)
-          ? (savedLocs.find(a => a.id === selectedLocId)?.state || addrF.state)
-          : addrF.state;
-
         orderResponse = await createOrder({
           items: productItems.map(i => ({ product_id: i.id, quantity: i.qty })),
           shipping_address: finalAddress,
@@ -145,11 +128,9 @@ export default function CartDrawer() {
           service_latitude: finalLat || undefined,
           service_longitude: finalLng || undefined,
           apply_gst: applyGst,
-          ...(applyGst ? {
-            shipping_state: shippingStateForOrder,
-            billing_gstin: gstin.trim().toUpperCase(),
-            billing_business_name: bizName.trim(),
-          } : {}),
+          shipping_state: applyGst ? gstState : undefined,
+          billing_gstin: applyGst && gstin.trim() ? gstin.trim() : undefined,
+          billing_business_name: applyGst && businessName.trim() ? businessName.trim() : undefined,
         });
         setOrderNum(orderResponse?.order_number || orderResponse?.txnid || 'GKM-ORD-' + Date.now());
       }
@@ -453,84 +434,55 @@ export default function CartDrawer() {
                 </>
                 )}
 
-                {/* ── GST Invoice Claim ─────────────────────────────────── */}
-                {hasGstableProducts && (
-                  <div style={{ border: '1.5px solid var(--border)', borderRadius: 12, padding: 14, background: '#fff' }}>
-                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={applyGst}
-                        onChange={e => setApplyGst(e.target.checked)}
-                        style={{ width: 18, height: 18, marginTop: 2, accentColor: 'var(--forest)', cursor: 'pointer', flexShrink: 0 }}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--forest)' }}>Claim GST Invoice</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--sage)' }}>For business purchases. We'll issue a tax invoice with your GSTIN.</div>
+                {/* Map pin — ensures gardener gets exact location */}
+                <div style={{ padding: '12px 14px', background: '#fff', border: '1.5px dashed var(--forest-mid)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>Map Pin (for gardener)</div>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--forest)', lineHeight: 1.4 }} className="truncate">
+                      {pinLat && pinLng
+                        ? (mapAddress || `${pinLat.toFixed(5)}, ${pinLng.toFixed(5)}`)
+                        : 'No pin yet — tap to pick on map'}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPickerOpen(true)}
+                    style={{ padding: '8px 12px', borderRadius: 10, border: '1.5px solid var(--forest)', background: '#fff', color: 'var(--forest)', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer', flexShrink: 0 }}
+                  >
+                    {pinLat && pinLng ? 'Change' : 'Pick'}
+                  </button>
+                </div>
+
+                {/* GST Section */}
+                {items.some(i => !i.type || i.type === 'product') && (
+                  <div style={{ padding: '14px 16px', background: applyGst ? 'rgba(3,65,26,0.04)' : '#fff', borderRadius: 14, border: `1.5px solid ${applyGst ? 'var(--forest)' : 'var(--border)'}`, transition: 'all 0.2s' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                      <div onClick={() => setApplyGst(v => !v)} style={{ width: 40, height: 22, borderRadius: 99, background: applyGst ? 'var(--forest)' : '#e0e0e0', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                        <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: applyGst ? 21 : 3, transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--forest)' }}>Claim GST Invoice</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--sage)', fontWeight: 600 }}>For business orders needing a GST bill</div>
                       </div>
                     </label>
-
                     {applyGst && (
-                      <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
                         <div>
-                          <label style={{ display: 'block', fontWeight: 700, fontSize: '0.72rem', marginBottom: 4, color: 'var(--forest)' }}>Business / Legal Name *</label>
-                          <input
-                            value={bizName}
-                            onChange={e => setBizName(e.target.value)}
-                            placeholder="e.g. Acme Greens Pvt Ltd"
-                            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', color: 'var(--forest)', boxSizing: 'border-box' }}
-                          />
+                          <label style={{ display: 'block', fontWeight: 700, fontSize: '0.75rem', marginBottom: 5, color: 'var(--forest)' }}>State *</label>
+                          <select value={gstState} onChange={e => setGstState(e.target.value)}
+                            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontFamily: 'var(--font-body)', fontSize: '0.85rem', background: '#fff', outline: 'none', color: 'var(--forest)', fontWeight: 600 }}>
+                            {['Uttar Pradesh','Delhi','Haryana','Rajasthan','Maharashtra','Karnataka','Tamil Nadu','West Bengal','Gujarat','Telangana','Other'].map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                          <div style={{ fontSize: '0.68rem', color: 'var(--sage)', marginTop: 4, fontWeight: 600 }}>
+                            {gstState === 'Uttar Pradesh' ? '⚡ SGST + CGST will be applied (within UP)' : '⚡ IGST will be applied (inter-state)'}
+                          </div>
                         </div>
-                        <div>
-                          <label style={{ display: 'block', fontWeight: 700, fontSize: '0.72rem', marginBottom: 4, color: 'var(--forest)' }}>GSTIN *</label>
-                          <input
-                            value={gstin}
-                            onChange={e => setGstin(e.target.value.toUpperCase())}
-                            placeholder="e.g. 09AAAAA0000A1Z5"
-                            maxLength={15}
-                            style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${gstin && !gstinValid ? '#dc2626' : 'var(--border)'}`, fontFamily: 'monospace', fontSize: '0.85rem', outline: 'none', color: 'var(--forest)', boxSizing: 'border-box', letterSpacing: '0.5px' }}
-                          />
-                          {gstin && !gstinValid && (
-                            <div style={{ fontSize: '0.7rem', color: '#dc2626', marginTop: 4, fontWeight: 600 }}>Invalid GSTIN format (15 chars)</div>
-                          )}
-                        </div>
-                        {(() => {
-                          const activeState = (useSaved && selectedLocId)
-                            ? (savedLocs.find(a => a.id === selectedLocId)?.state || addrF.state)
-                            : addrF.state;
-                          const isUP = (activeState || '').toLowerCase().includes('uttar');
-                          return (
-                            <div style={{ padding: 8, borderRadius: 8, fontSize: '0.72rem', fontWeight: 600,
-                              background: isUP ? 'rgba(3,65,26,0.06)' : 'rgba(217,119,6,0.08)',
-                              color: isUP ? 'var(--forest)' : '#92400e' }}>
-                              {isUP
-                                ? 'SGST + CGST will apply (intra-state)'
-                                : `IGST will apply (inter-state — ${activeState || 'state not set'})`}
-                            </div>
-                          );
-                        })()}
+                        <input value={gstin} onChange={e => setGstin(e.target.value.toUpperCase())} placeholder="GSTIN (optional)" maxLength={15}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontFamily: 'var(--font-body)', fontSize: '0.85rem', background: '#fff', outline: 'none', color: 'var(--forest)', fontWeight: 600, boxSizing: 'border-box' }} />
+                        <input value={businessName} onChange={e => setBusinessName(e.target.value)} placeholder="Business Name (optional)"
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--border)', fontFamily: 'var(--font-body)', fontSize: '0.85rem', background: '#fff', outline: 'none', color: 'var(--forest)', fontWeight: 600, boxSizing: 'border-box' }} />
                       </div>
                     )}
-                  </div>
-                )}
-
-                {/* Map pin — only shown when a gardener service is in the cart */}
-                {items.some(i => i.type === 'service') && (
-                  <div style={{ padding: '12px 14px', background: '#fff', border: '1.5px dashed var(--forest-mid)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>Map Pin (for gardener)</div>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--forest)', lineHeight: 1.4 }} className="truncate">
-                        {pinLat && pinLng
-                          ? (mapAddress || `${pinLat.toFixed(5)}, ${pinLng.toFixed(5)}`)
-                          : 'No pin yet — tap to pick on map'}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setPickerOpen(true)}
-                      style={{ padding: '8px 12px', borderRadius: 10, border: '1.5px solid var(--forest)', background: '#fff', color: 'var(--forest)', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer', flexShrink: 0 }}
-                    >
-                      {pinLat && pinLng ? 'Change' : 'Pick'}
-                    </button>
                   </div>
                 )}
 

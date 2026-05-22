@@ -473,6 +473,9 @@ export default function GreenMakeoverPage() {
           letter-spacing: -0.04em;
           line-height: 1.05;
           margin: 0;
+          overflow-wrap: break-word;
+          word-break: normal;
+          hyphens: none;
         }
         .gmr-gold-text {
           background: linear-gradient(110deg,#edcf87 0%,#f5dea0 50%,#c9a84c 100%);
@@ -1142,8 +1145,19 @@ export default function GreenMakeoverPage() {
           .gmr-stat { padding: 10px 12px; min-width: 70px; }
           .gmr-services-grid { grid-template-columns: 1fr; }
           .gmr-why-grid { gap: 10px; }
-          .gmr-hero-h1 { font-size: clamp(1.8rem,8vw,2.8rem); }
+          .gmr-hero-h1 {
+            font-size: clamp(1.8rem, 8vw, 2.8rem);
+            letter-spacing: -0.02em;
+          }
           .gmr-checklist { grid-template-columns: 1fr; }
+          .gmr-h2 {
+            font-size: clamp(1.5rem, 6vw, 2.2rem);
+            letter-spacing: -0.02em;
+          }
+          .gmr-cta-h2 {
+            font-size: clamp(1.5rem, 6vw, 2.2rem);
+            letter-spacing: -0.02em;
+          }
         }
       `}</style>
     </SmoothScrollProvider>

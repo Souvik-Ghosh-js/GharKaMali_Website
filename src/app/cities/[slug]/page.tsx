@@ -1,57 +1,61 @@
-'use client';
-import { useParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { getCity } from '@/lib/api';
-import SmoothScrollProvider from '@/components/SmoothScrollProvider';
+import type { Metadata } from 'next';
+import CityPageClient from './CityPageClient';
 
-export default function CityPage() {
-  const params = useParams();
-  const slug = params.slug as string;
-  const { data: city, isLoading } = useQuery({
-    queryKey: ['city', slug],
-    queryFn: () => getCity(slug),
-    enabled: !!slug
-  });
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://gkm.gobt.in/api';
+const SITE = 'https://gharkamali.com';
 
-  if (isLoading) return (
-    <SmoothScrollProvider>
-      <Navbar />
-      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div>Loading...</div>
-      </div>
-      <Footer />
-    </SmoothScrollProvider>
-  );
+async function fetchCity(slug: string) {
+  try {
+    const res = await fetch(`${API_BASE}/cities/${slug}`, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
 
-  if (!city) return (
-    <SmoothScrollProvider>
-      <Navbar />
-      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div>City not found</div>
-      </div>
-      <Footer />
-    </SmoothScrollProvider>
-  );
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const city = await fetchCity(params.slug);
+  const cityName = city?.name || params.slug.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+  const url = `${SITE}/cities/${params.slug}`;
 
-  return (
-    <SmoothScrollProvider>
-      <Navbar />
-      <section style={{ paddingTop: 'clamp(120px, 15vw, 180px)', paddingBottom: 'clamp(60px, 8vw, 120px)', minHeight: '80vh' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: 'clamp(32px, 5vw, 56px)' }}>
-            <div className="section-divider-line" />
-            <span className="overline overline-dot">Gardening in {city.name}</span>
-            <h1 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>{city.name} Gardening Services</h1>
-            <p style={{ color: 'var(--text-2)', fontSize: '1.05rem', maxWidth: 720, margin: '12px auto 0', lineHeight: 1.7 }}>
-              {city.description || 'Professional gardening services tailored for your city.'}
-            </p>
-          </div>
-          <div dangerouslySetInnerHTML={{ __html: city.content || '<p>Content coming soon...</p>' }} />
-        </div>
-      </section>
-      <Footer />
-    </SmoothScrollProvider>
-  );
+  const title = `Gardener in ${cityName} | Mali Service in ${cityName} — GharKaMali`;
+  const desc = city?.description ||
+    `Professional gardening services in ${cityName}. Expert malis at your home starting ₹349. Book a gardener in ${cityName} today!`;
+
+  return {
+    title,
+    description: desc.slice(0, 160),
+    keywords: [
+      `gardener in ${cityName.toLowerCase()}`,
+      `mali in ${cityName.toLowerCase()}`,
+      `plant care ${cityName.toLowerCase()}`,
+      `gardening service ${cityName.toLowerCase()}`,
+      `mali near me ${cityName.toLowerCase()}`,
+      'gharkamali', 'home gardening service',
+    ],
+    robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-snippet': -1, 'max-image-preview': 'large' } },
+    alternates: { canonical: url },
+    openGraph: {
+      type: 'website',
+      locale: 'en_IN',
+      siteName: 'GharKaMali',
+      title,
+      description: desc.slice(0, 160),
+      url,
+      images: [{ url: `${SITE}/og-image.jpg`, width: 1200, height: 630, alt: `Gardening Service in ${cityName}` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      site: '@gharkamali',
+      creator: '@gharkamali',
+      title,
+      description: desc.slice(0, 160),
+      images: [{ url: `${SITE}/og-image.jpg`, alt: `Gardening Service in ${cityName}` }],
+    },
+  };
+}
+
+export default function CityPage({ params }: { params: { slug: string } }) {
+  return <CityPageClient />;
 }

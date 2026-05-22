@@ -82,17 +82,17 @@ export default function BlogsPage() {
         {/* Bg orbs */}
         <div style={{ position: 'fixed', top: '5%', right: '-5%', width: '40vw', height: '40vw', borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.06) 0%, transparent 70%)', filter: 'blur(40px)', pointerEvents: 'none', zIndex: 0 }}/>
 
-        {/* Hero — compact */}
-        <div style={{ padding: 'clamp(24px, 4vw, 44px) 0 clamp(18px, 3vw, 32px)', textAlign: 'center', position: 'relative', zIndex: 1, background: 'linear-gradient(160deg, rgba(3,65,26,0.04) 0%, var(--bg) 60%)' }}>
+        {/* Hero */}
+        <div style={{ padding: '80px 0 60px', textAlign: 'center', position: 'relative', zIndex: 1, background: 'linear-gradient(160deg, rgba(3,65,26,0.04) 0%, var(--bg) 60%)' }}>
           <div className="container">
             <div className="blogs-hero-content">
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#fff', border: '1px solid var(--border-gold)', borderRadius: 99, padding: '5px 16px', marginBottom: 12, boxShadow: 'var(--sh-sm)' }}>
-                <span style={{ fontSize: '0.66rem', fontWeight: 800, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 6 }}><IcBook/> Botanical Journal</span>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid var(--border-gold)', borderRadius: 99, padding: '8px 22px', marginBottom: 28, boxShadow: 'var(--sh-sm)' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 6 }}><IcBook/> Botanical Journal</span>
               </div>
-              <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.7rem, 4vw, 2.6rem)', fontWeight: 900, color: 'var(--forest)', marginBottom: 8, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+              <h1 className="display-1" style={{ color: 'var(--forest)', marginBottom: 20 }}>
                 Learn realistic <span style={{ color: 'var(--earth)', fontStyle: 'normal' }}>plant care</span>
               </h1>
-              <p style={{ fontSize: 'clamp(0.88rem, 1.3vw, 1rem)', color: 'var(--text-2)', maxWidth: 500, margin: '0 auto 18px', lineHeight: 1.6 }}>
+              <p style={{ fontSize: 'clamp(1rem,1.5vw,1.15rem)', color: 'var(--text-2)', maxWidth: 500, margin: '0 auto 36px', lineHeight: 1.8 }}>
                 Expert-written guides on everything from pest control to seasonal pruning.
               </p>
               {/* Search */}

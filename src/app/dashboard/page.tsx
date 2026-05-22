@@ -12,7 +12,6 @@ import { getProfile, getMyBookings, getMySubscriptions, getMyOrders } from '@/li
 const IcCal   = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
 const IcLeaf  = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>;
 const IcShop  = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>;
-const IcWall  = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg>;
 const IcBrain = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.14zm5 0A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.14z"/></svg>;
 const IcArrow = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>;
 const IcPlus  = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
@@ -50,8 +49,6 @@ export default function DashboardPage() {
   const subs: any[]     = Array.isArray(sRaw) ? sRaw : ((sRaw as any)?.subscriptions ?? (sRaw as any)?.items ?? []);
   const orders: any[]    = Array.isArray(oRaw) ? oRaw : [];
   const activeSub = subs.find((s:any) => s.status === 'active');
-  const balance = Number(pr?.wallet_balance ?? 0);
-
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
@@ -74,14 +71,13 @@ export default function DashboardPage() {
                 </h1>
                 <div className="dash-stat-row" style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
                   {[
-                    { label:'Wallet Balance', value:`₹${balance.toLocaleString('en-IN')}`, hi:true },
                     { label:'Active Plans',   value:subs.filter((s:any)=>s.status==='active').length },
                     { label:'Shop Orders',    value:orders.length },
                     { label:'Total Bookings', value:totalBookings },
                   ].map(stat => (
-                    <div key={stat.label} className="dash-stat-card" style={{ background:'#fff', border:(stat.hi ? '2px solid var(--gold)' : '1px solid var(--border-mid)'), borderRadius:16, padding:'16px 24px', boxShadow: 'var(--sh-xs)' }}>
-                      <div style={{ fontFamily:'var(--font-display)', fontWeight:800, fontSize:'1.4rem', color:stat.hi?'var(--gold-deep)':'var(--forest)', lineHeight:1 }}>{stat.value}</div>
-                      <div style={{ fontSize:'0.75rem', color:stat.hi?'var(--earth)':'var(--sage)', marginTop:6, fontWeight:700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{stat.label}</div>
+                    <div key={stat.label} className="dash-stat-card" style={{ background:'#fff', border:'1px solid var(--border-mid)', borderRadius:16, padding:'16px 24px', boxShadow: 'var(--sh-xs)' }}>
+                      <div style={{ fontFamily:'var(--font-display)', fontWeight:800, fontSize:'1.4rem', color:'var(--forest)', lineHeight:1 }}>{stat.value}</div>
+                      <div style={{ fontSize:'0.75rem', color:'var(--sage)', marginTop:6, fontWeight:700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{stat.label}</div>
                     </div>
                   ))}
                 </div>
@@ -96,13 +92,12 @@ export default function DashboardPage() {
         <div className="container dash-main-container" style={{ position: 'relative', zIndex: 11, marginTop:-44, paddingBottom:72 }}>
 
           {/* Quick actions */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:16, marginBottom:32 }} className="quick-grid">
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginBottom:32 }} className="quick-grid">
             {[
               { href:'/book?type=on-demand', label:'Book Visit', Icon:IcCal, bg:'#fff', color:'var(--forest)' },
               { href:'/shop/orders',         label:'My Orders',  Icon:IcShop, bg:'#fff', color:'var(--forest)' },
               { href:'/plantopedia',        label:'AI Vision',  Icon:IcBrain, bg:'var(--forest)', color:'#fff' },
               { href:'/shop',               label:'Marketplace',Icon:IcShop, bg:'#fff', color:'var(--forest)' },
-              { href:'/wallet',             label:'Wallet',     Icon:IcWall, bg:'#fff', color:'var(--forest)' },
             ].map(({ href, label, Icon, bg, color }) => (
               <Link key={href} href={href}
                 className="card"

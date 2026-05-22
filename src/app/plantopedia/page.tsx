@@ -153,29 +153,44 @@ export default function PlantopediaPage() {
       <Navbar/>
       <div style={{ background: 'var(--bg)', paddingTop: 'var(--nav-h)', minHeight: '100svh' }}>
 
-        {/* ── COMPACT HERO ── form is the priority, hero is just intro */}
-        <div style={{ position: 'relative', padding: 'clamp(18px, 4vw, 36px) 0 clamp(12px, 2vw, 20px)', overflow: 'hidden', background: 'linear-gradient(160deg, rgba(3,65,26,0.03) 0%, var(--bg) 70%)' }}>
+        {/* ── FUTURISTIC HERO ── */}
+        <div style={{ position: 'relative', padding: '72px 0 90px', overflow: 'hidden', background: 'linear-gradient(160deg, rgba(3,65,26,0.03) 0%, var(--bg) 70%)' }}>
           <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}/>
           <div style={{ position: 'absolute', right: '5%', top: '20%', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)', filter: 'blur(50px)', animation: 'orbDrift2 12s ease-in-out infinite', pointerEvents: 'none' }}/>
 
           <div className="container plantopedia-hero" style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: 99, padding: '5px 14px', marginBottom: 10 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', animation: 'badgePulse 2s infinite' }}/>
-              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Powered by AI</span>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', borderRadius: 99, padding: '7px 20px', marginBottom: 28 }}>
+              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', animation: 'badgePulse 2s infinite' }}/>
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Powered by AI · Botanical Intelligence</span>
             </div>
-            <h1 style={{ fontFamily: 'var(--font-display)', color: 'var(--forest)', margin: '0 0 6px', letterSpacing: '-0.03em', fontSize: 'clamp(1.6rem, 4.5vw, 2.6rem)', fontWeight: 900, lineHeight: 1.05 }}>
+            <h1 className="display-1" style={{ color: 'var(--forest)', marginBottom: 20, letterSpacing: '-0.03em' }}>
               AI <span style={{ color: 'var(--earth)', fontStyle: 'normal' }}>Plantopedia</span>
             </h1>
-            <p style={{ fontSize: 'clamp(0.82rem, 1.2vw, 0.95rem)', color: 'var(--text-2)', maxWidth: 520, margin: '0 auto', lineHeight: 1.5 }}>
-              Snap a photo — AI identifies your plant and shares a complete care guide instantly.
+            <p style={{ fontSize: 'clamp(0.95rem,1.5vw,1.15rem)', color: 'var(--text-2)', maxWidth: 540, margin: '0 auto 48px', lineHeight: 1.8 }}>
+              Snap a photo. Our AI identifies your plant species and gives you a complete care guide instantly.
             </p>
+
+            {/* Feature pills */}
+            <div className="feature-pills-row" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12 }}>
+              {FEATURES.map((f, i) => (
+                <div key={i} className="feature-pill" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 20px', background: '#fff', border: '1.5px solid var(--border)', borderRadius: 99, boxShadow: 'var(--sh-sm)', transition: 'all 0.25s', transformStyle: 'preserve-3d', cursor: 'default' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${f.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: f.color }}>
+                    <f.Icon/>
+                  </div>
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--forest)' }}>{f.label}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{f.sub}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="container" style={{ paddingTop: 'clamp(14px, 2.5vw, 24px)', paddingBottom: 80 }}>
+        <div className="container" style={{ paddingBottom: 80 }}>
           {/* ── UPLOAD CARD ── */}
-          <div className="upload-card" style={{ maxWidth: 700, margin: '0 auto 28px', background: '#fff', border: '2px solid var(--border-gold)', borderRadius: 28, padding: 'clamp(18px, 3.5vw, 36px)', boxShadow: 'var(--sh-lg)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+          <div className="upload-card" style={{ maxWidth: 700, margin: '0 auto 64px', background: '#fff', border: '2px solid var(--border-gold)', borderRadius: 36, padding: 'clamp(28px,5vw,52px)', boxShadow: 'var(--sh-lg)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
               <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(3,65,26,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)' }}><IcBot/></div>
               <div>
                 <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.4rem', color: 'var(--forest)', lineHeight: 1 }}>Identify a Plant</h2>
@@ -189,7 +204,7 @@ export default function PlantopediaPage() {
               onDragOver={e => { e.preventDefault(); setDrag(true); }}
               onDragLeave={() => setDrag(false)}
               onDrop={e => { e.preventDefault(); setDrag(false); if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]); }}
-              style={{ border: `2px dashed ${drag ? 'var(--forest)' : 'var(--border-mid)'}`, borderRadius: 20, padding: 'clamp(20px, 4vw, 32px) 20px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.25s', background: drag ? 'rgba(3,65,26,0.03)' : 'var(--bg-elevated)', position: 'relative', overflow: 'hidden' }}
+              style={{ border: `2px dashed ${drag ? 'var(--forest)' : 'var(--border-mid)'}`, borderRadius: 24, padding: '40px 24px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.25s', background: drag ? 'rgba(3,65,26,0.03)' : 'var(--bg-elevated)', position: 'relative', overflow: 'hidden' }}
             >
               {preview ? (
                 <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -246,21 +261,6 @@ export default function PlantopediaPage() {
                 {result.care_tips && <p style={{ fontSize: '0.88rem', color: 'var(--text-2)', lineHeight: 1.75 }}>{result.care_tips}</p>}
               </div>
             )}
-          </div>
-
-          {/* Feature pills — moved below upload so form stays in first fold */}
-          <div className="feature-pills-row" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12, maxWidth: 700, margin: '0 auto 56px' }}>
-            {FEATURES.map((f, i) => (
-              <div key={i} className="feature-pill" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', background: '#fff', border: '1.5px solid var(--border)', borderRadius: 99, boxShadow: 'var(--sh-sm)', transition: 'all 0.25s', transformStyle: 'preserve-3d', cursor: 'default' }}>
-                <div style={{ width: 30, height: 30, borderRadius: '50%', background: `${f.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: f.color, flexShrink: 0 }}>
-                  <f.Icon/>
-                </div>
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontWeight: 800, fontSize: '0.82rem', color: 'var(--forest)' }}>{f.label}</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{f.sub}</div>
-                </div>
-              </div>
-            ))}
           </div>
 
           {/* History */}

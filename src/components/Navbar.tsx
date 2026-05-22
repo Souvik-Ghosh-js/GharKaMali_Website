@@ -1,11 +1,11 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
 import { useQuery } from '@tanstack/react-query';
-import { getNotifications } from '@/lib/api';
+import { getNotifications, getShopProducts } from '@/lib/api';
 
 const Ic = {
   Menu: () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="4" y1="7" x2="20" y2="7" /><line x1="8" y1="12" x2="20" y2="12" /><line x1="4" y1="17" x2="20" y2="17" /></svg>,
@@ -23,8 +23,7 @@ const Ic = {
   Dash: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>,
   Bookmark: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>,
   Package: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>,
-  Wallet: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>,
-  Map: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>,
+  Map: () =><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>,
   Help: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>,
   WA: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>,
 };
@@ -43,7 +42,6 @@ const ACCOUNT_ITEMS = [
   { href: '/bookings', label: 'My Bookings', Icon: Ic.Cal },
   { href: '/subscriptions', label: 'My Plans', Icon: Ic.Bookmark },
   { href: '/shop/orders', label: 'Shop Orders', Icon: Ic.Package },
-  { href: '/wallet', label: 'Wallet & Rewards', Icon: Ic.Wallet },
   { href: '/notifications', label: 'Notifications', Icon: Ic.Bell },
   { href: '/profile', label: 'Profile & Addresses', Icon: Ic.Map },
   { href: '/complaints', label: 'Support & Help', Icon: Ic.Help },
@@ -58,11 +56,43 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
   const [hubOpen, setHubOpen] = useState(false);
   const [menuScrolled, setMenuScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchWrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (!hubOpen) setMenuScrolled(false);
   }, [hubOpen]);
+
+  // Live search debounce
+  const runSearch = useCallback((q: string) => {
+    if (searchDebounce.current) clearTimeout(searchDebounce.current);
+    if (!q.trim()) { setSearchResults([]); setSearchOpen(false); return; }
+    searchDebounce.current = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const data: any = await getShopProducts({ search: q.trim(), limit: 6 });
+        const items = Array.isArray(data) ? data : (data?.data ?? []);
+        setSearchResults(items.slice(0, 6));
+        setSearchOpen(true);
+      } catch { setSearchResults([]); }
+      finally { setSearchLoading(false); }
+    }, 320);
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   useEffect(() => {
     if (hubOpen) {
@@ -81,8 +111,16 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
     if (q) {
       router.push(`/shop?search=${encodeURIComponent(q)}`);
       setSearchQuery('');
+      setSearchOpen(false);
       setHubOpen(false);
     }
+  };
+
+  const goToProduct = (p: any) => {
+    router.push(`/shop/${p.slug || p.id}`);
+    setSearchQuery('');
+    setSearchOpen(false);
+    setHubOpen(false);
   };
 
   useEffect(() => {
@@ -223,23 +261,70 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
           </div>
 
           {/* Desktop search bar */}
-          <form onSubmit={handleSearch} className="nav-search-wrap" style={{ position: 'relative', display: hubOpen ? 'none' : 'flex', alignItems: 'center', flexShrink: 0 }}>
-            <span style={{ position: 'absolute', left: 11, color: isLight ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-            </span>
-            <input
-              ref={searchRef}
-              type="search"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search plants, tools…"
-              className="nav-search-input"
-              aria-label="Search"
-              style={{ background: isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)', border: `1.5px solid ${isLight ? 'rgba(255,255,255,0.3)' : 'var(--border-mid)'}`, borderRadius: 99, padding: '8px 16px 8px 34px', fontSize: '0.82rem', color: isLight ? '#fff' : 'var(--text)', outline: 'none', width: 200, transition: 'all 0.3s', fontFamily: 'var(--font-body)', backdropFilter: isLight ? 'blur(8px)' : 'none' }}
-              onFocus={e => { e.currentTarget.style.width = '240px'; e.currentTarget.style.borderColor = isLight ? '#fff' : 'var(--forest)'; e.currentTarget.style.background = isLight ? 'rgba(255,255,255,0.9)' : '#fff'; e.currentTarget.style.color = 'var(--forest)'; }}
-              onBlur={e => { e.currentTarget.style.width = '200px'; e.currentTarget.style.borderColor = isLight ? 'rgba(255,255,255,0.3)' : 'var(--border-mid)'; e.currentTarget.style.background = isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)'; e.currentTarget.style.color = isLight ? '#fff' : 'var(--text)'; }}
-            />
-          </form>
+          <div ref={searchWrapRef} className="nav-search-wrap" style={{ position: 'relative', display: hubOpen ? 'none' : 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <form onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 11, color: isLight ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', pointerEvents: 'none', zIndex: 1 }}>
+                {searchLoading
+                  ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 0.8s linear infinite' }}><circle cx="12" cy="12" r="9" strokeDasharray="40" strokeDashoffset="10"/></svg>
+                  : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                }
+              </span>
+              <input
+                ref={searchRef}
+                type="search"
+                value={searchQuery}
+                onChange={e => { setSearchQuery(e.target.value); runSearch(e.target.value); }}
+                onKeyDown={e => { if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery(''); } }}
+                placeholder="Search plants, tools…"
+                className="nav-search-input"
+                aria-label="Search"
+                autoComplete="off"
+                style={{ background: isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)', border: `1.5px solid ${isLight ? 'rgba(255,255,255,0.3)' : 'var(--border-mid)'}`, borderRadius: 99, padding: '8px 16px 8px 34px', fontSize: '0.82rem', color: isLight ? '#fff' : 'var(--text)', outline: 'none', width: 200, transition: 'all 0.3s', fontFamily: 'var(--font-body)', backdropFilter: isLight ? 'blur(8px)' : 'none' }}
+                onFocus={e => { e.currentTarget.style.width = '260px'; e.currentTarget.style.borderColor = isLight ? '#fff' : 'var(--forest)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = 'var(--forest)'; if (searchQuery && searchResults.length > 0) setSearchOpen(true); }}
+                onBlur={e => { e.currentTarget.style.width = '200px'; e.currentTarget.style.borderColor = isLight ? 'rgba(255,255,255,0.3)' : 'var(--border-mid)'; e.currentTarget.style.background = isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)'; e.currentTarget.style.color = isLight ? '#fff' : 'var(--text)'; }}
+              />
+            </form>
+            {/* Instant search dropdown */}
+            {searchOpen && searchResults.length > 0 && (
+              <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 340, background: '#fff', borderRadius: 18, boxShadow: '0 16px 60px rgba(3,65,26,0.18), 0 4px 20px rgba(0,0,0,0.08)', border: '1px solid rgba(3,65,26,0.1)', overflow: 'hidden', zIndex: 3000 }}>
+                {searchResults.map((p, i) => {
+                  const price = Number(p.price);
+                  const mrp = Number(p.mrp);
+                  const disc = mrp > price ? Math.round((1 - price / mrp) * 100) : 0;
+                  return (
+                    <button key={p.id} onMouseDown={() => goToProduct(p)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '10px 14px', background: 'none', border: 'none', borderBottom: i < searchResults.length - 1 ? '1px solid rgba(3,65,26,0.06)' : 'none', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s', fontFamily: 'var(--font-body)' }}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.04)'}
+                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}
+                    >
+                      <div style={{ width: 44, height: 44, borderRadius: 10, background: 'linear-gradient(135deg,#f0f7f2,#e8f5ed)', flexShrink: 0, overflow: 'hidden', border: '1px solid rgba(3,65,26,0.08)' }}>
+                        {p.images?.[0] || p.thumbnail
+                          ? <img src={p.images?.[0] || p.thumbnail} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                          : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--forest)', opacity: 0.3 }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></div>
+                        }
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--forest)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+                        <div style={{ fontSize: '0.68rem', color: 'var(--earth)', fontWeight: 600, marginTop: 1 }}>{typeof p.category === 'string' ? p.category : p.category?.name || 'General'}</div>
+                      </div>
+                      <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                        <div style={{ fontWeight: 900, fontSize: '0.85rem', color: 'var(--forest)' }}>₹{price.toLocaleString('en-IN')}</div>
+                        {disc > 0 && <div style={{ fontSize: '0.6rem', color: '#16a34a', fontWeight: 800, background: '#dcfce7', borderRadius: 99, padding: '1px 6px', marginTop: 2 }}>{disc}% off</div>}
+                      </div>
+                    </button>
+                  );
+                })}
+                <button onMouseDown={() => { const q = searchQuery.trim(); if (q) { router.push(`/shop?search=${encodeURIComponent(q)}`); setSearchQuery(""); setSearchOpen(false); setHubOpen(false); } }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', padding: '10px 14px', background: 'rgba(3,65,26,0.04)', border: 'none', borderTop: '1px solid rgba(3,65,26,0.08)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.78rem', color: 'var(--forest)', transition: 'background 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.08)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.04)'}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  See all results for &quot;{searchQuery}&quot;
+                </button>
+              </div>
+            )}
+          </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             {!hubOpen && (
@@ -309,26 +394,71 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
           </div>
 
           {/* Search bar inside menu — visible on all devices */}
-          <form onSubmit={handleSearch} style={{ marginBottom: 28, position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          <form onSubmit={handleSearch} style={{ marginBottom: searchOpen && searchResults.length > 0 ? 0 : 28, position: 'relative' }}>
+            <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', pointerEvents: 'none', zIndex: 1 }}>
+              {searchLoading
+                ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 0.8s linear infinite' }}><circle cx="12" cy="12" r="9" strokeDasharray="40" strokeDashoffset="10"/></svg>
+                : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+              }
             </span>
             <input
               type="search"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={e => { setSearchQuery(e.target.value); runSearch(e.target.value); }}
+              onKeyDown={e => { if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery(''); } }}
               placeholder="Search plants, tools, products…"
-              style={{ width: '100%', padding: '13px 16px 13px 44px', background: 'rgba(3,65,26,0.05)', border: '1.5px solid rgba(3,65,26,0.12)', borderRadius: 16, fontSize: '0.92rem', color: 'var(--text)', outline: 'none', fontFamily: 'var(--font-body)', transition: 'all 0.25s' }}
+              style={{ width: '100%', padding: '13px 16px 13px 44px', background: 'rgba(3,65,26,0.05)', border: '1.5px solid rgba(3,65,26,0.12)', borderRadius: searchOpen && searchResults.length > 0 ? '16px 16px 0 0' : 16, fontSize: '0.92rem', color: 'var(--text)', outline: 'none', fontFamily: 'var(--font-body)', transition: 'border-color 0.25s, background 0.25s', boxSizing: 'border-box' }}
               onFocus={e => { e.currentTarget.style.borderColor = 'var(--forest)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(3,65,26,0.08)'; }}
               onBlur={e => { e.currentTarget.style.borderColor = 'rgba(3,65,26,0.12)'; e.currentTarget.style.background = 'rgba(3,65,26,0.05)'; e.currentTarget.style.boxShadow = 'none'; }}
               aria-label="Search"
+              autoComplete="off"
             />
-            {searchQuery && (
-              <button type="submit" style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 10, padding: '6px 14px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>
+            {searchQuery && !searchLoading && (
+              <button type="submit" style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 10, padding: '6px 14px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
                 Go
               </button>
             )}
           </form>
+          {/* Inline results inside menu */}
+          {searchOpen && searchResults.length > 0 && (
+            <div style={{ background: '#fff', border: '1.5px solid var(--forest)', borderTop: 'none', borderRadius: '0 0 16px 16px', overflow: 'hidden', marginBottom: 20, boxShadow: '0 8px 32px rgba(3,65,26,0.12)' }}>
+              {searchResults.map((p, i) => {
+                const price = Number(p.price);
+                const mrp = Number(p.mrp);
+                const disc = mrp > price ? Math.round((1 - price / mrp) * 100) : 0;
+                return (
+                  <button key={p.id} onMouseDown={() => goToProduct(p)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '12px 16px', background: 'none', border: 'none', borderBottom: i < searchResults.length - 1 ? '1px solid rgba(3,65,26,0.06)' : 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-body)' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.04)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}
+                  >
+                    <div style={{ width: 48, height: 48, borderRadius: 10, background: 'linear-gradient(135deg,#f0f7f2,#e8f5ed)', flexShrink: 0, overflow: 'hidden', border: '1px solid rgba(3,65,26,0.08)' }}>
+                      {p.images?.[0] || p.thumbnail
+                        ? <img src={p.images?.[0] || p.thumbnail} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--forest)', opacity: 0.3 }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></div>
+                      }
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--forest)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--earth)', fontWeight: 600, marginTop: 2 }}>{typeof p.category === 'string' ? p.category : p.category?.name || 'General'}</div>
+                    </div>
+                    <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                      <div style={{ fontWeight: 900, fontSize: '0.9rem', color: 'var(--forest)' }}>₹{price.toLocaleString('en-IN')}</div>
+                      {disc > 0 && <div style={{ fontSize: '0.62rem', color: '#16a34a', fontWeight: 800, background: '#dcfce7', borderRadius: 99, padding: '1px 6px', marginTop: 2 }}>{disc}% off</div>}
+                    </div>
+                  </button>
+                );
+              })}
+              <button onMouseDown={() => { const q = searchQuery.trim(); if (q) { router.push(`/shop?search=${encodeURIComponent(q)}`); setSearchQuery(""); setSearchOpen(false); setHubOpen(false); } }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', padding: '12px 16px', background: 'rgba(3,65,26,0.04)', border: 'none', borderTop: '1px solid rgba(3,65,26,0.08)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '0.82rem', color: 'var(--forest)' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.08)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.04)'}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                See all results for &quot;{searchQuery}&quot;
+              </button>
+            </div>
+          )}
 
           {/* ── GREEN MAKEOVER FEATURE CARD ── */}
           <Link
@@ -445,6 +575,7 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
         }
         @keyframes menuOrb1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,-30px) scale(1.1)}}
         @keyframes menuOrb2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-30px,25px) scale(1.08)}}
+        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
       `}</style>
     </>
   );

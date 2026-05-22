@@ -188,17 +188,20 @@ export default function AddressPicker({ open, onClose, onConfirm, initialLat, in
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 4000,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 2000,
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0',
       }}
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 24, width: '100%', maxWidth: 720,
-          maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
-          boxShadow: '0 20px 80px rgba(0,0,0,0.35)',
+          background: '#fff',
+          borderRadius: 'clamp(0px, 2vw, 24px) clamp(0px, 2vw, 24px) 0 0',
+          width: '100%', maxWidth: 720,
+          height: '92dvh',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden',
+          boxShadow: '0 -8px 80px rgba(0,0,0,0.35)',
         }}
       >
         {/* Header */}
@@ -209,16 +212,16 @@ export default function AddressPicker({ open, onClose, onConfirm, initialLat, in
 
         {/* Search + Use My Location */}
         <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border)', position: 'relative' }}>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="addr-picker-search-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search address, area, or landmark…"
-              style={{ flex: 1, padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--border)', fontSize: '0.9rem', fontWeight: 500, outline: 'none' }}
+              style={{ flex: '1 1 180px', padding: '11px 14px', borderRadius: 12, border: '1.5px solid var(--border)', fontSize: '0.9rem', fontWeight: 500, outline: 'none', minWidth: 0 }}
             />
             <button
               onClick={useMyLocation}
-              style={{ padding: '10px 14px', borderRadius: 12, border: '1.5px solid var(--forest)', background: '#fff', color: 'var(--forest)', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
+              style={{ flex: '0 0 auto', padding: '10px 14px', borderRadius: 12, border: '1.5px solid var(--forest)', background: '#fff', color: 'var(--forest)', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
             >
               📍 Use My Location
             </button>
@@ -242,7 +245,7 @@ export default function AddressPicker({ open, onClose, onConfirm, initialLat, in
         {/* Saved Addresses Section */}
         <SavedAddressesSection onPick={pickSuggestion} />
 
-        <div style={{ flex: 1, minHeight: 320, position: 'relative', display: 'flex', width: '100%' }}>
+        <div className="addr-picker-map" style={{ flex: 1, minHeight: 320, position: 'relative', display: 'flex', width: '100%' }}>
           <LeafletMap
             center={[startLat, startLng]}
             zoom={15}

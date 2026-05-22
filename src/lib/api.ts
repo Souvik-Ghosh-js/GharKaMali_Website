@@ -81,21 +81,15 @@ export const getPreviousGardeners = () => req('/bookings/previous-gardeners');
 export const checkGardenerAvailability = (date: string, gardenerId?: number, zoneId?: number) =>
   req(`/bookings/check-availability${qs({ date, gardener_id: gardenerId, geofence_id: zoneId })}`, { auth: false });
 
-// Instant booking availability — checks the configured ETA and whether any
-// gardener in the zone is free to start "right now".
-export const checkInstantAvailability = (zoneId: number) =>
-  req(`/bookings/instant-availability${qs({ geofence_id: zoneId })}`, { auth: false });
-
 // ─── BOOKINGS (customer) ──────────────────────────────────────────────────────
 export const createBooking = (b: {
   plan_id?: number;
-  geofence_id: number; scheduled_date?: string; scheduled_time?: string;
+  geofence_id: number; scheduled_date: string; scheduled_time?: string;
   service_address: string; service_latitude: number; service_longitude: number;
   plant_count?: number; preferred_gardener_id?: number; customer_notes?: string;
   addons?: { addon_id: number; quantity: number }[];
   addon_ids?: { addon_id: number; quantity: number }[];
   total_amount?: number;
-  is_instant?: boolean;
 }) => req('/bookings', { method: 'POST', body: JSON.stringify(b) });
 
 export const getMyBookings = (p?: { status?: string; page?: number; limit?: number }) =>
@@ -117,16 +111,6 @@ export const trackBooking = (booking_id: number) =>
 // Reschedule = POST /payments/reschedule
 export const rescheduleBooking = (booking_id: number, new_date: string, new_time?: string) =>
   req('/payments/reschedule', { method: 'POST', body: JSON.stringify({ booking_id, new_date, ...(new_time ? { new_time } : {}) }) });
-
-// Time-extension addon (on-demand only). Reads zone-configured block size + price.
-export const getTimeAddons = (booking_id: number) =>
-  req(`/bookings/${booking_id}/time-addons`);
-
-export const requestTimeAddon = (booking_id: number, blocks: number = 1) =>
-  req(`/bookings/${booking_id}/time-addon`, {
-    method: 'POST',
-    body: JSON.stringify({ blocks }),
-  });
 
 export const addBookingAddons = (id: number, addons: { addon_id: number; quantity: number }[]) =>
   req(`/bookings/${id}/addons`, {
@@ -176,9 +160,6 @@ export const initiatePayment = (b: any) =>
 export const getPayments = (page?: number, limit?: number) =>
   req(`/payments/my${qs({ page, limit })}`);
 
-export const walletTopup = (amount: number, geofence_id?: number) =>
-  req('/payments/wallet-topup', { method: 'POST', body: JSON.stringify({ amount, geofence_id }) });
-
 // ─── PLANTOPEDIA ──────────────────────────────────────────────────────────────
 export const identifyPlant = (form: FormData) =>
   req('/plants/identify', { method: 'POST', body: form });
@@ -204,31 +185,12 @@ export const markAllRead = () => req('/notifications/read-all', { method: 'PUT' 
 export const createComplaint = (b: {
   type: 'service_quality' | 'late_arrival' | 'no_show' | 'rude_behavior' | 'billing' | 'damage' | 'other';
   description: string;
-  subject?: string;
-  department_id?: number;
   booking_id?: number;
   geofence_id?: number;
   priority?: 'low' | 'medium' | 'high';
-  attachments?: File[];
-}) => {
-  const fd = new FormData();
-  Object.entries(b).forEach(([k, v]) => {
-    if (k === 'attachments') return;
-    if (v != null) fd.append(k, String(v));
-  });
-  (b.attachments || []).forEach(f => fd.append('attachments', f));
-  return req('/complaints', { method: 'POST', body: fd });
-};
+}) => req('/complaints', { method: 'POST', body: JSON.stringify(b) });
 
 export const getMyComplaints = () => req('/complaints/my');
-export const getComplaintDetail = (id: number) => req(`/complaints/${id}`);
-export const addComplaintComment = (id: number, comment: string, attachments: File[] = []) => {
-  const fd = new FormData();
-  if (comment) fd.append('comment', comment);
-  attachments.forEach(f => fd.append('attachments', f));
-  return req(`/complaints/${id}/comments`, { method: 'POST', body: fd });
-};
-export const getComplaintDepartments = () => req('/complaints/departments');
 
 // ─── GARDENER ─────────────────────────────────────────────────────────────────
 export const getGardenerProfile = () => req('/gardener/profile');
@@ -367,7 +329,6 @@ export const createOrder = (b: {
   geofence_id?: number;
   service_latitude?: number;
   service_longitude?: number;
-  // GST claim
   apply_gst?: boolean;
   shipping_state?: string;
   billing_gstin?: string;

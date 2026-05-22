@@ -13,6 +13,76 @@ const IcArrow = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none
 const IcCheck = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>;
 const IcTruck = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>;
 
+function downloadBill(order: any) {
+  const isUP = (order.shipping_state || order.shipping_city || '').toLowerCase().includes('uttar pradesh') ||
+               (order.shipping_address || '').toLowerCase().includes('noida') ||
+               (order.shipping_address || '').toLowerCase().includes('greater noida') ||
+               (order.shipping_address || '').toLowerCase().includes('uttar pradesh');
+  const gstAmt = Number(order.gst_amount || 0);
+  const subtotal = Number(order.total_amount) - gstAmt;
+  const gstRate = order.items?.[0]?.product?.gst_rate || 0;
+  const halfGst = gstAmt / 2;
+
+  const rows = (order.items || []).map((item: any) => `
+    <tr>
+      <td style="padding:10px 8px;border-bottom:1px solid #e8f0e8">${item.product?.name || 'Product'}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid #e8f0e8;text-align:center">${item.quantity}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid #e8f0e8;text-align:right">₹${Number(item.price).toLocaleString('en-IN')}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid #e8f0e8;text-align:right">₹${(item.quantity * Number(item.price)).toLocaleString('en-IN')}</td>
+    </tr>`).join('');
+
+  const gstRows = order.apply_gst && gstAmt > 0 ? (isUP ? `
+    <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">SGST (${gstRate/2}%)</td><td style="padding:6px 8px;text-align:right">₹${halfGst.toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr>
+    <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">CGST (${gstRate/2}%)</td><td style="padding:6px 8px;text-align:right">₹${halfGst.toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr>` : `
+    <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">IGST (${gstRate}%)</td><td style="padding:6px 8px;text-align:right">₹${gstAmt.toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr>`) : '';
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${order.order_number}</title>
+  <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;color:#1a2e1a;background:#fff;padding:40px}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:2px solid #03411a;margin-bottom:24px}
+  .logo{font-size:24px;font-weight:900;color:#03411a;letter-spacing:-0.5px}.tag{font-size:11px;color:#6b8f71;font-weight:600;margin-top:2px}
+  .inv-title{text-align:right}.inv-title h2{font-size:22px;font-weight:800;color:#03411a}.inv-title p{font-size:12px;color:#6b8f71;margin-top:4px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px}
+  .section-label{font-size:10px;font-weight:700;color:#6b8f71;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+  .section-val{font-size:13px;color:#1a2e1a;line-height:1.6}
+  table{width:100%;border-collapse:collapse;margin-bottom:16px}
+  th{background:#03411a;color:#fff;padding:10px 8px;text-align:left;font-size:12px;font-weight:700}
+  th:last-child,th:nth-child(3){text-align:right}th:nth-child(2){text-align:center}
+  .total-row td{padding:10px 8px;font-weight:800;font-size:15px;color:#03411a;border-top:2px solid #03411a}
+  .total-row td:first-child{text-align:right}
+  .footer{margin-top:40px;padding-top:20px;border-top:1px solid #e8f0e8;text-align:center;font-size:11px;color:#6b8f71}
+  .badge{display:inline-block;padding:3px 10px;background:#dcfce7;color:#16a34a;border-radius:99px;font-size:11px;font-weight:700}
+  .note{background:#f0f7f2;border-radius:8px;padding:14px;font-size:12px;color:#3d6147;margin-top:16px;line-height:1.6}
+  @media print{body{padding:20px}}</style></head>
+  <body>
+  <div class="header">
+    <div><div class="logo">🌿 GharKaMali</div><div class="tag">Professional Plant Care Services</div>
+    <div style="margin-top:8px;font-size:11px;color:#6b8f71">GSTIN: 09AAAAA0000A1Z5 (Dummy)<br>CIN: U01500UP2024PTC000001<br>Noida, Uttar Pradesh — 201301</div></div>
+    <div class="inv-title"><h2>TAX INVOICE</h2><p>#${order.order_number}</p>
+    <p style="margin-top:8px">${new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</p>
+    <div class="badge" style="margin-top:8px">${order.payment_status?.toUpperCase() || 'PAID'}</div></div>
+  </div>
+  <div class="grid">
+    <div><div class="section-label">Bill To</div>
+    <div class="section-val">${order.billing_business_name ? `<strong>${order.billing_business_name}</strong><br>` : ''}${order.shipping_address || '—'}<br>${order.shipping_city || ''} ${order.shipping_pincode || ''}<br>${order.shipping_state || ''}</div>
+    ${order.billing_gstin ? `<div style="margin-top:8px;font-size:12px"><strong>GSTIN:</strong> ${order.billing_gstin}</div>` : ''}</div>
+    <div><div class="section-label">Order Info</div>
+    <div class="section-val">Order Date: ${new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN')}<br>Order No: ${order.order_number}<br>Payment: ${order.payment_status || 'Paid'}</div></div>
+  </div>
+  <table><thead><tr><th>Product</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Amount</th></tr></thead>
+  <tbody>${rows}
+  <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555;border-top:1px solid #e8f0e8">Subtotal</td><td style="padding:6px 8px;text-align:right;border-top:1px solid #e8f0e8">₹${subtotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr>
+  ${gstRows}
+  <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">Shipping</td><td style="padding:6px 8px;text-align:right;color:#16a34a;font-weight:700">FREE</td></tr>
+  </tbody>
+  <tfoot><tr class="total-row"><td colspan="3">Total Amount</td><td>₹${Number(order.total_amount).toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr></tfoot></table>
+  ${order.apply_gst && gstAmt > 0 ? `<div class="note">💡 <strong>GST Note:</strong> ${isUP ? `SGST @ ${gstRate/2}% + CGST @ ${gstRate/2}% applied (intra-state — Uttar Pradesh).` : `IGST @ ${gstRate}% applied (inter-state supply).`} Subject to reverse charge: No. This is a computer-generated invoice and does not require a physical signature.</div>` : ''}
+  <div class="footer">GharKaMali · hello@gharkamali.com · +91-9999999999 · gharkamali.com<br>Thank you for your order! 🌿</div>
+  </body></html>`;
+
+  const win = window.open('', '_blank');
+  if (win) { win.document.write(html); win.document.close(); win.focus(); setTimeout(() => win.print(), 500); }
+}
+
 const STATUS_COLORS: Record<string, string> = {
   pending: '#92400E',
   processing: '#0369A1',
@@ -77,9 +147,16 @@ export default function OrderDetailPage() {
                 </div>
               </div>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.9rem', color: 'var(--text-faint)', marginBottom: 4 }}>Total Amount Paid</div>
-              <div className="total-amt-display" style={{ fontSize: '2.4rem', fontWeight: 900, color: 'var(--gold-deep)', fontFamily: 'var(--font-display)', lineHeight: 1 }}>₹{Number(order.total_amount).toLocaleString('en-IN')}</div>
+            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12 }}>
+              <div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-faint)', marginBottom: 4 }}>Total Amount Paid</div>
+                <div className="total-amt-display" style={{ fontSize: '2.4rem', fontWeight: 900, color: 'var(--gold-deep)', fontFamily: 'var(--font-display)', lineHeight: 1 }}>₹{Number(order.total_amount).toLocaleString('en-IN')}</div>
+              </div>
+              <button onClick={() => downloadBill(order)}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'var(--font-body)', boxShadow: '0 4px 14px rgba(3,65,26,0.2)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download Bill
+              </button>
             </div>
           </div>
 
@@ -225,21 +302,45 @@ export default function OrderDetailPage() {
               {/* Payment Info */}
               <div className="summary-card" style={{ background: 'var(--bg-elevated)', borderRadius: 32, padding: 32, border: '1.5px solid var(--border-mid)' }}>
                 <h4 style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 20 }}>Order Summary</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Subtotal</span>
-                    <span style={{ fontWeight: 700 }}>₹{Number(order.total_amount).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Shipping</span>
-                    <span style={{ fontWeight: 700, color: 'var(--ok)' }}>FREE</span>
-                  </div>
-                  <div style={{ margin: '10px 0', borderTop: '1px dashed var(--border)' }} />
-                  <div className="total-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 900, color: 'var(--forest)' }}>
-                    <span>Total</span>
-                    <span>₹{Number(order.total_amount).toLocaleString('en-IN')}</span>
-                  </div>
-                </div>
+                {(() => {
+                  const gstAmt = Number(order.gst_amount || 0);
+                  const subtotal = Number(order.total_amount) - gstAmt;
+                  const gstRate = order.items?.[0]?.product?.gst_rate || 0;
+                  const isUP = (order.shipping_state || '').toLowerCase().includes('uttar pradesh') ||
+                    (!order.shipping_state && ((order.shipping_address || '').toLowerCase().includes('noida') || (order.shipping_address || '').toLowerCase().includes('uttar pradesh')));
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                      <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Subtotal</span>
+                        <span style={{ fontWeight: 700 }}>₹{subtotal.toLocaleString('en-IN')}</span>
+                      </div>
+                      {order.apply_gst && gstAmt > 0 && (isUP ? (<>
+                        <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>SGST ({gstRate/2}%)</span>
+                          <span style={{ fontWeight: 700 }}>₹{(gstAmt/2).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>CGST ({gstRate/2}%)</span>
+                          <span style={{ fontWeight: 700 }}>₹{(gstAmt/2).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                      </>) : (
+                        <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>IGST ({gstRate}%)</span>
+                          <span style={{ fontWeight: 700 }}>₹{gstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                      ))}
+                      <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Shipping</span>
+                        <span style={{ fontWeight: 700, color: 'var(--ok)' }}>FREE</span>
+                      </div>
+                      <div style={{ margin: '10px 0', borderTop: '1px dashed var(--border)' }} />
+                      <div className="total-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 900, color: 'var(--forest)' }}>
+                        <span>Total</span>
+                        <span>₹{Number(order.total_amount).toLocaleString('en-IN')}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <div style={{ marginTop: 32, paddingTop: 32, borderTop: '1px solid var(--border)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
