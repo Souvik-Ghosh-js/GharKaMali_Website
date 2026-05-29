@@ -381,7 +381,7 @@ export const submitReview = (bookingId: number, rating: number, comment?: string
   req(`/bookings/${bookingId}/review`, { method: 'POST', body: JSON.stringify({ rating, comment, geofence_id }) });
 
 // ─── SOCIAL PROOF ─────────────────────────────────────────────────────────────
-export const getSocialProof = (countVisit = false) => req(`/social-proof${countVisit ? '?count=1' : ''}`, { auth: false });
+export const getSocialProof = (countVisit = false) => req(`/social-proof${countVisit ? '?count=1' : ''}`, { auth: false, cache: 'no-store' });
 
 // ─── CONTACT FORM ─────────────────────────────────────────────────────────────
 export const submitContact = (b: { name: string; email?: string; phone?: string; message: string; geofence_id?: number }) =>
