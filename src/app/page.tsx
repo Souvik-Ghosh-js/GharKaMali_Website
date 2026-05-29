@@ -155,7 +155,13 @@ function Stars() {
 const AppDownloadPopup = () => {
   const [show, setShow] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setShow(true), 5000);
+    // Only show once per browser session — reloads won't re-trigger it,
+    // a new session (new tab/visit) will see it once.
+    if (sessionStorage.getItem('appPopupSeen')) return;
+    const t = setTimeout(() => {
+      setShow(true);
+      sessionStorage.setItem('appPopupSeen', '1');
+    }, 5000);
     return () => clearTimeout(t);
   }, []);
 
