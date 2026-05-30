@@ -373,7 +373,12 @@ export default function CartDrawer() {
                               </div>
                             ) : <div />}
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.95rem', color: 'var(--forest)' }}>₹{(item.price * item.qty).toLocaleString('en-IN')}</span>
+                               <div style={{ textAlign: 'right' }}>
+                                 <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.95rem', color: 'var(--forest)' }}>₹{(item.price * item.qty).toLocaleString('en-IN')}</span>
+                                 {!isService && item.qty > 1 && (
+                                   <div style={{ fontSize: '0.68rem', color: 'var(--text-2)', fontWeight: 600, marginTop: 1 }}>₹{item.price.toLocaleString('en-IN')} × {item.qty}</div>
+                                 )}
+                               </div>
                                <button onClick={() => { removeItem(item.id); toast.success('Removed from cart'); }} style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'rgba(220,38,38,0.1)', color: 'var(--err)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
                                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(220,38,38,0.2)'}
                                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(220,38,38,0.1)'}>
@@ -469,7 +474,7 @@ export default function CartDrawer() {
             {items.length > 0 && (
               <div className="cart-footer" style={{ background: 'var(--bg-elevated)', borderTop: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.9rem', color: 'var(--text-2)' }}>
-                  <span>Subtotal ({total} {total === 1 ? 'item' : 'items'})</span>
+                  <span>Subtotal ({items.length === total ? `${total} ${total === 1 ? 'item' : 'items'}` : `${items.length} ${items.length === 1 ? 'product' : 'products'} · ${total} items`})</span>
                   <span style={{ fontWeight: 800 }}>₹{price.toLocaleString('en-IN')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 18, fontSize: '0.9rem', color: 'var(--text-2)' }}>
