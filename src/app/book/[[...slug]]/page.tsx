@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
+import { slugify } from '@/lib/slug';
 import dynamic from 'next/dynamic';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
@@ -62,8 +63,13 @@ function StepHeader({ num, title, active, done, onClick, locked }: { num: number
 function BookFlow() {
   const router = useRouter();
   const params = useSearchParams();
+  const routeParams = useParams();
   const { isAuthenticated, isLoading, updateUser } = useAuth();
-  const preselectId = params.get('plan') ? parseInt(params.get('plan')!) : 0;
+  // Plan can come from the route (/book/premium-monthly) or, for backward
+  // compatibility, the legacy ?plan=<id> query string. The slug is resolved to
+  // a plan id once the plans list loads (see effect below).
+  const planSlugParam = Array.isArray(routeParams?.slug) ? routeParams.slug[0] : undefined;
+  const legacyPlanId = params.get('plan') ? parseInt(params.get('plan')!) : 0;
 
   const { zone: globalZone, lat: globalLat, lng: globalLng, setCoords, setZone: setGlobalZone } = useLocation();
   const [activeStep, setActiveStep] = useState(0);
@@ -73,7 +79,7 @@ function BookFlow() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [addressMode, setAddressMode] = useState<'current' | 'other'>('current');
   const [form, setForm] = useState({
-    address: '', lat: 0, lng: 0, plan_id: preselectId,
+    address: '', lat: 0, lng: 0, plan_id: legacyPlanId,
     plant_count: 5, scheduled_date: '', scheduled_time: '09:00',
     addons: [] as { addon_id: number; quantity: number }[],
     auto_renew: true, notes: '', preferred_gardener_id: 0
@@ -98,12 +104,15 @@ function BookFlow() {
   const addons: any[] = (addonsRaw as any[]) ?? [];
   const selectedPlan = plans.find(p => p.id === form.plan_id);
 
-  // Auto-advance if plan is preselected
+  // Resolve the plan slug from the route (/book/premium-monthly) to a plan id
+  // once the plans list loads, and preselect it.
   useEffect(() => {
-    if (preselectId > 0 && plans.length > 0 && activeStep === 0 && zone) {
-      // Only advance once we have zone AND plan
+    if (!planSlugParam || plans.length === 0) return;
+    const match = plans.find(p => slugify(p.name) === planSlugParam);
+    if (match && form.plan_id !== match.id) {
+      setForm(f => ({ ...f, plan_id: match.id }));
     }
-  }, [preselectId, plans, zone]);
+  }, [planSlugParam, plans]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateAddr = (patch: Partial<typeof addrFields>) => {
     const next = { ...addrFields, ...patch };

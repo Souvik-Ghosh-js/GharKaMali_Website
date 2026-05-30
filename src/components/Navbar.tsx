@@ -32,7 +32,7 @@ const Ic = {
 const NAV_ITEMS = [
   { href: '/', label: 'Home', Icon: Ic.Home, color: '#16a34a' },
   { href: '/plans', label: 'Plans', Icon: Ic.Plans, color: '#0ea5e9' },
-  { href: '/book?type=on-demand', label: 'Book Visit', Icon: Ic.Cal, color: '#f59e0b' },
+  { href: '/book', label: 'Book Visit', Icon: Ic.Cal, color: '#f59e0b' },
   { href: '/shop', label: 'Plant Store', Icon: Ic.Shop, color: '#8b5cf6' },
   { href: '/plantopedia', label: 'AI Care', Icon: Ic.Leaf, color: '#10b981' },
   { href: '/about', label: 'About Us', Icon: Ic.Help, color: '#06b6d4' },

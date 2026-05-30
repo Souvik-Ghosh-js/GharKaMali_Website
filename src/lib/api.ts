@@ -371,8 +371,19 @@ export const createOrder = (b: {
   shipping_state?: string;
   billing_gstin?: string;
   billing_business_name?: string;
+  coupon_code?: string;
 }) => req('/shop/orders', { method: 'POST', body: JSON.stringify(b) });
 export const getMyOrders = () => req('/shop/orders/my');
+
+// Validate a discount coupon against the cart subtotal.
+// On success req() unwraps to { code, discount_amount, ... }; on a validation
+// failure it returns the { success:false, message } envelope.
+export const validateCoupon = (code: string, subtotal: number) =>
+  req('/coupons/validate', { method: 'POST', body: JSON.stringify({ code, subtotal }) });
+
+// Coupons the logged-in customer can currently apply (for the "available
+// coupons" list at checkout). Returns an array.
+export const getAvailableCoupons = () => req('/coupons');
 export const getTaglines = () => req('/taglines', { auth: false });
 
 // ─── REVIEWS (public) ─────────────────────────────────────────────────────────

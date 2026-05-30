@@ -82,7 +82,7 @@ export default function DashboardPage() {
                   ))}
                 </div>
               </div>
-              <Link href="/book?type=on-demand" className="btn btn-primary" style={{ display:'flex', alignItems:'center', gap:7, flexShrink:0, padding: '16px 28px', fontSize: '1rem', boxShadow: 'var(--sh-md)' }}>
+              <Link href="/book" className="btn btn-primary" style={{ display:'flex', alignItems:'center', gap:7, flexShrink:0, padding: '16px 28px', fontSize: '1rem', boxShadow: 'var(--sh-md)' }}>
                 <IcPlus /> Book New Visit
               </Link>
             </div>
@@ -94,7 +94,7 @@ export default function DashboardPage() {
           {/* Quick actions */}
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginBottom:32 }} className="quick-grid">
             {[
-              { href:'/book?type=on-demand', label:'Book Visit', Icon:IcCal, bg:'#fff', color:'var(--forest)' },
+              { href:'/book', label:'Book Visit', Icon:IcCal, bg:'#fff', color:'var(--forest)' },
               { href:'/shop/orders',         label:'My Orders',  Icon:IcShop, bg:'#fff', color:'var(--forest)' },
               { href:'/plantopedia',        label:'AI Vision',  Icon:IcBrain, bg:'var(--forest)', color:'#fff' },
               { href:'/shop',               label:'Marketplace',Icon:IcShop, bg:'#fff', color:'var(--forest)' },

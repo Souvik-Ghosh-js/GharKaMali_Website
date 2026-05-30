@@ -68,7 +68,7 @@ export default function BookingsPage() {
                 <p className="overline" style={{ color:'var(--sage)', marginBottom:10 }}>MY ACCOUNT</p>
                 <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(2rem,4vw,2.8rem)', fontWeight:900, color:'var(--forest)', letterSpacing:'-0.02em', margin:0 }}>My Bookings</h1>
               </div>
-              <Link href="/book?type=on-demand" className="btn btn-primary" style={{ display:'flex', alignItems:'center', gap:7, padding: '16px 28px', fontSize: '1rem', boxShadow: 'var(--sh-md)' }}>
+              <Link href="/book" className="btn btn-primary" style={{ display:'flex', alignItems:'center', gap:7, padding: '16px 28px', fontSize: '1rem', boxShadow: 'var(--sh-md)' }}>
                 <IcPlus /> New Booking
               </Link>
             </div>
@@ -111,7 +111,7 @@ export default function BookingsPage() {
                 <p style={{ color:'var(--sage)', marginBottom:32, maxWidth:400, margin:'0 auto 36px', lineHeight:1.7, fontSize:'1rem', fontWeight: 500 }}>
                   {filter === 'all' ? 'Book your first expert cinematic gardener visit to get started and see the magic.' : 'Try a different status filter above to find your booked visits.'}
                 </p>
-                <Link href="/book?type=on-demand" className="btn btn-primary btn-lg">Book a Gardener Visit</Link>
+                <Link href="/book" className="btn btn-primary btn-lg">Book a Gardener Visit</Link>
               </div>
             ) : (
               bookings.map((b: any, i: number) => (

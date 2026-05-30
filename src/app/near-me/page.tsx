@@ -84,7 +84,7 @@ export default function NearMePage() {
           </p>
 
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/book?type=on-demand" className="btn btn-primary btn-lg" style={{ background: '#C9A84C', color: '#fff', border: 'none' }}>
+            <Link href="/book" className="btn btn-primary btn-lg" style={{ background: '#C9A84C', color: '#fff', border: 'none' }}>
               Book Mali Now @ ₹349 →
             </Link>
             <a href="https://wa.me/919643701701?text=Hi%20GharKaMali!%20I%20need%20a%20gardener%20near%20me." target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-lg" style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.4)' }}>
@@ -176,7 +176,7 @@ export default function NearMePage() {
             Get a professional mali at your home starting ₹349 — Noida, Greater Noida &amp; Ghaziabad.
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/book?type=on-demand" className="btn btn-primary btn-lg" style={{ background: '#C9A84C', color: '#fff', border: 'none' }}>
+            <Link href="/book" className="btn btn-primary btn-lg" style={{ background: '#C9A84C', color: '#fff', border: 'none' }}>
               Book Mali Visit @ ₹349
             </Link>
             <Link href="/services" className="btn btn-outline btn-lg" style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.4)' }}>

@@ -187,7 +187,7 @@ export default function AboutPage() {
             GharKaMali was born from a simple belief — every home deserves a thriving green space, and every plant parent deserves expert help to make it happen.
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/book?type=on-demand" className="btn btn-primary btn-xl">Book a Visit</Link>
+            <Link href="/book" className="btn btn-primary btn-xl">Book a Visit</Link>
             <a href={WA_URL} target="_blank" rel="noopener noreferrer"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 28px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: 14, fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.2)', fontSize: '0.9rem', backdropFilter: 'blur(8px)', transition: 'all 0.25s' }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.18)'}
@@ -386,7 +386,7 @@ export default function AboutPage() {
             Book a certified plant expert visit today — starting at just ₹349.
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/book?type=on-demand"
+            <Link href="/book"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '16px 36px', background: '#c9a84c', color: '#fff', borderRadius: 14, fontWeight: 800, textDecoration: 'none', fontSize: '0.95rem', boxShadow: '0 8px 32px rgba(201,168,76,0.45)', transition: 'all 0.25s ease' }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 14px 40px rgba(201,168,76,0.55)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 32px rgba(201,168,76,0.45)'; }}

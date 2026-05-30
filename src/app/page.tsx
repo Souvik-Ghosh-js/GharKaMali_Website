@@ -7,6 +7,7 @@ import { useGSAPAnimations } from '@/hooks/useGSAPAnimations';
 import Footer from '@/components/Footer';
 import PageLoader from '@/components/PageLoader';
 import { getPlans, getBlogs, getTaglines, getShopProducts, getPublicReviews } from '@/lib/api';
+import { planSlug } from '@/lib/slug';
 import dynamic from 'next/dynamic';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 const ValleyScene = dynamic(() => import('@/components/ValleyScene'), { ssr: false });
@@ -791,7 +792,7 @@ export default function HomePage() {
               </p>
 
               <div className="hero-cta-row" style={{ display: 'flex', gap: 14, justifyContent: 'flex-start', flexWrap: 'wrap', position: 'relative' }}>
-                <Link href="/book?type=on-demand" className="btn btn-primary btn-md btn-3d-plant" style={{ position: 'relative', overflow: 'visible', padding: '11px 24px' }}>
+                <Link href="/book" className="btn btn-primary btn-md btn-3d-plant" style={{ position: 'relative', overflow: 'visible', padding: '11px 24px' }}>
                   Book Mali Visit @ ₹349 <IcArrow />
                 </Link>
                 <a
@@ -1347,7 +1348,7 @@ export default function HomePage() {
               Book your first visit today and experience professional plant care at home.
             </p>
             <div className="final-cta-actions" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link href="/book?type=on-demand" className="btn btn-primary btn-xl btn-3d-plant" style={{ position: 'relative', overflow: 'visible' }}>
+              <Link href="/book" className="btn btn-primary btn-xl btn-3d-plant" style={{ position: 'relative', overflow: 'visible' }}>
                 Book Now @ ₹349 <IcArrow />
               </Link>
               <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-xl btn-3d-plant" style={{ background: '#fff', border: '2px solid var(--forest)', color: 'var(--forest)', position: 'relative', overflow: 'visible' }}>
@@ -1432,7 +1433,7 @@ export default function HomePage() {
                       <span style={{ fontSize: '0.88rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 600 }}>/month</span>
                     </div>
 
-                    <Link href={`/book?plan=${plan.id}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'} btn-lg`} style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '0.88rem' }}>
+                    <Link href={`/book/${planSlug(plan)}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'} btn-lg`} style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '0.88rem' }}>
                       {plan.plan_type === 'subscription' ? 'Subscribe Now →' : 'Book a Visit →'}
                     </Link>
                   </div>

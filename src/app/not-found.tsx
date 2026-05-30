@@ -50,7 +50,7 @@ export default function NotFound() {
               <Link href="/" className="btn btn-primary" style={{ padding: '14px 28px', boxShadow: 'var(--sh-md)' }}>
                 Back to Home
               </Link>
-              <Link href="/book?type=on-demand" className="btn btn-outline" style={{ padding: '14px 28px' }}>
+              <Link href="/book" className="btn btn-outline" style={{ padding: '14px 28px' }}>
                 Book a Visit
               </Link>
             </div>

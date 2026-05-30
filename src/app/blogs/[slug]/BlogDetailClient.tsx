@@ -99,7 +99,7 @@ export default function BlogDetailPage() {
                     <h3 style={{ fontFamily:'var(--font-display)', fontWeight:800, color:'#fff', fontSize:'1.2rem', marginBottom:6 }}>Ready to try expert garden care?</h3>
                     <p style={{ color:'rgba(255,255,255,0.65)', fontSize:'0.875rem' }}>Book a certified gardener and see the difference professional care makes</p>
                   </div>
-                  <Link href="/book?type=on-demand" className="btn btn-primary" style={{ flexShrink:0 }}>Book a Visit →</Link>
+                  <Link href="/book" className="btn btn-primary" style={{ flexShrink:0 }}>Book a Visit →</Link>
                 </div>
               </div>
             </div>

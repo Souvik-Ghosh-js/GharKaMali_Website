@@ -81,7 +81,7 @@ export default async function AreaPage({ params }: { params: { area: string } })
               {aboutText}
             </p>
             <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link href={`/book?type=on-demand&area=${a.slug}`} className="btn btn-primary btn-lg">Book a Visit in {a.name}</Link>
+              <Link href="/book" className="btn btn-primary btn-lg">Book a Visit in {a.name}</Link>
               <a href={WA_URL} target="_blank" rel="noopener noreferrer"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '13px 26px', background: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: 14, fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.2)', fontSize: '0.9rem' }}>
                 💬 Chat With Us
@@ -162,7 +162,7 @@ export default async function AreaPage({ params }: { params: { area: string } })
             <p style={{ color: 'rgba(255,255,255,0.58)', marginBottom: 28, fontSize: '1rem', maxWidth: 480, margin: '0 auto 28px' }}>
               Book a certified plant expert visit today — starting at just ₹349.
             </p>
-            <Link href={`/book?type=on-demand&area=${a.slug}`} className="btn btn-primary btn-xl">
+            <Link href="/book" className="btn btn-primary btn-xl">
               Book a Visit
             </Link>
           </div>

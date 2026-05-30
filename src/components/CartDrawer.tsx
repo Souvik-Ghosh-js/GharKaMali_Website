@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useCart } from '@/store/cart';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { createOrder, addBookingAddons } from '@/lib/api';
+import { createOrder, addBookingAddons, validateCoupon, getAvailableCoupons } from '@/lib/api';
 import { sanitize } from '@/lib/validators';
 import StateSelect from '@/components/StateSelect';
 import { useAuth } from '@/store/auth';
@@ -57,6 +57,13 @@ export default function CartDrawer() {
   const [applyGst, setApplyGst] = useState(false);
   const [gstin, setGstin] = useState('');
   const [bizName, setBizName] = useState('');
+
+  // Discount coupon
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [couponMsg, setCouponMsg] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
   // products only
   const productItemsForGst = items.filter(i => !i.type || i.type === 'product');
   const hasGstableProducts = productItemsForGst.length > 0;
@@ -81,10 +88,66 @@ export default function CartDrawer() {
     }
   }, [isOpen, user]);
 
+  // Load coupons the customer can apply (for the available-coupons list).
+  useEffect(() => {
+    if (isOpen && user) {
+      getAvailableCoupons()
+        .then((res: any) => setAvailableCoupons(Array.isArray(res) ? res : []))
+        .catch(() => setAvailableCoupons([]));
+    }
+  }, [isOpen, user]);
+
+  // Product-only subtotal — coupons apply to merchandise, not service bookings.
+  const productSubtotal = items
+    .filter(i => !i.type || i.type === 'product')
+    .reduce((s, i) => s + i.price * i.qty, 0);
+
+  // Drop any applied coupon when the product subtotal changes, so a stale
+  // discount can't outlive the cart it was validated against.
+  useEffect(() => {
+    setAppliedCoupon(null);
+    setCouponMsg('');
+  }, [productSubtotal]);
+
   if (!isOpen) return null;
 
   const total = totalItems();
   const price = totalPrice();
+  const discount = appliedCoupon ? Math.min(appliedCoupon.discount, productSubtotal) : 0;
+  const payable = Math.max(0, price - discount);
+
+  const applyCoupon = async (codeArg?: string) => {
+    const code = (codeArg ?? couponInput).trim();
+    if (!code) { setCouponMsg('Enter a coupon code'); return; }
+    if (productSubtotal <= 0) { setCouponMsg('Add a product to use a coupon'); return; }
+    setCouponInput(code.toUpperCase());
+    setCouponLoading(true);
+    setCouponMsg('');
+    try {
+      // req() unwraps to the `data` object on success, or returns the
+      // { success:false, message } envelope on a (200) validation failure.
+      const res: any = await validateCoupon(code, productSubtotal);
+      if (res && res.code && res.discount_amount != null) {
+        setAppliedCoupon({ code: res.code, discount: Number(res.discount_amount) || 0 });
+        setCouponMsg('');
+        toast.success(`Coupon ${res.code} applied`);
+      } else {
+        setAppliedCoupon(null);
+        setCouponMsg(res?.message || 'Invalid coupon code');
+      }
+    } catch (e: any) {
+      setAppliedCoupon(null);
+      setCouponMsg(e?.message || 'Could not validate coupon');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponMsg('');
+  };
 
   const handleCheckout = async () => {
     if (!user) {
@@ -147,6 +210,7 @@ export default function CartDrawer() {
           service_latitude: finalLat || undefined,
           service_longitude: finalLng || undefined,
           apply_gst: applyGst,
+          ...(appliedCoupon ? { coupon_code: appliedCoupon.code } : {}),
           ...(applyGst ? {
             shipping_state: shippingStateForOrder,
             billing_gstin: gstin.trim().toUpperCase(),
@@ -233,6 +297,9 @@ export default function CartDrawer() {
       setAddress('');
       setOrderNum('');
       setMaliBooked(null);
+      setAppliedCoupon(null);
+      setCouponInput('');
+      setCouponMsg('');
     }, 400);
   };
 
@@ -328,10 +395,72 @@ export default function CartDrawer() {
                        <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--forest)', marginBottom: 2 }}>Need a Plant Expert?</div>
                           <div style={{ fontSize: '0.74rem', color: 'var(--sage)', fontWeight: 600, marginBottom: 8 }}>Book a professional plant expert visit with these plants</div>
-                          <Link href="/book?type=on-demand" onClick={closeCart} style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold-deep)', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}>
+                          <Link href="/book" onClick={closeCart} style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold-deep)', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}>
                              Book On-Demand Visit <IcArrow />
                           </Link>
                        </div>
+                    </div>
+                  )}
+
+                  {/* ── Coupon entry / applied ── */}
+                  {productSubtotal > 0 && (
+                    <div style={{ marginTop: 4 }}>
+                      {appliedCoupon ? (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: 'rgba(22,163,74,0.08)', border: '1px dashed rgba(22,163,74,0.5)', borderRadius: 12 }}>
+                          <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#16a34a' }}>🎟️ {appliedCoupon.code} applied</div>
+                          <button onClick={removeCoupon} style={{ background: 'none', border: 'none', color: 'var(--text-2)', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Remove</button>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <input
+                            value={couponInput}
+                            onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponMsg(''); }}
+                            onKeyDown={e => { if (e.key === 'Enter') applyCoupon(); }}
+                            placeholder="COUPON CODE"
+                            style={{ flex: 1, padding: '12px 14px', borderRadius: 12, border: '1.5px solid var(--border)', fontFamily: 'var(--font-body)', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', outline: 'none', color: 'var(--forest)', boxSizing: 'border-box' }}
+                          />
+                          <button onClick={() => applyCoupon()} disabled={couponLoading || !couponInput.trim()}
+                            style={{ padding: '0 20px', borderRadius: 12, border: '1.5px solid var(--forest)', background: 'var(--forest)', color: '#fff', fontWeight: 800, fontSize: '0.82rem', cursor: couponLoading || !couponInput.trim() ? 'not-allowed' : 'pointer', opacity: couponLoading || !couponInput.trim() ? 0.6 : 1, whiteSpace: 'nowrap' }}>
+                            {couponLoading ? '…' : 'Apply'}
+                          </button>
+                        </div>
+                      )}
+                      {couponMsg && <div style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 600, marginTop: 6 }}>{couponMsg}</div>}
+                    </div>
+                  )}
+
+                  {/* ── Available coupons (Zomato-style) ── */}
+                  {productSubtotal > 0 && !appliedCoupon && availableCoupons.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Available Coupons</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {availableCoupons.map((c: any) => {
+                          const min = Number(c.min_order_amount) || 0;
+                          const eligible = productSubtotal >= min;
+                          const label = c.discount_type === 'percentage'
+                            ? `${Number(c.discount_value)}% OFF${c.max_discount ? ` up to ₹${Number(c.max_discount).toLocaleString('en-IN')}` : ''}`
+                            : `₹${Number(c.discount_value).toLocaleString('en-IN')} OFF`;
+                          const shortfall = Math.max(0, min - productSubtotal);
+                          return (
+                            <div key={c.code} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 13px', borderRadius: 12, border: '1px dashed var(--border)', background: eligible ? 'rgba(22,163,74,0.04)' : 'var(--bg-elevated)' }}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                  <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '0.82rem', color: 'var(--forest)', letterSpacing: '0.04em' }}>{c.code}</span>
+                                  <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#16a34a' }}>{label}</span>
+                                </div>
+                                {c.description && <div style={{ fontSize: '0.7rem', color: 'var(--text-2)', marginTop: 2 }}>{c.description}</div>}
+                                {!eligible && <div style={{ fontSize: '0.68rem', color: 'var(--earth)', fontWeight: 600, marginTop: 2 }}>Add ₹{shortfall.toLocaleString('en-IN')} more to apply</div>}
+                              </div>
+                              <button
+                                onClick={() => applyCoupon(c.code)}
+                                disabled={!eligible || couponLoading}
+                                style={{ flexShrink: 0, padding: '7px 16px', borderRadius: 8, border: 'none', background: eligible ? 'var(--forest)' : 'var(--border)', color: eligible ? '#fff' : 'var(--text-muted)', fontWeight: 800, fontSize: '0.72rem', cursor: eligible && !couponLoading ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
+                                APPLY
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -340,16 +469,24 @@ export default function CartDrawer() {
             {items.length > 0 && (
               <div className="cart-footer" style={{ background: 'var(--bg-elevated)', borderTop: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.9rem', color: 'var(--text-2)' }}>
-                  <span>Subtotal ({total} items)</span>
+                  <span>Subtotal ({total} {total === 1 ? 'item' : 'items'})</span>
                   <span style={{ fontWeight: 800 }}>₹{price.toLocaleString('en-IN')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 18, fontSize: '0.9rem', color: 'var(--text-2)' }}>
                   <span>Delivery Cost</span>
                   <span style={{ fontWeight: 800, color: 'var(--forest-mid)' }}>FREE</span>
                 </div>
+
+                {discount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: '0.9rem', color: '#16a34a', fontWeight: 700 }}>
+                    <span>Discount</span>
+                    <span>− ₹{discount.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 18, marginBottom: 24 }}>
                   <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--forest)' }}>Total Amount</span>
-                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.4rem', color: 'var(--forest)' }}>₹{price.toLocaleString('en-IN')}</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.4rem', color: 'var(--forest)' }}>₹{payable.toLocaleString('en-IN')}</span>
                 </div>
                 <button onClick={() => setStep('address')} className="btn btn-primary w-full" style={{ justifyContent: 'center', padding: '16px', fontWeight: 800 }}>
                   Checkout Now <IcArrow />
@@ -366,7 +503,7 @@ export default function CartDrawer() {
             <div className="cart-body">
               <div style={{ marginBottom: 20, padding: '14px 16px', background: 'var(--bg-elevated)', borderRadius: 16, border: '1px solid var(--border)' }}>
                 <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--forest)', marginBottom: 4 }}>Order Summary</div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--sage)', fontWeight: 600 }}>{total} items · <strong style={{ color: 'var(--forest)' }}>₹{price.toLocaleString('en-IN')}</strong> total</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--sage)', fontWeight: 600 }}>{total} items · <strong style={{ color: 'var(--forest)' }}>₹{payable.toLocaleString('en-IN')}</strong> total{discount > 0 && <span style={{ color: '#16a34a' }}> · 🎟️ {appliedCoupon?.code} (−₹{discount.toLocaleString('en-IN')})</span>}</div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
@@ -537,7 +674,7 @@ export default function CartDrawer() {
             </div>
             <div className="cart-footer" style={{ borderTop: '1px solid var(--border)' }}>
               <button onClick={handleCheckout} disabled={!useSaved && !address.trim()} className="btn btn-primary w-full" style={{ justifyContent: 'center', padding: '14px', opacity: (!useSaved && !address.trim()) ? 0.5 : 1 }}>
-                Complete Purchase · ₹{price.toLocaleString('en-IN')} <IcArrow />
+                Complete Purchase · ₹{payable.toLocaleString('en-IN')} <IcArrow />
               </button>
               <button onClick={() => setStep('cart')} className="btn btn-outline w-full btn-sm" style={{ justifyContent: 'center', marginTop: 10 }}>← Back to Cart</button>
             </div>

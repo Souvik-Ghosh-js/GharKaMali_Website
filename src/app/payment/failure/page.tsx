@@ -32,7 +32,7 @@ function FailureContent() {
         </p>
 
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
-          <Link href="/book?type=on-demand" className="btn btn-primary" style={{ padding: '14px 28px' }}>
+          <Link href="/book" className="btn btn-primary" style={{ padding: '14px 28px' }}>
             Retry Payment
           </Link>
           <Link href="/" className="btn btn-outline" style={{ padding: '14px 28px' }}>

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getPlans, getFaqs } from '@/lib/api';
+import { planSlug } from '@/lib/slug';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 import { useLocation } from '@/store/location';
 
@@ -95,7 +96,7 @@ function PlanCarousel({ items }: { items: any[] }) {
                     </div>
                   ))}
                 </div>
-                <Link href={`/book?plan=${plan.id}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'}`} style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '0.9rem', fontWeight: 800, borderRadius: 18 }}>
+                <Link href={`/book/${planSlug(plan)}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'}`} style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '0.9rem', fontWeight: 800, borderRadius: 18 }}>
                   {plan.plan_type === 'subscription' ? 'Subscribe Now' : 'Book Now'}
                 </Link>
               </div>
@@ -197,7 +198,7 @@ function PlanCarousel({ items }: { items: any[] }) {
                       </div>
                     ))}
                   </div>
-                  <Link href={`/book?plan=${plan.id}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'}`} style={{ width: '100%', justifyContent: 'center', padding: '20px', fontSize: '1rem', fontWeight: 600, borderRadius: 24, marginTop: 'auto' }}>
+                  <Link href={`/book/${planSlug(plan)}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'}`} style={{ width: '100%', justifyContent: 'center', padding: '20px', fontSize: '1rem', fontWeight: 600, borderRadius: 24, marginTop: 'auto' }}>
                     {plan.plan_type === 'subscription' ? 'Subscribe Now' : 'Book Now'}
                   </Link>
                 </div>
