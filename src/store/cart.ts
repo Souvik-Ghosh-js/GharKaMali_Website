@@ -98,7 +98,9 @@ export const useCart = create<CartStore>()(
           get().removeItem(id);
           return;
         }
-        set(state => ({ items: state.items.map(i => i.id === id ? { ...i, qty } : i) }));
+        // Scope to products: the quantity stepper only exists for products, and a
+        // product can share a numeric id with a service (different tables).
+        set(state => ({ items: state.items.map(i => (i.id === id && (!i.type || i.type === 'product')) ? { ...i, qty } : i) }));
       },
 
       clearCart: () => set({ items: [], wantsMali: false }),
