@@ -598,11 +598,12 @@ const Marquee = () => {
     { text: '1200+ Homes Served', Icon: IcShield },
     { text: 'Verified Experts', Icon: IcShield },
     { text: '4.9 ⭐ Rating', Icon: IcStar },
-    { text: 'Serving: Noida', Icon: IcMap },
-    { text: 'Serving: Greater Noida', Icon: IcMap },
     { text: 'Serving: Greater Noida West', Icon: IcMap },
+    { text: 'Serving: Greater Noida', Icon: IcMap },
     { text: 'Serving: Ghaziabad', Icon: IcMap },
-    { text: '🚀 Launching Soon: Gurugram', Icon: IcMap },
+    { text: 'Serving: Gurgaon', Icon: IcMap },
+    { text: 'Serving: Delhi', Icon: IcMap },
+    { text: '🚀 Launching Soon: Faridabad', Icon: IcMap },
   ];
   return (
     <div style={{ background: 'var(--forest)', padding: '20px 0', overflow: 'hidden', borderTop: '1px solid rgba(255,255,255,0.1)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
@@ -621,11 +622,12 @@ const Marquee = () => {
 };
 
 const SERVICEABLE_CITIES = [
-  { name: 'Noida', active: true },
-  { name: 'Greater Noida', active: true },
   { name: 'Greater Noida West', active: true },
+  { name: 'Greater Noida', active: true },
   { name: 'Ghaziabad', active: true },
-  { name: 'Gurugram', active: false },
+  { name: 'Gurgaon', active: true },
+  { name: 'Delhi', active: true },
+  { name: 'Faridabad', active: false },
 ];
 
 const CityMarquee = () => {
