@@ -9,7 +9,7 @@ import Navbar from '@/components/Navbar';
 import StateSelect from '@/components/StateSelect';
 import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
-import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, checkInstantAvailability, addBookingAddons } from '@/lib/api';
+import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, checkInstantAvailability } from '@/lib/api';
 import { payWithRazorpay } from '@/lib/razorpay';
 import { v, firstError, sanitize } from '@/lib/validators';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -223,14 +223,9 @@ function BookFlow() {
           }
           throw e;
         }
-        if (form.addons.length > 0) {
-          try {
-            await addBookingAddons(res.id, form.addons.map(a => ({ addon_id: a.addon_id, quantity: a.quantity })));
-          } catch (e: any) {
-            console.error('Failed to add addons', e);
-            toast.error(`Booking created but add-ons failed: ${e?.message || 'unknown error'}`);
-          }
-        }
+        // Add-ons are already persisted and included in total_amount by createBooking
+        // (it reads `addons` from the payload). Do NOT call addBookingAddons here — that
+        // would create duplicate add-on rows and double-charge the customer.
         const pay = await payWithRazorpay({ type: 'booking', booking_id: res.id });
         if (pay.ok) toast.success('Booking confirmed & paid!');
         else toast(pay.cancelled ? 'Booking created — pay from My Bookings to confirm.' : (pay.message || 'Payment failed'), { icon: '⏳' });

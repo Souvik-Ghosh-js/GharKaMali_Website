@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useCart } from '@/store/cart';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { createOrder, addBookingAddons, validateCoupon, getAvailableCoupons } from '@/lib/api';
+import { createOrder, validateCoupon, getAvailableCoupons } from '@/lib/api';
 import { payWithRazorpay } from '@/lib/razorpay';
 import { sanitize } from '@/lib/validators';
 import StateSelect from '@/components/StateSelect';
@@ -265,14 +265,8 @@ export default function CartDrawer() {
               addons: svc.bookingDetails?.addons || [],
               total_amount: svc.bookingDetails?.price
             });
-            if (svc.bookingDetails?.addons?.length) {
-              try {
-                await addBookingAddons(res.id, svc.bookingDetails.addons);
-              } catch (e: any) {
-                console.error('Failed to add addons to cart booking', e);
-                toast.error(`Booking created but add-ons failed: ${e?.message || 'unknown error'}`);
-              }
-            }
+            // Add-ons are already handled by createBooking (addons in payload → total + rows).
+            // Calling addBookingAddons here would duplicate them and double-charge.
           }
           bookingResponses.push(res);
           if (res?.id) fulfill.push({ type: isSub ? 'subscription' : 'booking', id: res.id });
