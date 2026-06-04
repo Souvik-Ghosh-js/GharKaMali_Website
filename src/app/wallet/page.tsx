@@ -175,7 +175,7 @@ export default function WalletPage() {
                       onFocus={e => { e.currentTarget.style.borderColor = 'var(--forest)'; e.currentTarget.style.boxShadow = '0 0 0 4px var(--border)'; }}
                       onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-mid)'; e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.02)'; }} />
                   </div>
-                  {finalAmount > 0 && finalAmount < 50 && <div style={{ fontSize: '0.9rem', color: '#DC2626', marginTop: 10, fontWeight: 600 }}>Minimum top-up is ₹50</div>}
+                  {finalAmount > 0 && finalAmount < 1 && <div style={{ fontSize: '0.9rem', color: '#DC2626', marginTop: 10, fontWeight: 600 }}>Minimum top-up is ₹1</div>}
                 </div>
                 {/* Summary */}
                 <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 20, padding: '24px', marginBottom: 28 }}>
@@ -192,7 +192,7 @@ export default function WalletPage() {
                     <span style={{ fontFamily: 'var(--font-display)', color: 'var(--forest)' }}>₹{(balance + finalAmount).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
-                <button onClick={() => topupMut.mutate()} disabled={topupMut.isPending || finalAmount < 50}
+                <button onClick={() => topupMut.mutate()} disabled={topupMut.isPending || finalAmount < 1}
                   className="btn btn-primary w-full btn-lg" style={{ justifyContent: 'center', padding: '18px', gap: 12, fontSize: '1.1rem', boxShadow: 'var(--sh-md)' }}>
                   {topupMut.isPending
                     ? <><div className="btn-spinner" /> Processing…</>
