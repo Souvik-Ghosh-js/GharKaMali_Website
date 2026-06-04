@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef } from 'react';
+import { loadGoogleMaps } from '@/lib/googleMaps';
 
 interface MapProps {
   readonly center: [number, number];
@@ -9,88 +10,54 @@ interface MapProps {
   readonly mapRef?: any;
 }
 
-export default function LeafletMap({ center, zoom, markerPosition, onMarkerDragEnd, mapRef }: MapProps) {
+// Google Maps location picker — draggable marker + tap-to-move.
+// Keeps the same props as the old Leaflet component so callers don't change.
+export default function GoogleMapPicker({ center, zoom, markerPosition, onMarkerDragEnd, mapRef }: MapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
-  const initedRef = useRef(false);
+  const mapObjRef = useRef<any>(null);
+  const markerObjRef = useRef<any>(null);
 
+  // Initialise once.
   useEffect(() => {
-    // Initialize map once
-    if (initedRef.current || !containerRef.current) return;
-    
     let mounted = true;
-
-    const initMap = async () => {
-      try {
-        const leaflet = await import('leaflet');
-        const L = leaflet.default || leaflet;
-
-        if (!mounted || !containerRef.current) return;
-
-        delete L.Icon.Default.prototype._getIconUrl;
-        L.Icon.Default.mergeOptions({
-          iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-          iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-          shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-        });
-
-        const map = L.map(containerRef.current, {
-          center,
+    loadGoogleMaps()
+      .then((maps) => {
+        if (!mounted || !containerRef.current || mapObjRef.current) return;
+        const map = new maps.Map(containerRef.current, {
+          center: { lat: center[0], lng: center[1] },
           zoom,
-          scrollWheelZoom: false,
-          dragging: true,
-          tap: true,
+          streetViewControl: false,
+          mapTypeControl: false,
+          fullscreenControl: false,
+          clickableIcons: false,
+        });
+        const marker = new maps.Marker({
+          position: { lat: markerPosition[0], lng: markerPosition[1] },
+          map, draggable: true, animation: maps.Animation?.DROP,
+        });
+        marker.addListener('dragend', (e: any) => onMarkerDragEnd(e.latLng.lat(), e.latLng.lng()));
+        map.addListener('click', (e: any) => {
+          marker.setPosition(e.latLng);
+          onMarkerDragEnd(e.latLng.lat(), e.latLng.lng());
         });
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-          maxZoom: 19,
-        }).addTo(map);
-
-        const marker = L.marker(markerPosition, { draggable: true }).addTo(map);
-        marker.on('dragend', (e: any) => {
-          const position = e.target.getLatLng();
-          onMarkerDragEnd(position.lat, position.lng);
-        });
-
-        mapInstanceRef.current = map;
-        markerRef.current = marker;
-        if (mapRef) mapRef.current = map;
-        
-        // Trigger a resize to ensure the map renders properly
-        setTimeout(() => {
-          if (mapInstanceRef.current) {
-            mapInstanceRef.current.invalidateSize();
-          }
-        }, 100);
-      } catch (err) {
-        console.error('Failed to initialize Leaflet map:', err);
-      }
-    };
-
-    initMap();
-
-    return () => {
-      mounted = false;
-    };
+        mapObjRef.current = map;
+        markerObjRef.current = marker;
+        // Expose a Leaflet-compatible setView so existing callers keep working.
+        if (mapRef) mapRef.current = {
+          setView: ([la, ln]: [number, number], z?: number) => { map.setCenter({ lat: la, lng: ln }); if (z) map.setZoom(z); },
+          map,
+        };
+      })
+      .catch((err) => console.error('Google Maps failed to load:', err));
+    return () => { mounted = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Mark as initialized after component mounts
+  // Keep the marker in sync when the position prop changes.
   useEffect(() => {
-    initedRef.current = true;
-  }, []);
-
-  useEffect(() => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.setView(center, zoom);
-    }
-  }, [center, zoom]);
-
-  useEffect(() => {
-    if (markerRef.current) {
-      markerRef.current.setLatLng(markerPosition);
-    }
+    if (markerObjRef.current) markerObjRef.current.setPosition({ lat: markerPosition[0], lng: markerPosition[1] });
+    if (mapObjRef.current) mapObjRef.current.panTo({ lat: markerPosition[0], lng: markerPosition[1] });
   }, [markerPosition]);
 
   return <div ref={containerRef} style={{ height: '100%', width: '100%', flex: 1 }} />;

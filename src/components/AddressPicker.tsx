@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { checkServiceability } from '@/lib/api';
 import { useLocation } from '@/store/location';
-import LeafletMap from './Map';
+import MapPicker from './Map';
+import { reverseGeocode, searchGeocode } from '@/lib/googleMaps';
 
 type Picked = {
   lat: number;
@@ -25,36 +26,6 @@ interface Props {
 }
 
 const DEFAULT_CENTER: [number, number] = [28.5355, 77.3910]; // Noida fallback
-
-async function reverseGeocode(lat: number, lng: number): Promise<{ display: string; pincode?: string; city?: string; state?: string }> {
-  try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
-      headers: { 'Accept-Language': 'en' },
-    });
-    const j = await res.json();
-    const a = j?.address || {};
-    return {
-      display: j?.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
-      pincode: a.postcode,
-      city: a.city || a.town || a.village || a.suburb || a.county,
-      state: a.state,
-    };
-  } catch {
-    return { display: `${lat.toFixed(5)}, ${lng.toFixed(5)}` };
-  }
-}
-
-async function forwardGeocode(query: string): Promise<{ lat: number; lng: number; display: string }[]> {
-  try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query)}&countrycodes=in&limit=5&addressdetails=1`, {
-      headers: { 'Accept-Language': 'en' },
-    });
-    const arr = await res.json();
-    return (arr || []).map((r: any) => ({ lat: parseFloat(r.lat), lng: parseFloat(r.lon), display: r.display_name }));
-  } catch {
-    return [];
-  }
-}
 
 export default function AddressPicker({ open, onClose, onConfirm, initialLat, initialLng, title = 'Pick your location' }: Props) {
   const { lat: storeLat, lng: storeLng } = useLocation();
@@ -78,21 +49,6 @@ export default function AddressPicker({ open, onClose, onConfirm, initialLat, in
   const [loadingAddr, setLoadingAddr] = useState(false);
 
   const mapRef = useRef<any>(null);
-
-  // Fix default Leaflet marker icon paths (Webpack breaks them otherwise)
-  useEffect(() => {
-    if (!open) return;
-    (async () => {
-      const L = (await import('leaflet')).default;
-      // @ts-ignore
-      delete L.Icon.Default.prototype._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      });
-    })();
-  }, [open]);
 
   const updateFromCoords = async (newLat: number, newLng: number) => {
     setLat(newLat);
@@ -135,7 +91,7 @@ export default function AddressPicker({ open, onClose, onConfirm, initialLat, in
     }
     const t = setTimeout(async () => {
       setSearching(true);
-      const res = await forwardGeocode(query);
+      const res = await searchGeocode(query);
       setSuggestions(res);
       setSearching(false);
     }, 400);
@@ -246,7 +202,7 @@ export default function AddressPicker({ open, onClose, onConfirm, initialLat, in
         <SavedAddressesSection onPick={pickSuggestion} />
 
         <div className="addr-picker-map" style={{ flex: 1, minHeight: 320, position: 'relative', display: 'flex', width: '100%' }}>
-          <LeafletMap
+          <MapPicker
             center={[startLat, startLng]}
             zoom={15}
             markerPosition={[lat, lng]}
