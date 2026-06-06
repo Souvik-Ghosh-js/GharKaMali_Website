@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { checkServiceability } from '@/lib/api';
+import { checkServiceability, getGeofences } from '@/lib/api';
 import { useLocation } from '@/store/location';
 import MapPicker from './Map';
 import { reverseGeocode, searchPlaces, placeDetails } from '@/lib/googleMaps';
@@ -27,6 +27,24 @@ interface Props {
 
 const DEFAULT_CENTER: [number, number] = [28.5355, 77.3910]; // Noida fallback
 
+// Parse a geofence polygon ("[[lat,lng],…]" string or array) into points.
+function parsePolygon(raw: any): [number, number][] {
+  try {
+    const arr = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (Array.isArray(arr)) {
+      return arr
+        .map((p: any) => [Number(p[0]), Number(p[1])] as [number, number])
+        .filter((p) => !Number.isNaN(p[0]) && !Number.isNaN(p[1]));
+    }
+  } catch { /* ignore */ }
+  return [];
+}
+function polyCentroid(pts: [number, number][]): [number, number] | null {
+  if (!pts.length) return null;
+  const sum = pts.reduce((a, p) => [a[0] + p[0], a[1] + p[1]], [0, 0]);
+  return [sum[0] / pts.length, sum[1] / pts.length];
+}
+
 export default function AddressPicker({ open, onClose, onConfirm, initialLat, initialLng, title = 'Pick your location' }: Props) {
   const { lat: storeLat, lng: storeLng } = useLocation();
 
@@ -47,6 +65,9 @@ export default function AddressPicker({ open, onClose, onConfirm, initialLat, in
   const [serviceableState, setServiceableState] = useState<'unknown' | 'yes' | 'no' | 'checking'>('unknown');
   const [zone, setZone] = useState<any>(null);
   const [loadingAddr, setLoadingAddr] = useState(false);
+
+  const [geofences, setGeofences] = useState<any[]>([]);
+  const [selectedGf, setSelectedGf] = useState('');
 
   const mapRef = useRef<any>(null);
 
@@ -82,6 +103,28 @@ export default function AddressPicker({ open, onClose, onConfirm, initialLat, in
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // Load serviceable areas for the dropdown when the picker opens.
+  useEffect(() => {
+    if (!open) return;
+    getGeofences().then((d: any) => setGeofences(Array.isArray(d) ? d : [])).catch(() => {});
+  }, [open]);
+
+  // Pick an area from the dropdown → fit the map to that geofence and drop the
+  // pin at its centre; the user then fine-tunes within it.
+  const pickGeofence = (id: string) => {
+    setSelectedGf(id);
+    setQuery('');
+    setSuggestions([]);
+    const g = geofences.find((x) => String(x.id) === String(id));
+    if (!g) return;
+    const pts = parsePolygon(g.polygon_coords);
+    const c = polyCentroid(pts);
+    if (!c) return;
+    updateFromCoords(c[0], c[1]);
+    if (pts.length && mapRef.current?.fitBounds) mapRef.current.fitBounds(pts);
+    else if (mapRef.current?.setView) mapRef.current.setView(c, 13);
+  };
 
   // Debounced search
   useEffect(() => {
@@ -180,6 +223,18 @@ export default function AddressPicker({ open, onClose, onConfirm, initialLat, in
 
         {/* Search + Use My Location */}
         <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border)', position: 'relative' }}>
+          {geofences.length > 0 && (
+            <select
+              value={selectedGf}
+              onChange={(e) => pickGeofence(e.target.value)}
+              style={{ width: '100%', padding: '11px 14px', marginBottom: 10, borderRadius: 12, border: '1.5px solid var(--border)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--forest)', background: '#fff', outline: 'none', cursor: 'pointer' }}
+            >
+              <option value="">📍 Choose your area…</option>
+              {geofences.map((g) => (
+                <option key={g.id} value={g.id}>{g.name}{g.city ? ` — ${g.city}` : ''}</option>
+              ))}
+            </select>
+          )}
           <div className="addr-picker-search-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <input
               value={query}

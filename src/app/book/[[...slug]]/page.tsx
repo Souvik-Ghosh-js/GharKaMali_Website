@@ -699,7 +699,7 @@ function BookFlow() {
                       </>
                       )}
                     </div>
-                    <button onClick={() => setActiveStep(5)} disabled={bookingMode === 'schedule' ? !form.scheduled_date : (bookingMode === 'instant' && !instantInfo?.available)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, marginTop: 32, fontWeight: 500, fontSize: '0.85rem' }}>Review & Confirm Selection</button>
+                    <button onClick={() => setActiveStep(5)} disabled={bookingMode === 'schedule' ? (!form.scheduled_date || loadingSlots || noGardenersInZone || !availableSlots.includes(form.scheduled_time)) : (bookingMode === 'instant' && !instantInfo?.available)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, marginTop: 32, fontWeight: 500, fontSize: '0.85rem' }}>Review & Confirm Selection</button>
                   </motion.div>
                 )}
               </AnimatePresence>

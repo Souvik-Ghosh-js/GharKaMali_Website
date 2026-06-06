@@ -168,7 +168,7 @@ function PlanCarousel({ items }: { items: any[] }) {
                   borderRadius: 40,
                   border: isCenter ? '2.5px solid var(--gold)' : '1px solid var(--border)',
                   padding: '52px 40px',
-                  height: 620,
+                  minHeight: 620,
                   display: 'flex', flexDirection: 'column',
                   boxShadow: isCenter ? '0 60px 120px rgba(3,65,26,0.3), 0 0 45px rgba(201,168,76,0.2)' : 'var(--sh-sm)',
                   transition: 'border 0.4s var(--ease)',
@@ -182,7 +182,7 @@ function PlanCarousel({ items }: { items: any[] }) {
                   <div style={{ fontSize: '0.75rem', fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.6)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.18em', marginBottom: 14 }}>{plan.plan_type}</div>
                   <h3 style={{ fontSize: '2.2rem', fontWeight: 700, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 16, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{plan.name}</h3>
                   <p style={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'var(--text-2)', fontSize: '1rem', marginBottom: 40, lineHeight: 1.7, flexShrink: 0 }}>{plan.description || 'Premium botanical luxury for your flourishing space.'}</p>
-                  <div style={{ marginBottom: 44 }}>
+                  <div style={{ marginBottom: 28 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                       <span style={{ fontSize: '3.4rem', fontWeight: 700, color: isDark ? 'var(--gold)' : 'var(--forest)', fontFamily: 'var(--font-display)', lineHeight: 0.9 }}>
                         ₹{plan.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : plan.price}
@@ -190,7 +190,7 @@ function PlanCarousel({ items }: { items: any[] }) {
                       <span style={{ fontSize: '1.25rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 700 }}>{plan.plan_type === 'subscription' ? '/mo' : '/visit'}</span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 15, marginBottom: 44 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
                     {(Array.isArray(plan.features) ? plan.features : []).slice(0, 5).map((f: string, idx: number) => (
                       <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: '0.92rem', color: isDark ? 'rgba(255,255,255,0.8)' : 'var(--forest)', fontWeight: 700 }}>
                         <span style={{ color: isDark ? 'var(--gold)' : 'var(--forest)', opacity: 0.75 }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><polyline points="20 6 9 17 4 12"/></svg></span>

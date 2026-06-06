@@ -46,6 +46,13 @@ export default function GoogleMapPicker({ center, zoom, markerPosition, onMarker
         // Expose a Leaflet-compatible setView so existing callers keep working.
         if (mapRef) mapRef.current = {
           setView: ([la, ln]: [number, number], z?: number) => { map.setCenter({ lat: la, lng: ln }); if (z) map.setZoom(z); },
+          // Fit the viewport to a polygon's points (used by the area dropdown).
+          fitBounds: (pts: [number, number][]) => {
+            if (!pts || pts.length === 0) return;
+            const b = new maps.LatLngBounds();
+            pts.forEach(([la, ln]) => b.extend({ lat: la, lng: ln }));
+            map.fitBounds(b, 28);
+          },
           map,
         };
       })

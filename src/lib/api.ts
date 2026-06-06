@@ -67,6 +67,8 @@ export const updateProfile = (form: FormData) =>
 
 // ─── ZONES ────────────────────────────────────────────────────────────────────
 export const getZones = () => req('/zones', { auth: false });
+// Serviceable geofences (incl. polygon_coords) — used for the "choose your area" picker.
+export const getGeofences = () => req('/geofences', { auth: false });
 
 // Serviceability check: GET not POST, under /payments/ path
 export const checkServiceability = (lat: number, lng: number) =>
