@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useCart } from '@/store/cart';
 import toast from 'react-hot-toast';
-import { getShopCategories, getShopProducts } from '@/lib/api';
+import { getShopCategories, getShopProductsPaged } from '@/lib/api';
 import { slugify } from '@/lib/slug';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 
@@ -17,6 +17,17 @@ const IcStar = () => <svg width="11" height="11" viewBox="0 0 24 24" fill="#C9A8
 const IcLeaf = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>;
 
 const WA_URL = 'https://wa.me/919876543210?text=Hi%20GharKaMali!%20I%20want%20to%20know%20more%20about%20a%20product.';
+const PAGE_SIZE = 24;
+
+// Build the windowed page list: 1 … (cur-1) cur (cur+1) … last
+function pageList(cur: number, total: number): (number | '…')[] {
+  const out: (number | '…')[] = [];
+  for (let i = 1; i <= total; i++) {
+    if (i === 1 || i === total || (i >= cur - 1 && i <= cur + 1)) out.push(i);
+    else if (out[out.length - 1] !== '…') out.push('…');
+  }
+  return out;
+}
 
 const CATEGORY_ICONS: Record<string, () => JSX.Element> = {
   'plants': () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>,
@@ -40,8 +51,18 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
   const [mounted, setMounted] = useState(false);
   const [sort, setSort] = useState('featured');
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const { addItem, items, openCart, totalItems, updateQty, removeItem } = useCart();
   const heroRef = useRef<HTMLDivElement>(null);
+  const listTopRef = useRef<HTMLDivElement>(null);
+
+  const goPage = (n: number) => {
+    if (n < 1 || n > pages || n === page) return;
+    setPage(n);
+    listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -145,23 +166,26 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
     if (match) setCat(match.name);
   }, [categorySlug, categories]);
 
+  // Any filter/sort change resets to page 1.
+  useEffect(() => { setPage(1); }, [cat, search, sort]);
+
+  // Server-driven, paginated fetch (sorting is now done server-side so it spans
+  // all pages). The 250ms debounce + cleanup cancels the stale fetch that fires
+  // momentarily when a filter change also resets the page.
   useEffect(() => {
     setLoading(true);
-    const params: any = {};
+    const params: any = { page, limit: PAGE_SIZE };
     if (cat !== 'All') params.category = cat;
     if (search) params.search = search;
     if (sort && sort !== 'featured') params.sort = sort;
     const t = setTimeout(() => {
-      getShopProducts(params).then((d: any) => {
-        let result = Array.isArray(d) ? d : [];
-        if (sort === 'price_asc') result = [...result].sort((a,b) => Number(a.price) - Number(b.price));
-        if (sort === 'price_desc') result = [...result].sort((a,b) => Number(b.price) - Number(a.price));
-        if (sort === 'rating') result = [...result].sort((a,b) => Number(b.rating||4.5) - Number(a.rating||4.5));
-        setProducts(result);
-      }).catch(() => setProducts([])).finally(() => setLoading(false));
+      getShopProductsPaged(params)
+        .then(({ items, total, pages }) => { setProducts(items); setTotal(total); setPages(pages); })
+        .catch(() => { setProducts([]); setTotal(0); setPages(1); })
+        .finally(() => setLoading(false));
     }, 250);
     return () => clearTimeout(t);
-  }, [cat, search, sort]);
+  }, [cat, search, sort, page]);
 
   const getQty = (id: number) => items.find(i => i.id === id)?.qty ?? 0;
   const handleAdd = (p: any) => {
@@ -210,7 +234,7 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
                     </h1>
                     {!loading && (
                       <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.78rem', fontWeight: 600 }}>
-                        {products.length} {products.length === 1 ? 'item' : 'items'} found
+                        {total} {total === 1 ? 'item' : 'items'} found
                         {(search.trim() || cat !== 'All') && (
                           <button onClick={() => { setSearch(''); setCat('All'); router.replace('/shop'); }}
                             style={{ marginLeft: 12, background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.35)', color: '#c9a84c', padding: '3px 12px', borderRadius: 99, fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
@@ -253,7 +277,7 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
           </div>
         )}
 
-        <div className="container" style={{
+        <div ref={listTopRef} className="container" style={{
           paddingTop: (search.trim() || cat !== 'All') ? 'clamp(16px, 3vw, 24px)' : 'clamp(28px, 6vw, 48px)',
           paddingBottom: 80,
         }}>
@@ -323,7 +347,7 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
               <p style={{ color: 'var(--text-muted)' }}>Try a different search or category</p>
             </div>
           ) : (
-            <div className="product-grid" key={`${cat}-${search}-${sort}`} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24, width: '100%' }}>
+            <div className="product-grid" key={`${cat}-${search}-${sort}-${page}`} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24, width: '100%' }}>
               {products.map((p, i) => {
                 const qty = getQty(p.id);
                 const price = Number(p.price), mrp = Number(p.mrp);
@@ -407,6 +431,28 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {!loading && pages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 48, flexWrap: 'wrap' }}>
+              <button onClick={() => goPage(page - 1)} disabled={page <= 1}
+                style={{ padding: '9px 16px', borderRadius: 10, border: '1.5px solid var(--border)', background: '#fff', color: 'var(--forest)', fontWeight: 800, fontSize: '0.85rem', cursor: page <= 1 ? 'not-allowed' : 'pointer', opacity: page <= 1 ? 0.4 : 1 }}>
+                ‹ Prev
+              </button>
+              {pageList(page, pages).map((n, i) => n === '…' ? (
+                <span key={`e${i}`} style={{ padding: '0 6px', color: 'var(--text-muted)', fontWeight: 700 }}>…</span>
+              ) : (
+                <button key={n} onClick={() => goPage(n as number)}
+                  style={{ minWidth: 40, padding: '9px 0', borderRadius: 10, border: `1.5px solid ${n === page ? 'var(--forest)' : 'var(--border)'}`, background: n === page ? 'var(--forest)' : '#fff', color: n === page ? '#fff' : 'var(--forest)', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', boxShadow: n === page ? '0 6px 16px rgba(3,65,26,0.2)' : 'none' }}>
+                  {n}
+                </button>
+              ))}
+              <button onClick={() => goPage(page + 1)} disabled={page >= pages}
+                style={{ padding: '9px 16px', borderRadius: 10, border: '1.5px solid var(--border)', background: '#fff', color: 'var(--forest)', fontWeight: 800, fontSize: '0.85rem', cursor: page >= pages ? 'not-allowed' : 'pointer', opacity: page >= pages ? 0.4 : 1 }}>
+                Next ›
+              </button>
             </div>
           )}
 

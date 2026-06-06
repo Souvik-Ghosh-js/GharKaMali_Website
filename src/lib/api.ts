@@ -365,6 +365,23 @@ export const AdminAPI = {
 export const getShopCategories = () => req('/shop/categories');
 export const getShopProduct = (idOrSlug: string | number) => req(`/shop/products/${idOrSlug}`);
 export const getShopProducts = (p?: { category?: string; search?: string; limit?: number; page?: number }) => req(`/shop/products${qs(p)}`);
+// Paginated variant — returns items + pagination meta (reads the full envelope,
+// which req() would otherwise strip down to just `data`).
+export type PagedProducts = { items: any[]; total: number; page: number; pages: number; limit: number };
+export const getShopProductsPaged = async (p?: { category?: string; search?: string; sort?: string; page?: number; limit?: number }): Promise<PagedProducts> => {
+  const headers: Record<string, string> = {};
+  const t = getToken(); if (t) headers['Authorization'] = `Bearer ${t}`;
+  const res = await fetch(`${API_BASE}/shop/products${qs(p)}`, { headers });
+  const json = await res.json().catch(() => ({} as any));
+  const items = Array.isArray(json?.data) ? json.data : [];
+  return {
+    items,
+    total: Number(json?.total ?? items.length),
+    page: Number(json?.page ?? 1),
+    pages: Number(json?.pages ?? 1),
+    limit: Number(json?.limit ?? (p?.limit ?? 24)),
+  };
+};
 export const createOrder = (b: {
   items: { product_id: number; quantity: number }[];
   shipping_address: string;
