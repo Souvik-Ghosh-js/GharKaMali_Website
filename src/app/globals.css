@@ -3750,7 +3750,7 @@ h3,
   color: var(--text-faint);
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1300px) {
   .nav-search-wrap {
     display: none !important;
   }
@@ -6859,6 +6859,17 @@ body {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 12px !important;
+  }
+
+  /* Stack the header; left-align the amount + Download Bill (was right-aligned,
+     which left a big empty gap on the left when it wrapped). */
+  .order-header-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .order-header-amount {
+    align-items: flex-start !important;
+    text-align: left !important;
   }
 }
 

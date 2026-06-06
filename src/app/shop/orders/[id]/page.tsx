@@ -130,7 +130,7 @@ export default function OrderDetailPage() {
   return (
     <>
       <Navbar />
-      <div className="order-details-main" style={{ minHeight: '100svh', background: 'var(--bg)', paddingTop: 'calc(var(--nav-h) + 60px)', paddingBottom: 100 }}>
+      <div className="order-details-main" style={{ minHeight: '100svh', background: 'var(--bg)', paddingTop: 'calc(var(--nav-h) + 60px)', paddingBottom: 100, overflowX: 'clip' }}>
         <div className="container">
           
           {/* Header row */}
@@ -147,7 +147,7 @@ export default function OrderDetailPage() {
                 </div>
               </div>
             </div>
-            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12 }}>
+            <div className="order-header-amount" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12 }}>
               <div>
                 <div style={{ fontSize: '0.9rem', color: 'var(--text-faint)', marginBottom: 4 }}>Total Amount Paid</div>
                 <div className="total-amt-display" style={{ fontSize: '2.4rem', fontWeight: 900, color: 'var(--gold-deep)', fontFamily: 'var(--font-display)', lineHeight: 1 }}>₹{Number(order.total_amount).toLocaleString('en-IN')}</div>
@@ -163,7 +163,7 @@ export default function OrderDetailPage() {
           <div className="order-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32 }}>
             
             {/* Left Column: Items */}
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div style={{ background: '#fff', borderRadius: 32, border: '1.5px solid var(--border)', overflow: 'hidden', boxShadow: 'var(--sh-sm)' }}>
                 <div className="order-card-header" style={{ padding: '24px 32px', borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', gap: 12 }}>
                   <IcBox />
@@ -246,7 +246,7 @@ export default function OrderDetailPage() {
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--forest)', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
                   <IcTruck /> Shipping Status
                 </h3>
-                <div className="stepper-container" style={{ padding: '0' }}>
+                <div className="stepper-container" style={{ padding: '0', overflowX: 'auto' }}>
                   <div className="stepper-inner" style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', padding: '0 40px' }}>
                     <div style={{ position: 'absolute', top: 12, left: 'calc(40px + 12px)', right: 'calc(40px + 12px)', height: 2, background: 'var(--border)' }} />
                     {['Pending', 'Processing', 'Shipped', 'Delivered'].map((step, i) => {
@@ -297,7 +297,7 @@ export default function OrderDetailPage() {
             </div>
 
             {/* Right Column: Summaries */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>
               
               {/* Payment Info */}
               <div className="summary-card" style={{ background: 'var(--bg-elevated)', borderRadius: 32, padding: 32, border: '1.5px solid var(--border-mid)' }}>

@@ -258,7 +258,7 @@ export default function AboutPage() {
               { label: 'Certified Plant Expert', bg: 'var(--forest)', color: '#fff', Icon: IcShield },
               { label: 'WhatsApp Reports', bg: '#fff', color: 'var(--forest)', Icon: IcWA },
               { label: 'Organic Methods', bg: '#fff', color: 'var(--forest)', Icon: IcLeaf },
-              { label: 'Noida & Gr. Noida', bg: 'var(--cream-dark)', color: 'var(--forest)', Icon: IcMap },
+              { label: 'Delhi NCR', bg: 'var(--cream-dark)', color: 'var(--forest)', Icon: IcMap },
             ].map((item, i) => (
               <div key={i}
                 style={{ padding: '22px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: item.bg, borderRadius: 20, border: '1.5px solid var(--border-gold)', textAlign: 'center', boxShadow: 'var(--sh-sm)', transition: 'all 0.28s ease' }}

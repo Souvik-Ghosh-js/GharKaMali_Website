@@ -226,9 +226,9 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
           <div className="nav-desktop-links" style={{ display: hubOpen ? 'none' : 'flex', alignItems: 'center', gap: 2, flex: 1, justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>
             {NAV_ITEMS.map(item => (
               <Link key={item.href} href={item.href} className={`nav-link ${isLight ? 'is-light' : ''} ${pathname === item.href ? 'active' : ''}`} style={{
-                padding: '7px 11px', borderRadius: 10, fontWeight: 700,
-                fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase',
-                transition: 'all 0.2s', whiteSpace: 'nowrap',
+                padding: '7px 8px', borderRadius: 10, fontWeight: 700,
+                fontSize: '0.75rem', letterSpacing: '0.04em', textTransform: 'uppercase',
+                transition: 'all 0.2s', whiteSpace: 'nowrap', flexShrink: 0,
               }}>{item.label}</Link>
             ))}
             {/* Green Makeover CTA pill */}
@@ -236,8 +236,8 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
               href="/green-makeover"
               className="nav-gm-pill"
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: 7,
-                padding: '7px 14px', borderRadius: 10,
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '7px 11px', borderRadius: 10,
                 background: pathname === '/green-makeover'
                   ? 'var(--forest)'
                   : isLight
@@ -282,9 +282,9 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
                 className="nav-search-input"
                 aria-label="Search"
                 autoComplete="off"
-                style={{ background: isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)', border: `1.5px solid ${isLight ? 'rgba(255,255,255,0.3)' : 'var(--border-mid)'}`, borderRadius: 99, padding: '8px 16px 8px 34px', fontSize: '0.82rem', color: isLight ? '#fff' : 'var(--text)', outline: 'none', width: 200, transition: 'all 0.3s', fontFamily: 'var(--font-body)', backdropFilter: isLight ? 'blur(8px)' : 'none' }}
-                onFocus={e => { e.currentTarget.style.width = '260px'; e.currentTarget.style.borderColor = isLight ? '#fff' : 'var(--forest)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = 'var(--forest)'; if (searchQuery && searchResults.length > 0) setSearchOpen(true); }}
-                onBlur={e => { e.currentTarget.style.width = '200px'; e.currentTarget.style.borderColor = isLight ? 'rgba(255,255,255,0.3)' : 'var(--border-mid)'; e.currentTarget.style.background = isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)'; e.currentTarget.style.color = isLight ? '#fff' : 'var(--text)'; }}
+                style={{ background: isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)', border: `1.5px solid ${isLight ? 'rgba(255,255,255,0.3)' : 'var(--border-mid)'}`, borderRadius: 99, padding: '8px 16px 8px 34px', fontSize: '0.82rem', color: isLight ? '#fff' : 'var(--text)', outline: 'none', width: 150, transition: 'all 0.3s', fontFamily: 'var(--font-body)', backdropFilter: isLight ? 'blur(8px)' : 'none' }}
+                onFocus={e => { e.currentTarget.style.width = '220px'; e.currentTarget.style.borderColor = isLight ? '#fff' : 'var(--forest)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = 'var(--forest)'; if (searchQuery && searchResults.length > 0) setSearchOpen(true); }}
+                onBlur={e => { e.currentTarget.style.width = '150px'; e.currentTarget.style.borderColor = isLight ? 'rgba(255,255,255,0.3)' : 'var(--border-mid)'; e.currentTarget.style.background = isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)'; e.currentTarget.style.color = isLight ? '#fff' : 'var(--text)'; }}
               />
             </form>
             {/* Instant search dropdown */}
