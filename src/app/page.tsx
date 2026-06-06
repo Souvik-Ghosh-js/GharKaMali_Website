@@ -809,7 +809,7 @@ export default function HomePage() {
 
               {/* Value Add */}
               <div style={{ display: 'flex', gap: 20, marginTop: 24, flexWrap: 'wrap' }}>
-                {['Up to 10 plants serviced', 'Compost included', '30–45 minute visit'].map((item, i) => (
+                {['Up to 10 plants serviced', 'Consultation included', '40-50 minutes visit'].map((item, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.9)', fontSize: '0.88rem', fontWeight: 600 }}>
                     <span style={{ color: '#4ade80', fontWeight: 900 }}>✔</span>
                     {item}
