@@ -22,6 +22,7 @@ const TIMES = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '1
 // "Additional Plants Requiring Care" — flat ₹25 per plant. 100+ is a custom quote.
 const ADDITIONAL_PLANT_RATE = 25;
 const PLANT_OPTIONS = [5, 10, 25, 30, 40, 50, 60, 70, 80, 100];
+const GST_RATE = 0.18; // 18% GST added on top of every booking/plan
 
 const IcArrow = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>;
 const IcChevronLeft = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>;
@@ -163,7 +164,8 @@ function BookFlow() {
       const a = addons.find(x => x.id === addon_id);
       return sum + (Number(a?.price) || 0);
     }, 0);
-    return planBase + plantCost + addonsTotal;
+    const subtotal = planBase + plantCost + addonsTotal;
+    return Math.round(subtotal * (1 + GST_RATE) * 100) / 100; // + 18% GST
   })();
   const handleAddToCart = () => {
     if (!selectedPlan) return;
@@ -822,6 +824,18 @@ function BookFlow() {
                              })}
                           </div>
                         )}
+                      </div>
+
+                      {/* Subtotal + 18% GST */}
+                      <div style={{ borderTop: '1px dashed var(--border)', paddingTop: 16, marginTop: 4, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Subtotal (excl. GST)</span>
+                          <span style={{ fontWeight: 700, color: 'var(--forest)' }}>₹{(total / (1 + GST_RATE)).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>GST (18%)</span>
+                          <span style={{ fontWeight: 700, color: 'var(--forest)' }}>+₹{(total - total / (1 + GST_RATE)).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                        </div>
                       </div>
 
                       <div style={{ borderTop: '1.5px dashed var(--border)', paddingTop: 24, marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
