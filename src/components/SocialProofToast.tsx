@@ -120,6 +120,9 @@ export default function SocialProofToast() {
           box-shadow: 0 8px 28px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.06);
           overflow: hidden;
           border: 1px solid rgba(0,0,0,0.06);
+          /* Make the whole popup ~32% smaller, anchored to the bottom-left corner. */
+          transform: scale(0.68);
+          transform-origin: left bottom;
         }
         .sp-header {
           background: ${accentColor};

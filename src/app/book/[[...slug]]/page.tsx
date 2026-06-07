@@ -9,7 +9,7 @@ import Navbar from '@/components/Navbar';
 import StateSelect from '@/components/StateSelect';
 import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
-import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, checkInstantAvailability } from '@/lib/api';
+import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, checkInstantAvailability, submitContact } from '@/lib/api';
 import { payWithRazorpay } from '@/lib/razorpay';
 import { v, firstError, sanitize } from '@/lib/validators';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,6 +19,9 @@ const AddressPicker = dynamic(() => import('@/components/AddressPicker'), { ssr:
 
 type ModalType = 'location' | 'plan' | 'addons' | 'schedule';
 const TIMES = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
+// "Additional Plants Requiring Care" — flat ₹25 per plant. 100+ is a custom quote.
+const ADDITIONAL_PLANT_RATE = 25;
+const PLANT_OPTIONS = [5, 10, 25, 30, 40, 50, 60, 70, 80, 100];
 
 const IcArrow = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>;
 const IcChevronLeft = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>;
@@ -97,6 +100,11 @@ function BookFlow() {
   const [bookingMode, setBookingMode] = useState<'instant' | 'schedule'>('instant');
   const [instantInfo, setInstantInfo] = useState<{ available: boolean; eta_minutes: number; gardener_count?: number; reason?: string | null } | null>(null);
   const [checkingInstant, setCheckingInstant] = useState(false);
+  // "Additional Plants Requiring Care" — chip selection + 100+ custom-quote lead.
+  const [customQuote, setCustomQuote] = useState(false);
+  const [leadName, setLeadName] = useState('');
+  const [leadPhone, setLeadPhone] = useState('');
+  const [leadSubmitting, setLeadSubmitting] = useState(false);
 
   const { data: plansRaw } = useQuery({ queryKey: ['plans'], queryFn: getPlans });
   const { data: addonsRaw } = useQuery({ queryKey: ['addons'], queryFn: getAddons });
@@ -130,15 +138,32 @@ function BookFlow() {
     }));
   };
 
+  // 100+ plants → capture a lead (name + mobile) into the admin contacts inbox.
+  const submitCustomQuote = async () => {
+    if (!leadName.trim() || leadPhone.length !== 10) { toast.error('Enter your name and a valid 10-digit mobile number'); return; }
+    setLeadSubmitting(true);
+    try {
+      await submitContact({
+        name: leadName.trim(),
+        phone: leadPhone,
+        message: `Custom quote — 100+ plants${selectedPlan ? ` (interested in ${selectedPlan.name})` : ''}.${form.address ? ` Address: ${form.address}.` : ''}`,
+        geofence_id: zone?.id,
+      });
+      toast.success('Thanks! Our team will contact you with a custom quote.');
+      setLeadName(''); setLeadPhone('');
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not submit — please reach us on WhatsApp.');
+    } finally { setLeadSubmitting(false); }
+  };
+
   const total = (() => {
     const planBase = Number(selectedPlan?.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : (selectedPlan?.price || 0));
-    const zMin = zone?.min_plants ?? 5;
-    const extraPlants = (zone && form.plant_count > zMin) ? (form.plant_count - zMin) * Number(zone.price_per_plant || 0) : 0;
+    const plantCost = form.plant_count * ADDITIONAL_PLANT_RATE; // ₹25 per plant
     const addonsTotal = form.addons.reduce((sum, { addon_id }) => {
       const a = addons.find(x => x.id === addon_id);
       return sum + (Number(a?.price) || 0);
     }, 0);
-    return planBase + extraPlants + addonsTotal;
+    return planBase + plantCost + addonsTotal;
   })();
   const handleAddToCart = () => {
     if (!selectedPlan) return;
@@ -167,6 +192,11 @@ function BookFlow() {
   const isSubscriptionPlan = selectedPlan?.plan_type === 'subscription';
 
   const handleFinish = async () => {
+    if (customQuote) {
+      toast.error('For 100+ plants, please request a custom quote in the Additional Plants step.');
+      setActiveStep(2);
+      return;
+    }
     if (!isSubscriptionPlan && bookingMode === 'schedule' && !form.scheduled_date) {
       toast.error('Please select a preferred visit date'); return;
     }
@@ -299,11 +329,6 @@ function BookFlow() {
       setNoGardenersInZone(false);
     }
   }, [form.scheduled_date, zone]);
-
-  // Constraints for plant count
-  const minPlants = zone?.min_plants || 5;
-  const isOnDemand = selectedPlan?.name?.toLowerCase().includes('demand') || selectedPlan?.plan_type === 'on_demand';
-  const maxPlants = isOnDemand ? 1000 : (selectedPlan?.max_plants || 50);
 
   const bookFaqSchema = {
     '@context': 'https://schema.org',
@@ -523,20 +548,65 @@ function BookFlow() {
 
             {/* STEP 3: PLANT COUNT */}
             <div className={activeStep === 2 ? 'book-step-active' : 'book-step-inactive'} style={{ background: '#fff', borderRadius: 32, padding: activeStep === 2 ? '40px' : '0 40px', border: activeStep === 2 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 2 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 2 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 2 ? 'none' : 'auto' }}>
-              <StepHeader num={3} title="Number of Plants" active={activeStep === 2} done={activeStep > 2} onClick={() => setActiveStep(2)} locked={activeStep < 2} />
+              <StepHeader num={3} title="Additional Plants Requiring Care" active={activeStep === 2} done={activeStep > 2} onClick={() => setActiveStep(2)} locked={activeStep < 2} />
               <AnimatePresence>
                 {activeStep === 2 && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ paddingBottom: 40, borderTop: '1px solid var(--border-gold)', paddingTop: 32 }}>
-                    <div style={{ background: 'var(--bg-elevated)', border: '1.5px solid var(--border)', borderRadius: 24, padding: '24px 16px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Adjust based on your garden size</div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 32 }}>
-                        <button onClick={() => setForm(f => ({ ...f, plant_count: Math.max(minPlants, f.plant_count - 1) }))} style={{ width: 64, height: 64, borderRadius: '50%', border: 'none', background: '#fff', boxShadow: 'var(--sh-sm)', cursor: 'pointer', fontSize: '1.5rem', fontWeight: 900, flexShrink: 0 }}>−</button>
-                        <div style={{ fontSize: '3.5rem', fontWeight: 700, color: 'var(--forest)', fontFamily: 'var(--font-display)', minWidth: 100 }}>{form.plant_count}</div>
-                        <button onClick={() => setForm(f => ({ ...f, plant_count: Math.min(maxPlants, f.plant_count + 1) }))} style={{ width: 64, height: 64, borderRadius: '50%', border: 'none', background: 'var(--forest)', color: '#fff', boxShadow: 'var(--sh-sm)', cursor: 'pointer', fontSize: '1.5rem', fontWeight: 900, flexShrink: 0 }}>+</button>
-                      </div>
-                      <p style={{ marginTop: 20, color: 'var(--sage)', fontSize: '0.9rem', fontWeight: 600 }}>Min: {minPlants} · Max: {maxPlants} plants</p>
+                    <p style={{ color: 'var(--sage)', fontWeight: 600, fontSize: '0.9rem', marginBottom: 18 }}>
+                      Choose how many plants need care — ₹{ADDITIONAL_PLANT_RATE} per plant, added to your plan price.
+                    </p>
+
+                    {/* Selectable plant-count chips */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
+                      {PLANT_OPTIONS.map(n => {
+                        const sel = !customQuote && form.plant_count === n;
+                        return (
+                          <button key={n} onClick={() => { setCustomQuote(false); setForm(f => ({ ...f, plant_count: n })); }}
+                            style={{ flex: '1 0 92px', padding: '14px 12px', borderRadius: 16, border: `2px solid ${sel ? 'var(--forest)' : 'var(--border)'}`, background: sel ? 'var(--forest)' : '#fff', color: sel ? '#fff' : 'var(--forest)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
+                            <div style={{ fontWeight: 900, fontSize: '1.05rem' }}>{n}</div>
+                            <div style={{ fontSize: '0.7rem', fontWeight: 700, opacity: sel ? 0.92 : 0.6 }}>Plants · ₹{(n * ADDITIONAL_PLANT_RATE).toLocaleString('en-IN')}</div>
+                          </button>
+                        );
+                      })}
+                      <button onClick={() => setCustomQuote(true)}
+                        style={{ flex: '1 0 92px', padding: '14px 12px', borderRadius: 16, border: `2px solid ${customQuote ? 'var(--gold)' : 'var(--border)'}`, background: customQuote ? 'var(--gold)' : '#fff', color: 'var(--forest)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
+                        <div style={{ fontWeight: 900, fontSize: '1.05rem' }}>100+</div>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 700, opacity: 0.7 }}>Custom Quote</div>
+                      </button>
                     </div>
-                    <button onClick={() => setActiveStep(3)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, marginTop: 24, fontWeight: 500, fontSize: '0.85rem' }}>Next: Add-ons</button>
+
+                    {!customQuote ? (
+                      <>
+                        <div style={{ background: 'var(--bg-elevated)', borderRadius: 16, padding: '14px 18px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>{form.plant_count} plants × ₹{ADDITIONAL_PLANT_RATE}</span>
+                          <span style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '1.2rem' }}>+₹{(form.plant_count * ADDITIONAL_PLANT_RATE).toLocaleString('en-IN')}</span>
+                        </div>
+                        <button onClick={() => setActiveStep(3)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>Next: Add-ons</button>
+                      </>
+                    ) : (
+                      <div style={{ background: 'rgba(3,65,26,0.04)', border: '1.5px solid var(--border-gold)', borderRadius: 18, padding: 24 }}>
+                        <p style={{ color: 'var(--forest)', fontWeight: 700, marginBottom: 16, lineHeight: 1.6, fontSize: '0.95rem' }}>
+                          Please share your requirement. Our team will contact you with a custom quote.
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          <input value={leadName} onChange={e => setLeadName(e.target.value)} placeholder="Your name"
+                            style={{ padding: '12px 14px', borderRadius: 12, border: '1.5px solid var(--border)', fontSize: '0.9rem', fontWeight: 500, outline: 'none' }} />
+                          <input value={leadPhone} onChange={e => setLeadPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} inputMode="numeric" maxLength={10} placeholder="Mobile number"
+                            style={{ padding: '12px 14px', borderRadius: 12, border: '1.5px solid var(--border)', fontSize: '0.9rem', fontWeight: 500, outline: 'none' }} />
+                          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                            <button onClick={submitCustomQuote} disabled={leadSubmitting || !leadName.trim() || leadPhone.length !== 10}
+                              className="btn btn-primary" style={{ flex: '1 1 170px', justifyContent: 'center', padding: '12px', fontWeight: 700, fontSize: '0.85rem' }}>
+                              {leadSubmitting ? 'Submitting…' : 'Request Custom Quote'}
+                            </button>
+                            <a href={`https://wa.me/919876543210?text=${encodeURIComponent('Hi GharKaMali! I need a custom quote for 100+ plants.')}`} target="_blank" rel="noopener noreferrer"
+                              className="btn btn-forest" style={{ flex: '0 0 auto', justifyContent: 'center', padding: '12px 18px', gap: 8, display: 'inline-flex', alignItems: 'center' }}>
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.6.1-.2.3-.7.9-.8 1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.2.2-.4.1-.2 0-.3 0-.5 0-.1-.6-1.5-.8-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2 0 1.3.9 2.5 1.1 2.7.1.2 1.9 2.9 4.6 4 .6.3 1.1.4 1.5.5.6.2 1.2.2 1.6.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2-.1-.1-.2-.1-.4-.2z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.2-1.2l-.3-.2-3 .9.9-2.9-.2-.3A8 8 0 1 1 12 20z"/></svg>
+                              WhatsApp
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -719,8 +789,8 @@ function BookFlow() {
                           <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{selectedPlan?.name}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Plants</span>
-                          <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{form.plant_count} Units</span>
+                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Additional Plants</span>
+                          <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{form.plant_count} · +₹{(form.plant_count * ADDITIONAL_PLANT_RATE).toLocaleString('en-IN')}</span>
                         </div>
                         {!isSubscriptionPlan && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
