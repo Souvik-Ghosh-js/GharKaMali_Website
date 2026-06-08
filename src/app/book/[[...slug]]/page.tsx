@@ -86,7 +86,7 @@ function BookFlow() {
   const [addressMode, setAddressMode] = useState<'current' | 'other'>('current');
   const [form, setForm] = useState({
     address: '', lat: 0, lng: 0, plan_id: legacyPlanId,
-    plant_count: 5, scheduled_date: '', scheduled_time: '09:00',
+    plant_count: 0, scheduled_date: '', scheduled_time: '09:00',
     addons: [] as { addon_id: number; quantity: number }[],
     auto_renew: true, notes: '', preferred_gardener_id: 0
   });
@@ -539,6 +539,7 @@ function BookFlow() {
                             <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>/{p.plan_type === 'subscription' ? 'mo' : 'visit'}</span>
                           </div>
                           <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', lineHeight: 1.4 }}>{p.description || 'Professional botanical care.'}</div>
+                          {p.max_plants ? <div style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '0.72rem', fontWeight: 800, color: 'var(--forest)', background: 'rgba(3,65,26,0.07)', padding: '5px 11px', borderRadius: 99 }}>🌿 Includes up to {p.max_plants} plants</div> : null}
                         </div>
                       ))}
                     </div>
@@ -555,11 +556,18 @@ function BookFlow() {
                 {activeStep === 2 && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ paddingBottom: 40, borderTop: '1px solid var(--border-gold)', paddingTop: 32 }}>
                     <p style={{ color: 'var(--sage)', fontWeight: 600, fontSize: '0.9rem', marginBottom: 18 }}>
-                      Choose how many plants need care — ₹{ADDITIONAL_PLANT_RATE} per plant, added to your plan price.
+                      Your plan {selectedPlan?.max_plants ? `covers up to ${selectedPlan.max_plants} plants` : 'covers its included plants'}. Add extra only if you need more — ₹{ADDITIONAL_PLANT_RATE} per plant (optional).
                     </p>
 
                     {/* Selectable plant-count chips */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
+                      {(() => { const sel = !customQuote && form.plant_count === 0; return (
+                        <button onClick={() => { setCustomQuote(false); setForm(f => ({ ...f, plant_count: 0 })); }}
+                          style={{ flex: '1 0 92px', padding: '14px 12px', borderRadius: 16, border: `2px solid ${sel ? 'var(--forest)' : 'var(--border)'}`, background: sel ? 'var(--forest)' : '#fff', color: sel ? '#fff' : 'var(--forest)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
+                          <div style={{ fontWeight: 900, fontSize: '1.05rem' }}>None</div>
+                          <div style={{ fontSize: '0.7rem', fontWeight: 700, opacity: sel ? 0.92 : 0.6 }}>Plan only · ₹0</div>
+                        </button>
+                      ); })()}
                       {PLANT_OPTIONS.map(n => {
                         const sel = !customQuote && form.plant_count === n;
                         return (
@@ -580,10 +588,10 @@ function BookFlow() {
                     {!customQuote ? (
                       <>
                         <div style={{ background: 'var(--bg-elevated)', borderRadius: 16, padding: '14px 18px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>{form.plant_count} plants × ₹{ADDITIONAL_PLANT_RATE}</span>
+                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>{form.plant_count === 0 ? 'No additional plants (plan only)' : `${form.plant_count} plants × ₹${ADDITIONAL_PLANT_RATE}`}</span>
                           <span style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '1.2rem' }}>+₹{(form.plant_count * ADDITIONAL_PLANT_RATE).toLocaleString('en-IN')}</span>
                         </div>
-                        <button onClick={() => setActiveStep(3)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>Next: Add-ons</button>
+                        <button onClick={() => setActiveStep(isSubscriptionPlan ? 5 : 4)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>{isSubscriptionPlan ? 'Next: Review' : 'Next: Schedule'}</button>
                       </>
                     ) : (
                       <div style={{ background: 'rgba(3,65,26,0.04)', border: '1.5px solid var(--border-gold)', borderRadius: 18, padding: 24 }}>
@@ -614,7 +622,8 @@ function BookFlow() {
               </AnimatePresence>
             </div>
 
-            {/* STEP 4: ADD-ONS */}
+            {/* STEP 4: ADD-ONS — hidden for now (set the guard back to true to re-enable) */}
+            {false && (
             <div className={activeStep === 3 ? 'book-step-active' : 'book-step-inactive'} style={{ background: '#fff', borderRadius: 32, padding: activeStep === 3 ? '40px' : '0 40px', border: activeStep === 3 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 3 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 3 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 3 ? 'none' : 'auto' }}>
               <StepHeader num={4} title="Enhance Your Visit (Add-ons)" active={activeStep === 3} done={activeStep > 3} onClick={() => setActiveStep(3)} locked={activeStep < 3} />
               <AnimatePresence>
@@ -637,11 +646,12 @@ function BookFlow() {
                 )}
               </AnimatePresence>
             </div>
+            )}
 
             {/* STEP 5: SCHEDULE (On-Demand only) */}
             {!isSubscriptionPlan && (
             <div className={activeStep === 4 ? 'book-step-active' : 'book-step-inactive'} style={{ background: '#fff', borderRadius: 32, padding: activeStep === 4 ? '40px' : '0 40px', border: activeStep === 4 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 4 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 4 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 4 ? 'none' : 'auto' }}>
-              <StepHeader num={5} title="Pick Your Preferred Slot" active={activeStep === 4} done={activeStep > 4} onClick={() => setActiveStep(4)} locked={activeStep < 4} />
+              <StepHeader num={4} title="Pick Your Preferred Slot" active={activeStep === 4} done={activeStep > 4} onClick={() => setActiveStep(4)} locked={activeStep < 4} />
               <AnimatePresence>
                 {activeStep === 4 && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ paddingBottom: 40, borderTop: '1px solid var(--border-gold)', paddingTop: 32 }}>
@@ -780,7 +790,7 @@ function BookFlow() {
 
             {/* STEP 6: SUMMARY & PAYMENT */}
             <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 5 ? '40px' : '0 40px', border: activeStep === 5 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 5 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 5 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 5 ? 'none' : 'auto' }}>
-              <StepHeader num={6} title="Final Review" active={activeStep === 5} done={false} onClick={() => setActiveStep(5)} locked={activeStep < 5} />
+              <StepHeader num={isSubscriptionPlan ? 4 : 5} title="Final Review" active={activeStep === 5} done={false} onClick={() => setActiveStep(5)} locked={activeStep < 5} />
               <AnimatePresence>
                 {activeStep === 5 && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ paddingBottom: 40, borderTop: '1px solid var(--border-gold)', paddingTop: 32 }}>
@@ -792,7 +802,7 @@ function BookFlow() {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Additional Plants</span>
-                          <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{form.plant_count} · +₹{(form.plant_count * ADDITIONAL_PLANT_RATE).toLocaleString('en-IN')}</span>
+                          <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{form.plant_count === 0 ? 'None (plan only)' : `${form.plant_count} × ₹${ADDITIONAL_PLANT_RATE} = +₹${(form.plant_count * ADDITIONAL_PLANT_RATE).toLocaleString('en-IN')}`}</span>
                         </div>
                         {!isSubscriptionPlan && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
