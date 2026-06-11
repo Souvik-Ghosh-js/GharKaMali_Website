@@ -10,8 +10,9 @@ import { getShopCategories, getShopProductsPaged } from "@/lib/api";
 import { slugify } from "@/lib/slug";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 
-const IcSearch = () => (
+const IcSearch = ({ className = "" }) => (
   <svg
+   className={className}
     width="17"
     height="17"
     viewBox="0 0 24 24"
@@ -58,6 +59,7 @@ const IcStar = () => (
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
   </svg>
 );
+
 const IcLeaf = () => (
   <svg
     width="20"
@@ -742,6 +744,7 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
             <div
               style={{
                 display: "flex",
+
                 gap: 10,
                 flex: "1 1 100%",
                 alignItems: "center",
@@ -762,16 +765,17 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
                     pointerEvents: "none",
                   }}
                 >
-                  <IcSearch />
+                  <IcSearch className="hidden md:block" />
                 </div>
                 <input
                   type="text"
                   placeholder="Search products..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
+                  className="search-input"
                   style={{
                     width: "100%",
-                    padding: `12px ${search ? "40px" : "16px"} 12px 42px`,
+                    padding: `12px ${search ? "70px" : "16px"} 12px 42px`,
                     background: "#fff",
                     border: `1.5px solid ${search ? "var(--forest)" : "var(--border)"}`,
                     borderRadius: 16,
@@ -870,6 +874,7 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
                 const isActive = cat === name;
                 return (
                   <button
+                    className="cat-pill-btn"
                     key={name}
                     onClick={() =>
                       router.push(name === "All" ? "/shop" : `/shop/c/${slug}`)
@@ -1033,6 +1038,7 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
                     >
                       {/* Image Area */}
                       <div
+                        className="product-img-area"
                         style={{
                           width: "100%",
                           height: 200,
@@ -1523,8 +1529,15 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
             gap: 16px !important;
           }
           .search-sort-row {
-            gap: 8px !important;
+            gap: 6px !important;
           }
+
+          .search-input {
+          font-size: 0.8rem !important;
+          padding: 10px 12px 10px 36px !important;
+          border-radius: 11px !important;
+        }
+         
           .search-sort-row > div:first-child input {
             font-size: 0.82rem !important;
           }
@@ -1538,6 +1551,9 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
           }
           .product-grid .product-tile {
             border-radius: 18px !important;
+          }
+          .product-img-area {
+            height: 70px !important;
           }
           .product-grid .product-tile Link > div:nth-child(2) {
             padding: 12px 12px 0 !important;
@@ -1572,6 +1588,21 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
           .container {
             padding-left: 12px !important;
             padding-right: 12px !important;
+          }
+          .cat-pills-container {
+            padding-top: 8px !important;
+            padding-bottom: 9px !important;
+          }
+
+          .cat-pill-btn {
+            padding: 12px 12px !important;
+            font-size: 0.72rem !important;
+            gap: 5px !important;
+          }
+
+          .cat-pill-btn svg {
+            width: 11px !important;
+            height: 11px !important;
           }
           .product-tile Link > div:first-child {
             height: 160px !important;
