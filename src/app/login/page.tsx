@@ -3,23 +3,31 @@ import { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { verifyOtp } from '@/lib/api';
+import { sendOtp, verifyOtp } from '@/lib/api';
 import { useAuth } from '@/store/auth';
 
-// OTP is temporarily disabled for launch — customers log in with just their phone
-// number. 123456 is used as the OTP internally (the backend accepts it). The full
-// OTP flow (phone → OTP → name) lives in git history; restore it to re-enable.
+// Two-step phone OTP login: phone → send OTP (MSG91) → enter 6-digit code → verify.
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const redirect = params.get('redirect') ?? '/dashboard';
   const { login, isAuthenticated, isLoading } = useAuth();
 
+  const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { if (!isLoading && isAuthenticated) router.replace(redirect); }, [isAuthenticated, isLoading]);
+
+  // Resend cooldown countdown.
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setInterval(() => setResendIn(s => s - 1), 1000);
+    return () => clearInterval(t);
+  }, [resendIn]);
 
   const getLocation = () => new Promise<{ lat: number; lng: number }>((resolve, reject) => {
     if (!navigator.geolocation) return reject(new Error('Geolocation not supported'));
@@ -30,19 +38,39 @@ function LoginForm() {
     );
   });
 
-  const handleLogin = async () => {
+  // Step 1 — send the OTP to the entered phone number.
+  const handleSendOtp = async () => {
     const c = phone.replace(/\D/g, '');
     if (c.length !== 10) { toast.error('Enter a valid 10-digit number'); return; }
+    setLoading(true);
+    try {
+      await sendOtp(c);
+      setStep('otp');
+      setResendIn(30);
+      toast.success('OTP sent to your phone');
+      setTimeout(() => inputRef.current?.focus(), 100);
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not send OTP. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 2 — verify the entered OTP and log in.
+  const handleVerifyOtp = async () => {
+    const c = phone.replace(/\D/g, '');
+    const code = otp.replace(/\D/g, '');
+    if (code.length < 4) { toast.error('Enter the OTP you received'); return; }
     setLoading(true);
     let location: { lat: number; lng: number } | null = null;
     try { location = await getLocation(); } catch { /* location optional */ }
     try {
-      const res: any = await verifyOtp(c, '123456', undefined, location?.lat, location?.lng);
+      const res: any = await verifyOtp(c, code, undefined, location?.lat, location?.lng);
       login(res.user, res.token);
       toast.success('Welcome to GharKaMali!');
       router.replace(redirect);
     } catch (e: any) {
-      toast.error(e?.message || 'Login failed. Please try again.');
+      toast.error(e?.message || 'Invalid OTP. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -63,25 +91,53 @@ function LoginForm() {
 
         {/* Card */}
         <div style={{ background: 'var(--bg-card)', borderRadius: 28, padding: 'clamp(28px,5vw,40px)', boxShadow: 'var(--sh-xl)' }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem', marginBottom: 6, letterSpacing: '-0.02em' }}>Sign In</h1>
-          <p style={{ color: 'var(--text-muted)', marginBottom: 28, fontSize: '0.9rem' }}>Enter your phone number to continue</p>
-          <div className="form-group">
-            <label className="form-label">Phone Number</label>
-            <div style={{ display: 'flex', border: '1.5px solid var(--border-mid)', borderRadius: 'var(--r)', overflow: 'hidden', background: 'var(--bg)', transition: 'all 0.2s' }}
-              onFocusCapture={e => { (e.currentTarget as any).style.borderColor = 'var(--forest)'; (e.currentTarget as any).style.boxShadow = '0 0 0 4px rgba(11,61,46,0.10)'; }}
-              onBlurCapture={e => { (e.currentTarget as any).style.borderColor = 'var(--border-mid)'; (e.currentTarget as any).style.boxShadow = 'none'; }}>
-              <div style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-2)', borderRight: '1.5px solid var(--border-mid)', background: 'var(--cream)', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>🇮🇳 +91</div>
-              <input ref={inputRef} type="tel" inputMode="numeric" maxLength={10} value={phone}
-                onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
-                onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                placeholder="98765 43210" autoFocus
-                style={{ flex: 1, padding: '12px 14px', border: 'none', background: 'transparent', outline: 'none', fontFamily: 'var(--font-body)', fontSize: '1rem', letterSpacing: '0.05em', color: 'var(--text)' }} />
-            </div>
-          </div>
-          <button onClick={handleLogin} disabled={loading || phone.replace(/\D/g, '').length !== 10}
-            className="btn btn-forest w-full" style={{ justifyContent: 'center', padding: '14px' }}>
-            {loading ? <div className="btn-spinner" style={{ borderTopColor: '#fff' }} /> : 'Continue →'}
-          </button>
+          {step === 'phone' ? (
+            <>
+              <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem', marginBottom: 6, letterSpacing: '-0.02em' }}>Sign In</h1>
+              <p style={{ color: 'var(--text-muted)', marginBottom: 28, fontSize: '0.9rem' }}>Enter your phone number to continue</p>
+              <div className="form-group">
+                <label className="form-label">Phone Number</label>
+                <div style={{ display: 'flex', border: '1.5px solid var(--border-mid)', borderRadius: 'var(--r)', overflow: 'hidden', background: 'var(--bg)', transition: 'all 0.2s' }}
+                  onFocusCapture={e => { (e.currentTarget as any).style.borderColor = 'var(--forest)'; (e.currentTarget as any).style.boxShadow = '0 0 0 4px rgba(11,61,46,0.10)'; }}
+                  onBlurCapture={e => { (e.currentTarget as any).style.borderColor = 'var(--border-mid)'; (e.currentTarget as any).style.boxShadow = 'none'; }}>
+                  <div style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-2)', borderRight: '1.5px solid var(--border-mid)', background: 'var(--cream)', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>🇮🇳 +91</div>
+                  <input ref={inputRef} type="tel" inputMode="numeric" maxLength={10} value={phone}
+                    onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
+                    onKeyDown={e => e.key === 'Enter' && handleSendOtp()}
+                    placeholder="98765 43210" autoFocus
+                    style={{ flex: 1, padding: '12px 14px', border: 'none', background: 'transparent', outline: 'none', fontFamily: 'var(--font-body)', fontSize: '1rem', letterSpacing: '0.05em', color: 'var(--text)' }} />
+                </div>
+              </div>
+              <button onClick={handleSendOtp} disabled={loading || phone.replace(/\D/g, '').length !== 10}
+                className="btn btn-forest w-full" style={{ justifyContent: 'center', padding: '14px' }}>
+                {loading ? <div className="btn-spinner" style={{ borderTopColor: '#fff' }} /> : 'Send OTP →'}
+              </button>
+            </>
+          ) : (
+            <>
+              <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem', marginBottom: 6, letterSpacing: '-0.02em' }}>Verify OTP</h1>
+              <p style={{ color: 'var(--text-muted)', marginBottom: 28, fontSize: '0.9rem' }}>
+                Enter the code sent to <strong style={{ color: 'var(--text)' }}>+91 {phone}</strong>{' '}
+                <button onClick={() => { setStep('phone'); setOtp(''); }} style={{ background: 'none', border: 'none', color: 'var(--forest)', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', padding: 0 }}>Change</button>
+              </p>
+              <div className="form-group">
+                <label className="form-label">OTP</label>
+                <input ref={inputRef} type="tel" inputMode="numeric" maxLength={6} value={otp}
+                  onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+                  onKeyDown={e => e.key === 'Enter' && handleVerifyOtp()}
+                  placeholder="••••••" autoFocus
+                  style={{ width: '100%', padding: '14px', border: '1.5px solid var(--border-mid)', borderRadius: 'var(--r)', background: 'var(--bg)', outline: 'none', fontFamily: 'var(--font-body)', fontSize: '1.4rem', letterSpacing: '0.5em', textAlign: 'center', color: 'var(--text)', fontWeight: 700 }} />
+              </div>
+              <button onClick={handleVerifyOtp} disabled={loading || otp.replace(/\D/g, '').length < 4}
+                className="btn btn-forest w-full" style={{ justifyContent: 'center', padding: '14px' }}>
+                {loading ? <div className="btn-spinner" style={{ borderTopColor: '#fff' }} /> : 'Verify & Continue →'}
+              </button>
+              <button onClick={handleSendOtp} disabled={loading || resendIn > 0}
+                style={{ background: 'none', border: 'none', color: resendIn > 0 ? 'var(--text-faint)' : 'var(--forest)', fontWeight: 600, cursor: resendIn > 0 ? 'default' : 'pointer', fontSize: '0.85rem', marginTop: 14, width: '100%', textAlign: 'center' }}>
+                {resendIn > 0 ? `Resend OTP in ${resendIn}s` : 'Resend OTP'}
+              </button>
+            </>
+          )}
           <p style={{ textAlign: 'center', marginTop: 16, fontSize: '0.78rem', color: 'var(--text-faint)' }}>
             By continuing you agree to our <Link href="/terms" style={{ color: 'var(--forest)', fontWeight: 600 }}>Terms</Link> &amp; <Link href="/privacy" style={{ color: 'var(--forest)', fontWeight: 600 }}>Privacy</Link>
           </p>
