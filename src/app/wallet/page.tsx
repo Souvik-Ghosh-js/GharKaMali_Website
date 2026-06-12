@@ -124,6 +124,11 @@ export default function WalletPage() {
                   transactions.map((tx: any, i: number) => {
                     const isCredit = tx.type === 'credit' || tx.amount > 0;
                     const txLabel = tx.description ?? (tx.type === 'topup' ? 'Wallet Top-Up' : tx.type === 'booking' ? 'Booking Payment' : 'Transaction');
+                    // Date can arrive under different keys depending on the source row.
+                    const txDate = tx.created_at ?? tx.createdAt ?? tx.updated_at ?? tx.date ?? null;
+                    const txDateText = txDate
+                      ? new Date(txDate).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })
+                      : '—';
                     return (
                       <div key={tx.id ?? i} style={{ padding: '20px 24px', borderBottom: i < transactions.length - 1 ? '1px solid var(--border)' : 'none', display: 'flex', alignItems: 'center', gap: 16, animation: `fade-up 0.4s var(--ease) ${i * 30}ms both`, transition: 'background 0.2s var(--ease)' }}
                         onMouseEnter={e => { e.currentTarget.style.background = '#f9f9f9'; }}
@@ -135,7 +140,7 @@ export default function WalletPage() {
                           <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: 6, color: 'var(--forest)' }}>{txLabel}</div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: 'var(--earth)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
                             <IcClock />
-                            {tx.created_at && new Date(tx.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
+                            {txDateText}
                           </div>
                         </div>
                         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.2rem', color: isCredit ? '#16A34A' : 'var(--forest)', flexShrink: 0 }}>
