@@ -17,6 +17,27 @@ const IcShield = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="non
 const IcChevronLeft = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>;
 const IcChevronRight = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
 
+// The admin's `description` free-text often hard-codes a "N visits/month" / "up to
+// N plants" that drifts from the structured fields. Strip those phrases so the
+// description is just the blurb; the real counts come from visits_per_month /
+// max_plants (the source of truth) and are shown separately.
+const cleanPlanDescription = (desc?: string) =>
+  (desc || '')
+    .replace(/[—-]?\s*\d+\s*visits?\s*\/?\s*month/gi, '')
+    .replace(/\.?\s*(up to|upto)\s*\d+\s*plants?\.?/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([.,—-])/g, '$1')
+    .replace(/[—-]\s*$/, '')
+    .trim();
+
+// "3 visits/month · up to 40 plants" built from the real structured fields.
+const planCoverageText = (plan: any) => {
+  const parts: string[] = [];
+  if (plan?.visits_per_month) parts.push(`${plan.visits_per_month} visit${plan.visits_per_month > 1 ? 's' : ''}/month`);
+  if (plan?.max_plants) parts.push(`up to ${plan.max_plants} plants`);
+  return parts.join(' · ');
+};
+
 const COMPARE_FEATURES = [
   { label: 'Certified & verified plant expert', basic: true, standard: true, premium: true },
   { label: 'Before & after photo proof', basic: true, standard: true, premium: true },
@@ -81,7 +102,10 @@ function PlanCarousel({ items }: { items: any[] }) {
                 {isDark && <div style={{ position: 'absolute', top: 14, right: 20, background: 'var(--gold)', color: 'var(--forest)', padding: '4px 14px', borderRadius: 99, fontSize: '0.62rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em' }}>FEATURED</div>}
                 <div style={{ fontSize: '0.68rem', fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: 10 }}>{plan.plan_type}</div>
                 <h3 style={{ fontSize: '1.8rem', fontWeight: 700, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 10, letterSpacing: '-0.02em' }}>{plan.name}</h3>
-                <p style={{ color: isDark ? 'rgba(255,255,255,0.65)' : 'var(--text-2)', fontSize: '0.9rem', marginBottom: 24, lineHeight: 1.7 }}>{plan.description || 'Professional botanical care for your space.'}</p>
+                <p style={{ color: isDark ? 'rgba(255,255,255,0.65)' : 'var(--text-2)', fontSize: '0.9rem', marginBottom: planCoverageText(plan) ? 12 : 24, lineHeight: 1.7 }}>{cleanPlanDescription(plan.description) || 'Professional botanical care for your space.'}</p>
+                {plan.plan_type === 'subscription' && planCoverageText(plan) && (
+                  <div style={{ fontSize: '0.82rem', fontWeight: 800, color: isDark ? 'var(--gold)' : 'var(--forest)', marginBottom: 24 }}>🌿 {planCoverageText(plan)}</div>
+                )}
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 28 }}>
                   <span style={{ fontSize: '2.6rem', fontWeight: 700, color: isDark ? 'var(--gold)' : 'var(--forest)', lineHeight: 0.9 }}>
                     ₹{plan.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : plan.price}
@@ -181,7 +205,10 @@ function PlanCarousel({ items }: { items: any[] }) {
                   )}
                   <div style={{ fontSize: '0.75rem', fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.6)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.18em', marginBottom: 14 }}>{plan.plan_type}</div>
                   <h3 style={{ fontSize: '2.2rem', fontWeight: 700, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 16, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{plan.name}</h3>
-                  <p style={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'var(--text-2)', fontSize: '1rem', marginBottom: 40, lineHeight: 1.7, flexShrink: 0 }}>{plan.description || 'Premium botanical luxury for your flourishing space.'}</p>
+                  <p style={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'var(--text-2)', fontSize: '1rem', marginBottom: planCoverageText(plan) ? 14 : 40, lineHeight: 1.7, flexShrink: 0 }}>{cleanPlanDescription(plan.description) || 'Premium botanical luxury for your flourishing space.'}</p>
+                  {plan.plan_type === 'subscription' && planCoverageText(plan) && (
+                    <div style={{ fontSize: '0.9rem', fontWeight: 800, color: isDark ? 'var(--gold)' : 'var(--forest)', marginBottom: 40 }}>🌿 {planCoverageText(plan)}</div>
+                  )}
                   <div style={{ marginBottom: 28 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                       <span style={{ fontSize: '3.4rem', fontWeight: 700, color: isDark ? 'var(--gold)' : 'var(--forest)', fontFamily: 'var(--font-display)', lineHeight: 0.9 }}>
