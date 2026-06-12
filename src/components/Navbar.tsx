@@ -559,7 +559,7 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
           </div>
 
           {/* Download + WhatsApp row */}
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingTop: 20, borderTop: '1px solid rgba(3,65,26,0.08)', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingTop: 20, paddingBottom: 20, borderTop: '1px solid rgba(3,65,26,0.08)', alignItems: 'center' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginRight: 5 }}>Apps:</span>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'var(--forest)', color: '#fff', borderRadius: 10, fontSize: '0.68rem', fontWeight: 700, textDecoration: 'none' }}><Ic.Apple /> iOS</a>
