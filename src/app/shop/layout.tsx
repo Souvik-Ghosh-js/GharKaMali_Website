@@ -1,4 +1,5 @@
 ﻿import type { Metadata } from 'next';
+import ShopDisabledGuard from './ShopDisabledGuard';
 
 export const metadata: Metadata = {
   title: 'Plant Store — Buy Plants, Pots & Garden Products Online | GharKaMali',
@@ -31,5 +32,5 @@ export const metadata: Metadata = {
 };
 
 export default function ShopLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <ShopDisabledGuard>{children}</ShopDisabledGuard>;
 }

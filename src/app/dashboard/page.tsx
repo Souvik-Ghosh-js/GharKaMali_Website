@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/store/auth';
 import { getProfile, getMyBookings, getMySubscriptions, getMyOrders } from '@/lib/api';
+import { SHOP_ENABLED } from '@/lib/features';
 
 /* ─── Icons ──────────────────────────────────────────────────────────────────── */
 const IcCal   = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>;
@@ -72,7 +73,7 @@ export default function DashboardPage() {
                 <div className="dash-stat-row" style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
                   {[
                     { label:'Active Plans',   value:subs.filter((s:any)=>s.status==='active').length, href:'/subscriptions' },
-                    { label:'Shop Orders',    value:orders.length,                                    href:'/shop/orders' },
+                    ...(SHOP_ENABLED ? [{ label:'Shop Orders', value:orders.length, href:'/shop/orders' }] : []),
                     { label:'Total Bookings', value:totalBookings,                                    href:'/bookings' },
                   ].map(stat => (
                     <Link key={stat.label} href={stat.href} className="dash-stat-card" style={{ background:'#fff', border:'1px solid var(--border-mid)', borderRadius:16, padding:'16px 24px', boxShadow: 'var(--sh-xs)', textDecoration:'none', color:'inherit', display:'block', cursor:'pointer' }}>
@@ -95,9 +96,9 @@ export default function DashboardPage() {
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16, marginBottom:32 }} className="quick-grid">
             {[
               { href:'/book', label:'Book Visit', Icon:IcCal, bg:'#fff', color:'var(--forest)' },
-              { href:'/shop/orders',         label:'My Orders',  Icon:IcShop, bg:'#fff', color:'var(--forest)' },
+              ...(SHOP_ENABLED ? [{ href:'/shop/orders', label:'My Orders', Icon:IcShop, bg:'#fff', color:'var(--forest)' }] : []),
               { href:'/plantopedia',        label:'AI Vision',  Icon:IcBrain, bg:'var(--forest)', color:'#fff' },
-              { href:'/shop',               label:'Marketplace',Icon:IcShop, bg:'#fff', color:'var(--forest)' },
+              ...(SHOP_ENABLED ? [{ href:'/shop', label:'Marketplace', Icon:IcShop, bg:'#fff', color:'var(--forest)' }] : []),
             ].map(({ href, label, Icon, bg, color }) => (
               <Link key={href} href={href}
                 className="card"
@@ -155,7 +156,8 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Shop Orders */}
+              {/* Shop Orders (hidden while store disabled) */}
+              {SHOP_ENABLED && (
               <div>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
                   <h2 style={{ fontFamily:'var(--font-display)', fontWeight:800, fontSize:'1.4rem', color: 'var(--forest)', margin:0 }}>Marketplace Orders</h2>
@@ -193,6 +195,7 @@ export default function DashboardPage() {
                   ))}
                 </div>
               </div>
+              )}
 
             </div>
 
@@ -229,7 +232,8 @@ export default function DashboardPage() {
                 <span style={{ color:'var(--forest)', display:'flex' }}><IcArrow /></span>
               </Link>
 
-              {/* Shop promo */}
+              {/* Shop promo (hidden while store disabled) */}
+              {SHOP_ENABLED && (
               <Link href="/shop" className="card" style={{ textDecoration:'none', borderRadius:28, padding:'24px', display:'flex', gap:20, alignItems:'center', border: '1px solid var(--border)' }}>
                 <div style={{ width:60, height:60, borderRadius:16, background:'var(--bg)', border: '1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:'var(--forest)' }}><IcShop /></div>
                 <div style={{ flex:1 }}>
@@ -238,6 +242,7 @@ export default function DashboardPage() {
                 </div>
                 <span style={{ color:'var(--forest)', display:'flex' }}><IcArrow /></span>
               </Link>
+              )}
             </div>
           </div>
         </div>

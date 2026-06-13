@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { SHOP_ENABLED } from '@/lib/features';
 
 // Plantopedia (AI plant identification) is temporarily disabled while we polish it.
 // The full implementation lives in git history — restore that file to re-enable.
@@ -41,9 +42,11 @@ export default function PlantopediaPage() {
               <Link href="/book" className="btn btn-primary" style={{ padding: '14px 28px', borderRadius: 14, fontWeight: 800 }}>
                 Book a gardener visit →
               </Link>
+              {SHOP_ENABLED && (
               <Link href="/shop" className="btn btn-forest" style={{ padding: '14px 28px', borderRadius: 14, fontWeight: 800 }}>
                 Browse the plant store
               </Link>
+              )}
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
 import { useQuery } from '@tanstack/react-query';
 import { getNotifications, getShopProducts } from '@/lib/api';
+import { SHOP_ENABLED } from '@/lib/features';
 
 const Ic = {
   Menu: () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="4" y1="7" x2="20" y2="7" /><line x1="8" y1="12" x2="20" y2="12" /><line x1="4" y1="17" x2="20" y2="17" /></svg>,
@@ -34,7 +35,8 @@ const NAV_ITEMS = [
   { href: '/', label: 'Home', Icon: Ic.Home, color: '#16a34a' },
   { href: '/plans', label: 'Plans', Icon: Ic.Plans, color: '#0ea5e9' },
   { href: '/book', label: 'Book Visit', Icon: Ic.Cal, color: '#f59e0b' },
-  { href: '/shop', label: 'Plant Store', Icon: Ic.Shop, color: '#8b5cf6' },
+  // Plant Store disabled for now (see SHOP_ENABLED in lib/features).
+  ...(SHOP_ENABLED ? [{ href: '/shop', label: 'Plant Store', Icon: Ic.Shop, color: '#8b5cf6' }] : []),
   { href: '/plantopedia', label: 'AI Care', Icon: Ic.Leaf, color: '#10b981' },
   { href: '/about', label: 'About Us', Icon: Ic.Help, color: '#06b6d4' },
 ];
@@ -44,7 +46,7 @@ const ACCOUNT_ITEMS = [
   { href: '/bookings', label: 'My Bookings', Icon: Ic.Cal },
   { href: '/subscriptions', label: 'My Plans', Icon: Ic.Bookmark },
   { href: '/wallet', label: 'Wallet', Icon: Ic.Wallet },
-  { href: '/shop/orders', label: 'Shop Orders', Icon: Ic.Package },
+  ...(SHOP_ENABLED ? [{ href: '/shop/orders', label: 'Shop Orders', Icon: Ic.Package }] : []),
   { href: '/notifications', label: 'Notifications', Icon: Ic.Bell },
   { href: '/profile', label: 'Profile & Addresses', Icon: Ic.Map },
   { href: '/complaints', label: 'Support & Help', Icon: Ic.Help },
@@ -336,7 +338,7 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
                 <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', background: isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.07)', color: isLight ? '#fff' : 'var(--forest)', borderRadius: 9, fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', border: `1px solid ${isLight ? 'rgba(255,255,255,0.3)' : 'var(--border)'}`, whiteSpace: 'nowrap', backdropFilter: isLight ? 'blur(8px)' : 'none', textShadow: isLight ? '0 1px 4px rgba(0,0,0,0.5)' : 'none' }}><Ic.Android /> Play Store</a>
               </div>
             )}
-            {!hubOpen && (
+            {!hubOpen && SHOP_ENABLED && (
               <button onClick={openCart} aria-label="Cart" style={{ position: 'relative', width: 40, height: 40, borderRadius: 11, background: isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)', color: isLight ? '#fff' : 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${isLight ? 'rgba(255,255,255,0.2)' : 'transparent'}`, cursor: 'pointer', flexShrink: 0, backdropFilter: isLight ? 'blur(8px)' : 'none' }}>
                 <Ic.Cart />
                 {cartCount > 0 && <span style={{ position: 'absolute', top: -4, right: -4, background: 'var(--earth)', color: '#fff', width: 17, height: 17, borderRadius: '50%', fontSize: '0.62rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.3)' }}>{cartCount}</span>}

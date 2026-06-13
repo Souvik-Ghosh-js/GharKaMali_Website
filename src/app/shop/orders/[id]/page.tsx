@@ -56,7 +56,7 @@ function downloadBill(order: any) {
   <body>
   <div class="header">
     <div><div class="logo">🌿 GharKaMali</div><div class="tag">Professional Plant Care Services</div>
-    <div style="margin-top:8px;font-size:11px;color:#6b8f71">GSTIN: 09AAAAA0000A1Z5 (Dummy)<br>CIN: U01500UP2024PTC000001<br>Noida, Uttar Pradesh — 201301</div></div>
+    <div style="margin-top:8px;font-size:11px;color:#6b8f71">GSTIN: 09AAQCP7633P1ZD<br>Noida, Uttar Pradesh — 201301</div></div>
     <div class="inv-title"><h2>TAX INVOICE</h2><p>#${order.order_number}</p>
     <p style="margin-top:8px">${new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</p>
     <div class="badge" style="margin-top:8px">${order.payment_status?.toUpperCase() || 'PAID'}</div></div>
@@ -76,7 +76,7 @@ function downloadBill(order: any) {
   </tbody>
   <tfoot><tr class="total-row"><td colspan="3">Total Amount</td><td>₹${Number(order.total_amount).toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr></tfoot></table>
   ${order.apply_gst && gstAmt > 0 ? `<div class="note">💡 <strong>GST Note:</strong> ${isUP ? `SGST @ ${gstRate/2}% + CGST @ ${gstRate/2}% applied (intra-state — Uttar Pradesh).` : `IGST @ ${gstRate}% applied (inter-state supply).`} Subject to reverse charge: No. This is a computer-generated invoice and does not require a physical signature.</div>` : ''}
-  <div class="footer">GharKaMali · hello@gharkamali.com · +91-9999999999 · gharkamali.com<br>Thank you for your order! 🌿</div>
+  <div class="footer">GharKaMali · info@gharkamali.com · +91-9999999999 · gharkamali.com<br>Thank you for your order! 🌿</div>
   </body></html>`;
 
   const win = window.open('', '_blank');

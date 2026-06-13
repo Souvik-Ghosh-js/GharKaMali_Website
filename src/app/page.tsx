@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import PageLoader from '@/components/PageLoader';
 import { getPlans, getBlogs, getTaglines, getShopProducts, getPublicReviews } from '@/lib/api';
 import { planSlug } from '@/lib/slug';
+import { SHOP_ENABLED } from '@/lib/features';
 import dynamic from 'next/dynamic';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 const ValleyScene = dynamic(() => import('@/components/ValleyScene'), { ssr: false });
@@ -1288,8 +1289,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══ SHOP PREVIEW ═══ */}
-      {shopProducts?.length > 0 && (
+      {/* ═══ SHOP PREVIEW ═══ (disabled while SHOP_ENABLED is false) */}
+      {SHOP_ENABLED && shopProducts?.length > 0 && (
         <section className="section marketplace-section s-reveal" style={{ background: 'var(--bg)' }}>
           <div className="container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 32, flexWrap: 'wrap', gap: 20 }}>

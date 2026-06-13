@@ -106,7 +106,7 @@ function downloadBookingBill(booking: any) {
   <body>
   <div class="header">
     <div><div class="logo">🌿 GharKaMali</div><div class="tag">Professional Plant Care Services</div>
-    <div style="margin-top:8px;font-size:11px;color:#6b8f71">GSTIN: 09AAAAA0000A1Z5 (Dummy)<br>Noida, Uttar Pradesh — 201301</div></div>
+    <div style="margin-top:8px;font-size:11px;color:#6b8f71">GSTIN: 09AAQCP7633P1ZD<br>Noida, Uttar Pradesh — 201301</div></div>
     <div class="inv-title"><h2>TAX INVOICE</h2><p>#${booking.booking_number}</p>
     <p style="margin-top:8px">${new Date(booking.created_at || Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Kolkata'})}</p>
     <div class="badge" style="margin-top:8px">${(booking.payment_status || 'PAID').toUpperCase()}</div></div>
@@ -124,7 +124,7 @@ function downloadBookingBill(booking: any) {
   </tbody>
   <tfoot><tr class="total-row"><td>Total Amount</td><td>₹${total.toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr></tfoot></table>
   <div class="note">💡 <strong>GST Note:</strong> ${isUP ? 'SGST @ 9% + CGST @ 9% applied (intra-state — Uttar Pradesh).' : 'IGST @ 18% applied (inter-state supply).'} This is a computer-generated invoice and does not require a physical signature.</div>
-  <div class="footer">GharKaMali · hello@gharkamali.com · gharkamali.com<br>Thank you for choosing GharKaMali! 🌿</div>
+  <div class="footer">GharKaMali · info@gharkamali.com · gharkamali.com<br>Thank you for choosing GharKaMali! 🌿</div>
   </body></html>`;
 
   const win = window.open('', '_blank');
