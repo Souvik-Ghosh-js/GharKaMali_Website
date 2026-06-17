@@ -10,6 +10,7 @@ import StateSelect from '@/components/StateSelect';
 import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
 import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, submitContact } from '@/lib/api';
+import { cleanPlanDescription } from '@/lib/planHelpers';
 import { payWithRazorpay } from '@/lib/razorpay';
 import { v, firstError, sanitize } from '@/lib/validators';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -331,12 +332,12 @@ function BookFlow() {
       {
         '@type': 'Question',
         name: 'How do I book a gardening service with GharKaMali?',
-        acceptedAnswer: { '@type': 'Answer', text: 'Select your plan (Basic, Standard, or Premium), choose your preferred date and time slot, enter your address, and complete the payment. A certified plant expert will arrive at your doorstep at the scheduled time.' },
+        acceptedAnswer: { '@type': 'Answer', text: 'Choose a care plan or a one-time visit, pick your preferred date and time slot, enter your address, and complete the payment. A certified plant expert will arrive at your doorstep at the scheduled time.' },
       },
       {
         '@type': 'Question',
         name: 'What gardening plans does GharKaMali offer?',
-        acceptedAnswer: { '@type': 'Answer', text: 'GharKaMali offers three subscription plans: Basic (2 visits/month, up to 10 plants), Standard (4 visits/month, up to 20 plants with fertilizer), and Premium (8 visits/month, unlimited plants with a dedicated expert and 24/7 WhatsApp support). Plans start at ₹349.' },
+        acceptedAnswer: { '@type': 'Answer', text: 'GharKaMali offers monthly subscription plans with a set number of visits and plant coverage, as well as one-time on-demand visits. Each plan includes professional plant care, and higher tiers add more visits, larger plant coverage, fertilizer, and priority support. See the Plans page for current options and pricing.' },
       },
       {
         '@type': 'Question',
@@ -530,9 +531,9 @@ function BookFlow() {
                             ₹{p.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : p.price}
                             <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>/{p.plan_type === 'subscription' ? 'mo' : 'visit'}</span>
                           </div>
-                          {/* Strip any stale "up to N plants" phrase from the admin description —
-                              the plant coverage is shown authoritatively by the badge below (max_plants). */}
-                          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', lineHeight: 1.4 }}>{(p.description || 'Professional botanical care.').replace(/[—-]?\s*\d+\s*visits?\s*\/?\s*month/gi, '').replace(/\.?\s*(up to|upto)\s*\d+\s*plants?\.?/gi, '').replace(/\s{2,}/g, ' ').replace(/\s+([.,—-])/g, '$1').replace(/[—-]\s*$/, '').trim() || 'Professional botanical care.'}</div>
+                          {/* Description is cleaned of stale visit/plant counts; the real
+                              coverage is shown authoritatively by the badge below (max_plants). */}
+                          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sage)', lineHeight: 1.4 }}>{cleanPlanDescription(p.description) || 'Professional botanical care.'}</div>
                           {p.max_plants ? <div style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '0.72rem', fontWeight: 800, color: 'var(--forest)', background: 'rgba(3,65,26,0.07)', padding: '5px 11px', borderRadius: 99 }}>🌿 Includes up to {p.max_plants} plants</div> : null}
                         </div>
                       ))}

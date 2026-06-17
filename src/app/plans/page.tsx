@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getPlans, getFaqs } from '@/lib/api';
 import { planSlug } from '@/lib/slug';
+import { cleanPlanDescription, planCoverageText, getPlanPrice, priceSuffix } from '@/lib/planHelpers';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 import { useLocation } from '@/store/location';
 
@@ -16,27 +17,6 @@ const IcX = () => <svg width="11" height="11" viewBox="0 0 24 24" fill="none" st
 const IcShield = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
 const IcChevronLeft = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>;
 const IcChevronRight = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
-
-// The admin's `description` free-text often hard-codes a "N visits/month" / "up to
-// N plants" that drifts from the structured fields. Strip those phrases so the
-// description is just the blurb; the real counts come from visits_per_month /
-// max_plants (the source of truth) and are shown separately.
-const cleanPlanDescription = (desc?: string) =>
-  (desc || '')
-    .replace(/[—-]?\s*\d+\s*visits?\s*\/?\s*month/gi, '')
-    .replace(/\.?\s*(up to|upto)\s*\d+\s*plants?\.?/gi, '')
-    .replace(/\s{2,}/g, ' ')
-    .replace(/\s+([.,—-])/g, '$1')
-    .replace(/[—-]\s*$/, '')
-    .trim();
-
-// "3 visits/month · up to 40 plants" built from the real structured fields.
-const planCoverageText = (plan: any) => {
-  const parts: string[] = [];
-  if (plan?.visits_per_month) parts.push(`${plan.visits_per_month} visit${plan.visits_per_month > 1 ? 's' : ''}/month`);
-  if (plan?.max_plants) parts.push(`up to ${plan.max_plants} plants`);
-  return parts.join(' · ');
-};
 
 const COMPARE_FEATURES = [
   { label: 'Certified & verified plant expert', basic: true, standard: true, premium: true },
@@ -108,9 +88,9 @@ function PlanCarousel({ items }: { items: any[] }) {
                 )}
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 28 }}>
                   <span style={{ fontSize: '2.6rem', fontWeight: 700, color: isDark ? 'var(--gold)' : 'var(--forest)', lineHeight: 0.9 }}>
-                    ₹{plan.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : plan.price}
+                    ₹{getPlanPrice(plan, zone)}
                   </span>
-                  <span style={{ fontSize: '1rem', color: isDark ? 'rgba(255,255,255,0.35)' : 'var(--sage)', fontWeight: 700 }}>{plan.plan_type === 'subscription' ? '/mo' : '/visit'}</span>
+                  <span style={{ fontSize: '1rem', color: isDark ? 'rgba(255,255,255,0.35)' : 'var(--sage)', fontWeight: 700 }}>{priceSuffix(plan)}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
                   {(Array.isArray(plan.features) ? plan.features : []).slice(0, 4).map((f: string, idx: number) => (
@@ -212,9 +192,9 @@ function PlanCarousel({ items }: { items: any[] }) {
                   <div style={{ marginBottom: 28 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                       <span style={{ fontSize: '3.4rem', fontWeight: 700, color: isDark ? 'var(--gold)' : 'var(--forest)', fontFamily: 'var(--font-display)', lineHeight: 0.9 }}>
-                        ₹{plan.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : plan.price}
+                        ₹{getPlanPrice(plan, zone)}
                       </span>
-                      <span style={{ fontSize: '1.25rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 700 }}>{plan.plan_type === 'subscription' ? '/mo' : '/visit'}</span>
+                      <span style={{ fontSize: '1.25rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 700 }}>{priceSuffix(plan)}</span>
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
