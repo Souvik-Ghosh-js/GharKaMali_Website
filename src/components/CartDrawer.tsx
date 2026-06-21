@@ -89,6 +89,31 @@ export default function CartDrawer() {
     }
   }, [isOpen, user]);
 
+  // Pre-fill from the address already entered during plan/booking selection —
+  // don't make the customer type it again at checkout.
+  useEffect(() => {
+    if (step !== 'address') return;
+    const serviceWithAddress = items.find(i => i.type === 'service' && i.bookingDetails?.service_address);
+    if (!serviceWithAddress?.bookingDetails) return;
+    const bd = serviceWithAddress.bookingDetails;
+    if (bd.service_address && !address) {
+      setAddress(bd.service_address);
+      setUseSaved(false);
+    }
+    if (bd.service_latitude && bd.service_longitude && pinLat == null) {
+      setPinLat(bd.service_latitude);
+      setPinLng(bd.service_longitude);
+      setMapAddress(bd.service_address || '');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  // Cart is service-only and already has a full address+pin from the booking flow —
+  // nothing left to ask the customer for.
+  const hasProducts = items.some(i => !i.type || i.type === 'product');
+  const serviceAddressItem = items.find(i => i.type === 'service' && i.bookingDetails?.service_address);
+  const addressAlreadyKnown = !hasProducts && !!serviceAddressItem;
+
   // Load coupons the customer can apply (for the available-coupons list).
   useEffect(() => {
     if (isOpen && user) {
@@ -171,6 +196,11 @@ export default function CartDrawer() {
         finalLat = parseFloat(loc.latitude);
         finalLng = parseFloat(loc.longitude);
       }
+    } else if (addressAlreadyKnown && serviceAddressItem?.bookingDetails) {
+      // Address + pin were already captured during plan/booking selection — reuse them as-is.
+      finalAddress = serviceAddressItem.bookingDetails.service_address || finalAddress;
+      finalLat = serviceAddressItem.bookingDetails.service_latitude || finalLat;
+      finalLng = serviceAddressItem.bookingDetails.service_longitude || finalLng;
     } else {
       const { v, firstError } = await import('@/lib/validators');
       const err = firstError([
@@ -520,9 +550,27 @@ export default function CartDrawer() {
                 <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--forest)', marginBottom: 4 }}>Order Summary</div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--sage)', fontWeight: 600 }}>{total} items · <strong style={{ color: 'var(--forest)' }}>₹{payable.toLocaleString('en-IN')}</strong> total{discount > 0 && <span style={{ color: '#16a34a' }}> · 🎟️ {appliedCoupon?.code} (−₹{discount.toLocaleString('en-IN')})</span>}</div>
               </div>
+
+              {addressAlreadyKnown && (
+                <div style={{ marginBottom: 16, padding: '14px 16px', background: 'rgba(3,65,26,0.04)', borderRadius: 16, border: '1.5px dashed var(--forest-mid)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', fontWeight: 800, color: 'var(--forest-mid)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Address from your booking
+                  </div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--forest)', lineHeight: 1.5 }}>{address}</div>
+                  <button
+                    type="button"
+                    onClick={() => { setUseSaved(false); setAddress(''); setPinLat(null); setPinLng(null); }}
+                    style={{ marginTop: 10, padding: '6px 14px', borderRadius: 10, border: '1.5px solid var(--forest)', background: '#fff', color: 'var(--forest)', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer' }}
+                  >
+                    Use a different address
+                  </button>
+                </div>
+              )}
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-                {savedLocs.length > 0 && (
+                {!addressAlreadyKnown && savedLocs.length > 0 && (
                   <div style={{ marginBottom: 16 }}>
                     <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
                       <button onClick={() => setUseSaved(true)} style={{ flex: 1, padding: '10px', borderRadius: 10, border: `1.5px solid ${useSaved ? 'var(--forest)' : 'var(--border)'}`, background: useSaved ? 'rgba(3,65,26,0.05)' : '#fff', color: 'var(--forest)', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer' }}>Saved Address</button>
@@ -547,7 +595,7 @@ export default function CartDrawer() {
                   </div>
                 )}
 
-                {(!useSaved || savedLocs.length === 0) && (
+                {!addressAlreadyKnown && (!useSaved || savedLocs.length === 0) && (
                   <>
                     {/* Row 1: Room + Building */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

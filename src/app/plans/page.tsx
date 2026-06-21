@@ -86,11 +86,11 @@ function PlanCarousel({ items }: { items: any[] }) {
                 {plan.plan_type === 'subscription' && planCoverageText(plan) && (
                   <div style={{ fontSize: '0.82rem', fontWeight: 800, color: isDark ? 'var(--gold)' : 'var(--forest)', marginBottom: 24 }}>🌿 {planCoverageText(plan)}</div>
                 )}
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 28 }}>
-                  <span style={{ fontSize: '2.6rem', fontWeight: 700, color: isDark ? 'var(--gold)' : 'var(--forest)', lineHeight: 0.9 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 28, flexWrap: 'wrap', maxWidth: '100%', overflow: 'hidden' }}>
+                  <span style={{ fontSize: 'clamp(1.6rem, 7vw, 2.4rem)', fontWeight: 700, color: isDark ? 'var(--gold)' : 'var(--forest)', lineHeight: 0.95, wordBreak: 'break-word' }}>
                     ₹{getPlanPrice(plan, zone)}
                   </span>
-                  <span style={{ fontSize: '1rem', color: isDark ? 'rgba(255,255,255,0.35)' : 'var(--sage)', fontWeight: 700 }}>{priceSuffix(plan)}</span>
+                  <span style={{ fontSize: 'clamp(0.85rem, 2.5vw, 1rem)', color: isDark ? 'rgba(255,255,255,0.35)' : 'var(--sage)', fontWeight: 700, flexShrink: 0 }}>{priceSuffix(plan)}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
                   {(Array.isArray(plan.features) ? plan.features : []).slice(0, 4).map((f: string, idx: number) => (
@@ -119,7 +119,7 @@ function PlanCarousel({ items }: { items: any[] }) {
   const step = cardWidth + gap;
 
   return (
-    <section style={{ overflow: 'hidden', padding: '100px 0', position: 'relative', background: 'var(--bg)' }}>
+    <section style={{ overflowX: 'hidden', overflowY: 'visible', padding: '100px 0', position: 'relative', background: 'var(--bg)' }}>
       <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '100vw', height: '800px', background: 'radial-gradient(circle at center, rgba(3,65,26,0.02) 0%, transparent 60%)', pointerEvents: 'none' }} />
 
       {/* Nav Controls */}
@@ -138,7 +138,7 @@ function PlanCarousel({ items }: { items: any[] }) {
         ><IcArrow /></button>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', position: 'relative', height: 620, alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', position: 'relative', minHeight: 660, alignItems: 'center' }}>
         <motion.div
           animate={{ x: -(activeIdx * step) }}
           transition={isJumping ? { duration: 0 } : { type: 'spring', stiffness: 220, damping: 30, mass: 1 }}
@@ -173,10 +173,12 @@ function PlanCarousel({ items }: { items: any[] }) {
                   border: isCenter ? '2.5px solid var(--gold)' : '1px solid var(--border)',
                   padding: '52px 40px',
                   minHeight: 620,
+                  width: '100%',
+                  boxSizing: 'border-box',
                   display: 'flex', flexDirection: 'column',
                   boxShadow: isCenter ? '0 60px 120px rgba(3,65,26,0.3), 0 0 45px rgba(201,168,76,0.2)' : 'var(--sh-sm)',
                   transition: 'border 0.4s var(--ease)',
-                  position: 'relative', overflow: 'hidden'
+                  position: 'relative', overflow: 'visible'
                 }}>
                   {isCenter && (
                     <div style={{ position: 'absolute', top: 16, right: 32, background: 'var(--gold)', color: 'var(--forest)', padding: '7px 20px', borderRadius: 99, fontSize: '0.68rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', zIndex: 20 }}>
@@ -189,12 +191,12 @@ function PlanCarousel({ items }: { items: any[] }) {
                   {plan.plan_type === 'subscription' && planCoverageText(plan) && (
                     <div style={{ fontSize: '0.9rem', fontWeight: 800, color: isDark ? 'var(--gold)' : 'var(--forest)', marginBottom: 40 }}>🌿 {planCoverageText(plan)}</div>
                   )}
-                  <div style={{ marginBottom: 28 }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                      <span style={{ fontSize: '3.4rem', fontWeight: 700, color: isDark ? 'var(--gold)' : 'var(--forest)', fontFamily: 'var(--font-display)', lineHeight: 0.9 }}>
+                  <div style={{ marginBottom: 28, maxWidth: '100%', overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap', maxWidth: '100%' }}>
+                      <span style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 700, color: isDark ? 'var(--gold)' : 'var(--forest)', fontFamily: 'var(--font-display)', lineHeight: 0.95, wordBreak: 'break-word' }}>
                         ₹{getPlanPrice(plan, zone)}
                       </span>
-                      <span style={{ fontSize: '1.25rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 700 }}>{priceSuffix(plan)}</span>
+                      <span style={{ fontSize: 'clamp(0.95rem, 1.6vw, 1.15rem)', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 700, flexShrink: 0 }}>{priceSuffix(plan)}</span>
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
