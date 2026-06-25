@@ -247,6 +247,13 @@ export default function PlansPage() {
 
   const plans: any[] = (plansRaw as any[]) ?? [];
   const subPlans = plans.filter((p:any) => p.plan_type === 'subscription');
+  // Comparison table shows the monthly subscription tiers only — exclude One-Time
+  // (ondemand) and the Annual variants (duration ~365 days / "-annual" slug).
+  const isAnnual = (p:any) =>
+    Number(p?.duration_days) >= 360 ||
+    /-annual$/i.test(p?.slug || '') ||
+    /\(annual\)/i.test(p?.name || '');
+  const comparePlans = subPlans.filter((p:any) => !isAnnual(p));
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tableRef1 = useRef<HTMLDivElement>(null);
   const tableRef2 = useRef<HTMLDivElement>(null);
@@ -436,7 +443,7 @@ export default function PlansPage() {
         </div>
 
           {/* Comparison table */}
-          {subPlans.length >= 2 && (
+          {comparePlans.length >= 2 && (
             <div style={{ marginTop: 100 }}>
               <div style={{ textAlign:'center', marginBottom:52 }}>
                 <span className="overline">Feature Breakdown</span>
@@ -446,7 +453,7 @@ export default function PlansPage() {
                 {isMobileView && (
                   <div style={{ position: 'absolute', top: 0, bottom: 0, left: -20, right: -20, pointerEvents: 'none', zIndex: 100 }}>
                     <button className="floating-nav-btn" onClick={() => setColIdx2(prev => Math.max(0, prev - 1))} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx2 === 0 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronLeft /></button>
-                    <button className="floating-nav-btn" onClick={() => setColIdx2(prev => Math.min(subPlans.length - 1, prev + 1))} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx2 === subPlans.length - 1 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronRight /></button>
+                    <button className="floating-nav-btn" onClick={() => setColIdx2(prev => Math.min(comparePlans.length - 1, prev + 1))} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'auto', width: 44, height: 44, opacity: colIdx2 === comparePlans.length - 1 ? 0 : 1, transition: 'all 0.3s', background: '#fff', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid var(--border)' }}><IcChevronRight /></button>
                   </div>
                 )}
                 
@@ -455,7 +462,7 @@ export default function PlansPage() {
                     <thead>
                       <tr style={{ background: 'var(--forest)' }}>
                         <th className="sticky-col" style={{ padding: '18px 20px', textAlign: 'left', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', whiteSpace: 'nowrap', background: 'var(--forest)', borderRight: '1px solid rgba(255,255,255,0.1)' }}>Feature</th>
-                        {subPlans.slice(0, 3).map((p: any, j: number) => (
+                        {comparePlans.map((p: any, j: number) => (
                           (!isMobileView || colIdx2 === j) && <th key={p.id || p.name} style={{ padding: '18px 20px', textAlign: 'center', color: 'var(--gold)', fontSize: '0.9rem', fontWeight: 600, whiteSpace: 'normal', background: 'var(--forest)' }}>{p.name}</th>
                         ))}
                       </tr>
@@ -465,7 +472,7 @@ export default function PlansPage() {
                     {COMPARE_NUMERIC.map((f, i) => (
                       <tr key={f.label} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? '#fafcfa' : '#fff' }}>
                         <td className="sticky-col" style={{ padding: '14px 20px', fontSize: '0.88rem', color: 'var(--forest)', fontWeight: 500, whiteSpace: 'normal', background: i % 2 === 0 ? '#fafcfa' : '#fff', borderRight: '1px solid var(--border-gold)' }}>{f.label}</td>
-                        {subPlans.slice(0, 3).map((p: any, j: number) => (
+                        {comparePlans.map((p: any, j: number) => (
                           (!isMobileView || colIdx2 === j) && <td key={p.id || j} style={{ padding: '14px 20px', textAlign: 'center', whiteSpace: 'normal' }}><CheckCell val={f.value(p)}/></td>
                         ))}
                       </tr>
@@ -474,7 +481,7 @@ export default function PlansPage() {
                     {COMPARE_FEATURES.map((f, i) => (
                       <tr key={f.label} style={{ borderBottom: '1px solid var(--border)', background: (i + COMPARE_NUMERIC.length) % 2 === 0 ? '#fafcfa' : '#fff' }}>
                         <td className="sticky-col" style={{ padding: '14px 20px', fontSize: '0.88rem', color: 'var(--forest)', fontWeight: 500, whiteSpace: 'normal', background: (i + COMPARE_NUMERIC.length) % 2 === 0 ? '#fafcfa' : '#fff', borderRight: '1px solid var(--border-gold)' }}>{f.label}</td>
-                        {subPlans.slice(0, 3).map((p: any, j: number) => (
+                        {comparePlans.map((p: any, j: number) => (
                           (!isMobileView || colIdx2 === j) && <td key={p.id || j} style={{ padding: '14px 20px', textAlign: 'center', whiteSpace: 'normal' }}><CheckCell val={j >= f.minTier}/></td>
                         ))}
                       </tr>
