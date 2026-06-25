@@ -9,7 +9,7 @@ import PageLoader from '@/components/PageLoader';
 import { getPlans, getBlogs, getTaglines, getShopProducts, getPublicReviews } from '@/lib/api';
 import { planSlug } from '@/lib/slug';
 import { SHOP_ENABLED } from '@/lib/features';
-import { cleanPlanDescription, planCoverageText, priceSuffix } from '@/lib/planHelpers';
+import { cleanPlanDescription, planCoverageText, getPlanPrice, priceSuffix } from '@/lib/planHelpers';
 import dynamic from 'next/dynamic';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 const ValleyScene = dynamic(() => import('@/components/ValleyScene'), { ssr: false });
@@ -325,17 +325,17 @@ const BEFORE_AFTER = [
 const MAKEOVER_SLIDES = [
   {
     before: '/img-13.jpeg',
-    after: '/img-14.jpeg',
+    after: '/balcony.jpeg',
     label: 'Balcony', tag: 'Balcony Paradise',
   },
   {
     before: '/img-15.jpeg',
-    after: '/img-16.jpeg',
+    after: '/indoor.jpeg',
     label: 'Indoor', tag: 'Indoor Sanctuary',
   },
   {
     before: '/img-1.jpeg',
-    after: '/img-6.jpeg',
+    after: '/terrace.jpeg',
     label: 'Terrace', tag: 'Terrace Garden',
   },
 ];
@@ -1435,9 +1435,9 @@ export default function HomePage() {
                       <div style={{ fontSize: '0.82rem', fontWeight: 800, color: isDark ? 'var(--gold)' : 'var(--forest)', marginBottom: 32 }}>🌿 {planCoverageText(plan)}</div>
                     )}
 
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 36 }}>
-                      <span style={{ fontSize: '2.8rem', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', letterSpacing: '-0.02er' }}>₹{plan.price}</span>
-                      <span style={{ fontSize: '0.88rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 600 }}>{priceSuffix(plan)}</span>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 36, flexWrap: 'wrap', maxWidth: '100%', overflow: 'hidden' }}>
+                      <span style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>₹{getPlanPrice(plan)}</span>
+                      <span style={{ fontSize: '0.88rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 600, flexShrink: 0 }}>{priceSuffix(plan)}</span>
                     </div>
 
                     <Link href={`/book/${planSlug(plan)}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'} btn-lg`} style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '0.88rem' }}>

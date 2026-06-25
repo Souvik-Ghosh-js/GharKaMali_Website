@@ -38,10 +38,10 @@ const SERVICES = [
 ];
 
 const SPACES = [
-  { Icon: Ic.Home, title: 'Balcony', desc: 'A curated green corner for daily calm and fresh air.', img: '/img-1.jpeg', tag: 'Most Popular' },
-  { Icon: Ic.Sun, title: 'Terrace', desc: 'An outdoor paradise for family evenings and gatherings.', img: '/img-3.jpeg', tag: 'Trending' },
-  { Icon: Ic.Leaf, title: 'Indoor', desc: 'Natural freshness for living rooms, bedrooms and corridors.', img: '/img-5.jpeg', tag: 'Premium' },
-  { Icon: Ic.Office, title: 'Office', desc: 'Productive workspaces that boost morale and well-being.', img: '/img-13.jpeg', tag: 'Corporate' },
+  { Icon: Ic.Home, title: 'Balcony', desc: 'A curated green corner for daily calm and fresh air.', img: '/balcony.jpeg', alt: 'GharKaMali green makeover of a home balcony with lush potted plants', tag: 'Most Popular' },
+  { Icon: Ic.Sun, title: 'Terrace', desc: 'An outdoor paradise for family evenings and gatherings.', img: '/terrace.jpeg', alt: 'GharKaMali green makeover of a rooftop terrace garden', tag: 'Trending' },
+  { Icon: Ic.Leaf, title: 'Indoor', desc: 'Natural freshness for living rooms, bedrooms and corridors.', img: '/indoor.jpeg', alt: 'GharKaMali indoor plant setup in a living room', tag: 'Premium' },
+  { Icon: Ic.Office, title: 'Office', desc: 'Productive workspaces that boost morale and well-being.', img: '/office_desktop.jpeg', alt: 'GharKaMali green makeover of an office workspace with indoor plants', tag: 'Corporate' },
 ];
 
 const PLANS = [
@@ -236,7 +236,7 @@ export default function GreenMakeoverPage() {
             <div className="gmr-space-panel">
               {SPACES.map((sp, i) => (
                 <div key={i} className={`gmr-panel-item ${i === activeSpace ? 'gmr-panel-on' : ''}`}>
-                  <img src={sp.img} alt={sp.title} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={sp.img} alt={sp.alt} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div className="gmr-panel-overlay" />
                   <div className="gmr-panel-info">
                     <div className="gmr-panel-tag">{sp.tag}</div>
@@ -255,7 +255,7 @@ export default function GreenMakeoverPage() {
           <div className="gmr-spaces-mobile gmr-reveal">
             {SPACES.map((sp, i) => (
               <div key={i} className="gmr-mob-card">
-                <img src={sp.img} alt={sp.title} style={{ width: '100%', height: 180, objectFit: 'cover' }} />
+                <img src={sp.img} alt={sp.alt} style={{ width: '100%', height: 180, objectFit: 'cover' }} />
                 <div className="gmr-mob-card-body">
                   <div className="gmr-mob-tag">{sp.tag}</div>
                   <h3 className="gmr-mob-title"><sp.Icon /> {sp.title}</h3>
@@ -815,7 +815,7 @@ export default function GreenMakeoverPage() {
           gap: 8px;
         }
         .gmr-panel-tag { font-size: 0.6rem; font-weight: 900; color: var(--gold); text-transform: uppercase; letter-spacing: 0.14em; }
-        .gmr-panel-title { font-size: clamp(1.3rem,2.2vw,1.9rem); font-weight: 900; margin: 0; }
+        .gmr-panel-title { font-size: clamp(1.3rem,2.2vw,1.9rem); font-weight: 900; margin: 0; color: #fff !important; }
         .gmr-panel-desc { font-size: 0.85rem; color: rgba(255,255,255,0.65); line-height: 1.6; margin: 0; max-width: 320px; font-weight: 500; }
         .gmr-panel-btn {
           display: inline-flex;

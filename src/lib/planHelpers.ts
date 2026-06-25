@@ -24,9 +24,13 @@ export const planCoverageText = (plan: any): string => {
 };
 
 // On-demand plans use the zone's base_price when a location is selected;
-// subscriptions always use the plan price.
-export const getPlanPrice = (plan: any, zone?: any): number | undefined =>
-  plan?.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : plan?.price;
+// subscriptions always use the plan price. Formatted as a clean whole-rupee,
+// comma-separated string (no stray ".00") so it never overflows price displays.
+export const getPlanPrice = (plan: any, zone?: any): string => {
+  const raw = plan?.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : plan?.price;
+  const num = Math.round(Number(raw) || 0);
+  return num.toLocaleString('en-IN');
+};
 
 // '/mo' for subscriptions, '/visit' for on-demand.
 export const priceSuffix = (plan: any): string =>

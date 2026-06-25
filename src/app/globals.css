@@ -5044,9 +5044,14 @@ html {
 /* ═══════════════════════════════════════════════════════
    NAVBAR FIXES & ENHANCEMENTS
 ═══════════════════════════════════════════════════════ */
-.nav-desktop-links a:hover {
+.nav-desktop-links a:hover:not(.nav-gm-pill) {
   background: rgba(3, 65, 26, 0.07) !important;
   color: var(--forest) !important;
+}
+
+.nav-gm-pill:hover {
+  color: #fff !important;
+  filter: brightness(1.1);
 }
 
 .nav-app-badges a:hover {
