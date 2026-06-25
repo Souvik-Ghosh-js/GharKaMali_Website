@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import { useGSAPAnimations } from '@/hooks/useGSAPAnimations';
 import Footer from '@/components/Footer';
 import PageLoader from '@/components/PageLoader';
+import ImageFadeSlider from '@/components/ImageFadeSlider';
 import { getPlans, getBlogs, getTaglines, getShopProducts, getPublicReviews } from '@/lib/api';
 import { planSlug } from '@/lib/slug';
 import { SHOP_ENABLED } from '@/lib/features';
@@ -1005,9 +1006,13 @@ export default function HomePage() {
             </div>
 
             <div className="prof-gardening-visual s-reveal s-reveal-d2" style={{ position: 'relative' }}>
-              <div style={{ position: 'relative', borderRadius: 32, overflow: 'hidden', boxShadow: 'var(--sh-xl)', border: '8px solid #fff', transform: 'rotate(1.5deg)' }}>
-                <img src="/img-1.jpeg" alt="GharKaMali expert caring for balcony plants" style={{ width: '100%', height: '440px', objectFit: 'cover', display: 'block' }} />
-                <div style={{ position: 'absolute', top: 20, left: 20, background: 'rgba(3,65,26,0.85)', color: '#fff', padding: '8px 20px', borderRadius: 99, fontSize: '0.75rem', fontWeight: 800, backdropFilter: 'blur(12px)', boxShadow: 'var(--sh-sm)' }}>TRANSFORMATION COMPLETE</div>
+              <div style={{ position: 'relative', maxWidth: 380, margin: '0 auto', borderRadius: 32, overflow: 'hidden', boxShadow: 'var(--sh-xl)', border: '8px solid #fff', transform: 'rotate(1.5deg)' }}>
+                <ImageFadeSlider
+                  images={['/marketting-1.jpeg', '/marketting-2.jpeg', '/marketting-3.jpeg', '/marketting-4.jpeg', '/marketting-5.jpeg']}
+                  alt="GharKaMali expert caring for plants"
+                  height="clamp(380px, 50vw, 480px)"
+                  objectFit="cover"
+                />
               </div>
 
               {/* Floating Badge */}

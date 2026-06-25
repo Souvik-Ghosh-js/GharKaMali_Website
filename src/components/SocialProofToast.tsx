@@ -10,7 +10,7 @@ type SocialProofItem = {
 };
 
 const IcVisitor = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
     <circle cx="9" cy="7" r="4"/>
     <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
@@ -18,7 +18,7 @@ const IcVisitor = () => (
   </svg>
 );
 const IcBookingIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
     <rect x="3" y="4" width="18" height="18" rx="2"/>
     <line x1="16" y1="2" x2="16" y2="6"/>
     <line x1="8" y1="2" x2="8" y2="6"/>
@@ -109,7 +109,7 @@ export default function SocialProofToast() {
           bottom: clamp(16px, 3vw, 28px);
           left: clamp(14px, 3vw, 28px);
           z-index: 9999;
-          width: 296px;
+          width: min(340px, calc(100vw - 32px));
           font-family: 'Poppins', sans-serif;
           animation: ${visible ? 'sp-slide-in 0.4s cubic-bezier(0.22,1,0.36,1) forwards' : 'sp-slide-out 0.3s ease forwards'};
           pointer-events: ${visible ? 'auto' : 'none'};
@@ -120,43 +120,40 @@ export default function SocialProofToast() {
           box-shadow: 0 8px 28px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.06);
           overflow: hidden;
           border: 1px solid rgba(0,0,0,0.06);
-          /* Make the whole popup ~32% smaller, anchored to the bottom-left corner. */
-          transform: scale(0.68);
-          transform-origin: left bottom;
         }
         .sp-header {
           background: ${accentColor};
-          padding: 7px 12px 7px 14px;
+          padding: 10px 16px;
           display: flex;
           align-items: center;
-          gap: 7px;
+          gap: 8px;
         }
         .sp-live-dot {
-          width: 6px; height: 6px; border-radius: 50%;
+          width: 8px; height: 8px; border-radius: 50%;
           background: #4ade80;
           flex-shrink: 0;
           animation: sp-live-pulse 1.5s ease-in-out infinite;
         }
         .sp-header-label {
           flex: 1;
-          font-size: 0.6rem;
+          font-size: 0.72rem;
           font-weight: 800;
           color: rgba(255,255,255,0.92);
           text-transform: uppercase;
-          letter-spacing: 0.12em;
+          letter-spacing: 0.1em;
         }
         .sp-header-icon {
           color: rgba(255,255,255,0.7);
           display: flex; align-items: center;
         }
         .sp-body {
-          padding: 12px 14px 14px;
+          padding: 16px 16px 18px;
           display: flex;
-          gap: 11px;
+          gap: 14px;
           align-items: flex-start;
         }
         .sp-avatar {
-          width: 40px; height: 40px; border-radius: 12px;
+          width: 48px; height: 48px; border-radius: 14px;
           background: ${accentColor};
           color: #fff;
           display: flex; align-items: center; justify-content: center;
@@ -164,29 +161,30 @@ export default function SocialProofToast() {
         }
         .sp-content { flex: 1; min-width: 0; }
         .sp-msg {
-          font-size: 0.8rem;
+          font-size: 0.92rem;
           font-weight: 600;
           color: #111;
           line-height: 1.45;
-          margin: 0 0 4px;
+          margin: 0 0 5px;
         }
         .sp-time {
-          font-size: 0.62rem;
-          color: rgba(0,0,0,0.38);
+          font-size: 0.74rem;
+          color: rgba(0,0,0,0.4);
           font-weight: 500;
         }
         .sp-close {
           background: none; border: none; cursor: pointer;
-          color: rgba(0,0,0,0.25);
-          padding: 2px; border-radius: 5px;
+          color: rgba(0,0,0,0.3);
+          padding: 4px; border-radius: 6px;
           display: flex; align-items: center; justify-content: center;
           transition: color 0.15s;
           flex-shrink: 0;
           margin-top: -1px;
         }
-        .sp-close:hover { color: rgba(0,0,0,0.55); }
+        .sp-close:hover { color: rgba(0,0,0,0.6); }
+        .sp-close svg { width: 14px; height: 14px; }
         .sp-progress {
-          height: 2px;
+          height: 3px;
           background: rgba(0,0,0,0.05);
         }
         .sp-progress-fill {
@@ -194,7 +192,7 @@ export default function SocialProofToast() {
           background: ${accentColor};
           width: ${progress}%;
           transition: width 0.05s linear;
-          opacity: 0.5;
+          opacity: 0.6;
         }
       `}</style>
 
