@@ -600,6 +600,7 @@ const Marquee = () => {
     { text: '1200+ Homes Served', Icon: IcShield },
     { text: 'Verified Experts', Icon: IcShield },
     { text: '4.9 ⭐ Rating', Icon: IcStar },
+    { text: 'Serving: Noida', Icon: IcMap },
     { text: 'Serving: Greater Noida West', Icon: IcMap },
     { text: 'Serving: Greater Noida', Icon: IcMap },
     { text: 'Serving: Ghaziabad', Icon: IcMap },
@@ -624,6 +625,7 @@ const Marquee = () => {
 };
 
 const SERVICEABLE_CITIES = [
+  { name: 'Noida', active: true },
   { name: 'Greater Noida West', active: true },
   { name: 'Greater Noida', active: true },
   { name: 'Ghaziabad', active: true },
@@ -959,7 +961,7 @@ export default function HomePage() {
           </div>
 
           <div className="city-pills-grid" style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
-            {['Greater Noida West', 'Greater Noida', 'Ghaziabad', 'Gurgaon', 'Delhi'].map((city, i) => (
+            {['Noida', 'Greater Noida West', 'Greater Noida', 'Ghaziabad', 'Gurgaon', 'Delhi'].map((city, i) => (
               <div key={i} className="city-pill" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: '1.5px solid var(--border-gold)', borderRadius: 99, padding: '9px 20px', fontWeight: 600, color: 'var(--forest)', fontSize: '0.88rem', boxShadow: 'var(--sh-sm)' }}>
                 <span style={{ color: 'var(--earth)' }}><IcMap /></span>
                 {city}
