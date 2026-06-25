@@ -18,17 +18,26 @@ const IcShield = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="non
 const IcChevronLeft = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>;
 const IcChevronRight = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
 
+// Qualitative feature rows (checkmarks). These describe tiers in increasing order
+// of richness, so they're derived per-column from the plan's position rather than
+// keyed to specific plan names (plan names/count can change).
+//   minTier: 0-based index of the first column where the feature is included.
 const COMPARE_FEATURES = [
-  { label: 'Certified & verified plant expert', basic: true, standard: true, premium: true },
-  { label: 'Before & after photo proof', basic: true, standard: true, premium: true },
-  { label: 'Live GPS tracking', basic: true, standard: true, premium: true },
-  { label: 'Visits per month', basic: '2', standard: '4', premium: '8' },
-  { label: 'Max plants covered', basic: '10', standard: '20', premium: 'Unlimited' },
-  { label: 'Plant health report', basic: false, standard: true, premium: true },
-  { label: 'Priority scheduling', basic: false, standard: false, premium: true },
-  { label: 'Dedicated plant expert', basic: false, standard: false, premium: true },
-  { label: 'Free fertilizer application', basic: false, standard: true, premium: true },
-  { label: '24/7 WhatsApp support', basic: false, standard: false, premium: true },
+  { label: 'Certified & verified plant expert', minTier: 0 },
+  { label: 'Before & after photo proof', minTier: 0 },
+  { label: 'Live GPS tracking', minTier: 0 },
+  { label: 'Plant health report', minTier: 1 },
+  { label: 'Priority scheduling', minTier: 2 },
+  { label: 'Dedicated plant expert', minTier: 2 },
+  { label: 'Free fertilizer application', minTier: 1 },
+  { label: '24/7 WhatsApp support', minTier: 2 },
+];
+
+// Numeric rows whose values come straight from the real plan data (source of
+// truth), so they can never drift from what the plans actually offer.
+const COMPARE_NUMERIC = [
+  { label: 'Visits per month', value: (p: any) => (p?.visits_per_month ? String(p.visits_per_month) : '—') },
+  { label: 'Max plants covered', value: (p: any) => (p?.max_plants ? String(p.max_plants) : 'Unlimited') },
 ];
 
 const DEFAULT_FAQS = [
@@ -450,11 +459,21 @@ export default function PlansPage() {
                       </tr>
                     </thead>
                   <tbody>
-                    {COMPARE_FEATURES.map((f, i) => (
+                    {/* Numeric rows — values pulled live from each plan (source of truth) */}
+                    {COMPARE_NUMERIC.map((f, i) => (
                       <tr key={f.label} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? '#fafcfa' : '#fff' }}>
                         <td className="sticky-col" style={{ padding: '14px 20px', fontSize: '0.88rem', color: 'var(--forest)', fontWeight: 500, whiteSpace: 'normal', background: i % 2 === 0 ? '#fafcfa' : '#fff', borderRight: '1px solid var(--border-gold)' }}>{f.label}</td>
-                        {[f.basic, f.standard, f.premium].slice(0, subPlans.length).map((v, j) => (
-                          (!isMobileView || colIdx2 === j) && <td key={j} style={{ padding: '14px 20px', textAlign: 'center', whiteSpace: 'normal' }}><CheckCell val={v}/></td>
+                        {subPlans.slice(0, 3).map((p: any, j: number) => (
+                          (!isMobileView || colIdx2 === j) && <td key={p.id || j} style={{ padding: '14px 20px', textAlign: 'center', whiteSpace: 'normal' }}><CheckCell val={f.value(p)}/></td>
+                        ))}
+                      </tr>
+                    ))}
+                    {/* Qualitative rows — included from minTier column onward */}
+                    {COMPARE_FEATURES.map((f, i) => (
+                      <tr key={f.label} style={{ borderBottom: '1px solid var(--border)', background: (i + COMPARE_NUMERIC.length) % 2 === 0 ? '#fafcfa' : '#fff' }}>
+                        <td className="sticky-col" style={{ padding: '14px 20px', fontSize: '0.88rem', color: 'var(--forest)', fontWeight: 500, whiteSpace: 'normal', background: (i + COMPARE_NUMERIC.length) % 2 === 0 ? '#fafcfa' : '#fff', borderRight: '1px solid var(--border-gold)' }}>{f.label}</td>
+                        {subPlans.slice(0, 3).map((p: any, j: number) => (
+                          (!isMobileView || colIdx2 === j) && <td key={p.id || j} style={{ padding: '14px 20px', textAlign: 'center', whiteSpace: 'normal' }}><CheckCell val={j >= f.minTier}/></td>
                         ))}
                       </tr>
                     ))}
