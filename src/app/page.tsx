@@ -324,92 +324,60 @@ const BEFORE_AFTER = [
 ];
 
 const MAKEOVER_SLIDES = [
-  {
-    before: '/img-13.jpeg',
-    after: '/balcony.jpeg',
-    label: 'Balcony', tag: 'Balcony Paradise',
-  },
-  {
-    before: '/img-15.jpeg',
-    after: '/indoor.jpeg',
-    label: 'Indoor', tag: 'Indoor Sanctuary',
-  },
-  {
-    before: '/img-1.jpeg',
-    after: '/terrace.jpeg',
-    label: 'Terrace', tag: 'Terrace Garden',
-  },
+  { img: '/balcony.jpeg',  label: 'Balcony',  tag: 'Balcony Paradise' },
+  { img: '/indoor.jpeg',   label: 'Indoor',   tag: 'Indoor Sanctuary' },
+  { img: '/terrace.jpeg',  label: 'Terrace',  tag: 'Terrace Garden'   },
 ];
 
 /* ── GREEN MAKEOVER AUTO SLIDER ── */
 const GreenMakeoverSlider = () => {
   const [activeSlide, setActiveSlide] = useState(0);
-  const [sliderPos, setSliderPos] = useState(50);
-  const animDirRef = useRef(1);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isDraggingRef = useRef(false);
-  const posRef = useRef(50);
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      if (!isDraggingRef.current) {
-        posRef.current += animDirRef.current * 0.22;
-        if (posRef.current >= 78) animDirRef.current = -1;
-        if (posRef.current <= 22) animDirRef.current = 1;
-        setSliderPos(posRef.current);
-      }
-    }, 30);
-    return () => clearInterval(t);
-  }, []);
 
   useEffect(() => {
     const t = setInterval(() => {
       setActiveSlide(p => (p + 1) % MAKEOVER_SLIDES.length);
-      posRef.current = 50;
-      animDirRef.current = 1;
-    }, 5500);
+    }, 4000);
     return () => clearInterval(t);
-  }, []);
-
-  const handleMove = useCallback((clientX: number) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const pct = Math.max(5, Math.min(95, ((clientX - rect.left) / rect.width) * 100));
-    posRef.current = pct;
-    setSliderPos(pct);
   }, []);
 
   return (
     <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
-      <div
-        ref={containerRef}
-        style={{ position: 'relative', flex: 1, overflow: 'hidden', cursor: 'col-resize', userSelect: 'none' }}
-        onMouseDown={() => { isDraggingRef.current = true; }}
-        onMouseUp={() => { isDraggingRef.current = false; }}
-        onMouseLeave={() => { isDraggingRef.current = false; }}
-        onMouseMove={e => { if (isDraggingRef.current) handleMove(e.clientX); }}
-        onTouchStart={() => { isDraggingRef.current = true; }}
-        onTouchEnd={() => { isDraggingRef.current = false; }}
-        onTouchMove={e => { if (isDraggingRef.current) handleMove(e.touches[0].clientX); }}
-      >
+      {/* Main image area */}
+      <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }}>
         {MAKEOVER_SLIDES.map((slide, i) => (
-          <div key={i} style={{ position: 'absolute', inset: 0, opacity: i === activeSlide ? 1 : 0, transition: 'opacity 1.2s ease' }}>
-            <img src={slide.after} alt={`${slide.tag} – after GharKaMali plant care`} draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-            <img src={slide.before} alt={`${slide.tag} – before GharKaMali plant care`} draggable={false} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }} />
-          </div>
+          <img
+            key={slide.img}
+            src={slide.img}
+            alt={`GharKaMali ${slide.label} green makeover`}
+            draggable={false}
+            style={{
+              position: 'absolute', inset: 0,
+              width: '100%', height: '100%', objectFit: 'cover',
+              opacity: i === activeSlide ? 1 : 0,
+              transition: 'opacity 1s ease',
+            }}
+          />
         ))}
-        {/* Divider */}
-        <div style={{ position: 'absolute', top: 0, bottom: 0, width: 3, background: 'rgba(255,255,255,0.95)', left: `${sliderPos}%`, transform: 'translateX(-50%)', zIndex: 20, pointerEvents: 'none' }}>
-          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 48, height: 48, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 28px rgba(201,168,76,0.7)', cursor: 'col-resize', pointerEvents: 'all' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--forest)" strokeWidth="2.5"><polyline points="8 4 4 12 8 20" /><polyline points="16 4 20 12 16 20" /></svg>
-          </div>
-        </div>
-        {/* Labels */}
-        <div style={{ position: 'absolute', bottom: 16, left: 16, background: 'rgba(0,0,0,0.55)', color: '#fff', padding: '5px 12px', borderRadius: 99, fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', zIndex: 20, backdropFilter: 'blur(8px)' }}>Before</div>
-        <div style={{ position: 'absolute', bottom: 16, right: 16, background: 'rgba(3,65,26,0.85)', color: '#fff', padding: '5px 12px', borderRadius: 99, fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', zIndex: 20, backdropFilter: 'blur(8px)' }}>After</div>
         {/* Slide badge */}
         <div style={{ position: 'absolute', top: 20, left: 20, background: 'rgba(237,207,135,0.96)', color: 'var(--forest)', padding: '6px 16px', borderRadius: 99, fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', zIndex: 20 }}>
           {MAKEOVER_SLIDES[activeSlide].tag}
+        </div>
+        {/* Dot indicators */}
+        <div style={{ position: 'absolute', bottom: 16, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 7, zIndex: 20 }}>
+          {MAKEOVER_SLIDES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveSlide(i)}
+              aria-label={`Show slide ${i + 1}`}
+              style={{
+                width: i === activeSlide ? 22 : 7, height: 7,
+                borderRadius: 99, border: 'none', padding: 0, cursor: 'pointer',
+                background: i === activeSlide ? 'var(--gold)' : 'rgba(255,255,255,0.45)',
+                transition: 'width 0.35s ease, background 0.35s ease',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+              }}
+            />
+          ))}
         </div>
       </div>
       {/* Thumbnail strip */}
@@ -417,10 +385,10 @@ const GreenMakeoverSlider = () => {
         {MAKEOVER_SLIDES.map((slide, i) => (
           <button
             key={i}
-            onClick={() => { setActiveSlide(i); posRef.current = 50; setSliderPos(50); animDirRef.current = 1; }}
+            onClick={() => setActiveSlide(i)}
             style={{ flex: 1, position: 'relative', cursor: 'pointer', background: 'transparent', border: 'none', padding: 0, overflow: 'hidden', borderBottom: i === activeSlide ? '3px solid var(--gold)' : '3px solid rgba(255,255,255,0.1)', transition: 'all 0.3s ease', outline: 'none' }}
           >
-            <img src={slide.after} alt={`${slide.label} garden transformation thumbnail`} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: i === activeSlide ? 'brightness(1)' : 'brightness(0.4)' }} />
+            <img src={slide.img} alt={`${slide.label} thumbnail`} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: i === activeSlide ? 'brightness(1)' : 'brightness(0.4)' }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 8 }}>
               <span style={{ color: '#fff', fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{slide.label}</span>
             </div>

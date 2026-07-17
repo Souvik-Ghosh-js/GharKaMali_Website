@@ -39,6 +39,7 @@ const NAV_COLS = [
       { href: '/shop/orders', label: 'Track Orders' },
       { href: '/login', label: 'Sign In' },
       { href: '/terms', label: 'Terms & Privacy' },
+      { href: '/legal', label: 'Legal Information' },
       { href: '/careers', label: 'Join as Gardener' },
     ],
   },
