@@ -8,16 +8,16 @@ import Footer from '@/components/Footer';
 import { useAuth } from '@/store/auth';
 import { getMyOrders } from '@/lib/api';
 
-const IcBox = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>;
-const IcArrow = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>;
-const IcCheck = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>;
-const IcTruck = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>;
+const IcBox = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg>;
+const IcArrow = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>;
+const IcCheck = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>;
+const IcTruck = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>;
 
 function downloadBill(order: any) {
   const isUP = (order.shipping_state || order.shipping_city || '').toLowerCase().includes('uttar pradesh') ||
-               (order.shipping_address || '').toLowerCase().includes('noida') ||
-               (order.shipping_address || '').toLowerCase().includes('greater noida') ||
-               (order.shipping_address || '').toLowerCase().includes('uttar pradesh');
+    (order.shipping_address || '').toLowerCase().includes('noida') ||
+    (order.shipping_address || '').toLowerCase().includes('greater noida') ||
+    (order.shipping_address || '').toLowerCase().includes('uttar pradesh');
   const gstAmt = Number(order.gst_amount || 0);
   const subtotal = Number(order.total_amount) - gstAmt;
   const customerName = order.customer?.name || order.customer_name || order.customerName || order.billing_business_name || 'Customer';
@@ -33,9 +33,9 @@ function downloadBill(order: any) {
     </tr>`).join('');
 
   const gstRows = order.apply_gst && gstAmt > 0 ? (isUP ? `
-    <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">SGST (${gstRate/2}%)</td><td style="padding:6px 8px;text-align:right">₹${halfGst.toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr>
-    <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">CGST (${gstRate/2}%)</td><td style="padding:6px 8px;text-align:right">₹${halfGst.toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr>` : `
-    <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">IGST (${gstRate}%)</td><td style="padding:6px 8px;text-align:right">₹${gstAmt.toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr>`) : '';
+    <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">SGST (${gstRate / 2}%)</td><td style="padding:6px 8px;text-align:right">₹${halfGst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>
+    <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">CGST (${gstRate / 2}%)</td><td style="padding:6px 8px;text-align:right">₹${halfGst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>` : `
+    <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">IGST (${gstRate}%)</td><td style="padding:6px 8px;text-align:right">₹${gstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>`) : '';
 
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${order.order_number}</title>
   <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;color:#1a2e1a;background:#fff;padding:40px}
@@ -56,10 +56,10 @@ function downloadBill(order: any) {
   @media print{body{padding:20px}}</style></head>
   <body>
   <div class="header">
-    <div><div class="logo">🌿 Plantura Care Pvt Ltd</div><div class="tag">Trusted plant care and gardening services</div>
+    <div><div class="logo"> Plantura Care Pvt Ltd</div><div class="tag">Trusted plant care and gardening services</div>
     <div style="margin-top:8px;font-size:11px;color:#6b8f71">GSTIN: 09AAQCP7633P1ZD<br>Noida, Uttar Pradesh — 201301</div></div>
     <div class="inv-title"><h2>TAX INVOICE</h2><p>#${order.order_number}</p>
-    <p style="margin-top:8px">${new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</p>
+    <p style="margin-top:8px">${new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
     <div class="badge" style="margin-top:8px">${order.payment_status?.toUpperCase() || 'PAID'}</div></div>
   </div>
   <div class="grid">
@@ -71,12 +71,12 @@ function downloadBill(order: any) {
   </div>
   <table><thead><tr><th>Product</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Amount</th></tr></thead>
   <tbody>${rows}
-  <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555;border-top:1px solid #e8f0e8">Subtotal</td><td style="padding:6px 8px;text-align:right;border-top:1px solid #e8f0e8">₹${subtotal.toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr>
+  <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555;border-top:1px solid #e8f0e8">Subtotal</td><td style="padding:6px 8px;text-align:right;border-top:1px solid #e8f0e8">₹${subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>
   ${gstRows}
   <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">Shipping</td><td style="padding:6px 8px;text-align:right;color:#16a34a;font-weight:700">FREE</td></tr>
   </tbody>
-  <tfoot><tr class="total-row"><td colspan="3">Total Amount</td><td>₹${Number(order.total_amount).toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr></tfoot></table>
-  ${order.apply_gst && gstAmt > 0 ? `<div class="note">💡 <strong>GST Note:</strong> ${isUP ? `SGST @ ${gstRate/2}% + CGST @ ${gstRate/2}% applied (intra-state — Uttar Pradesh).` : `IGST @ ${gstRate}% applied (inter-state supply).`} Subject to reverse charge: No. This is a computer-generated invoice and does not require a physical signature.</div>` : ''}
+  <tfoot><tr class="total-row"><td colspan="3">Total Amount</td><td>₹${Number(order.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr></tfoot></table>
+  ${order.apply_gst && gstAmt > 0 ? `<div class="note">💡 <strong>GST Note:</strong> ${isUP ? `SGST @ ${gstRate / 2}% + CGST @ ${gstRate / 2}% applied (intra-state — Uttar Pradesh).` : `IGST @ ${gstRate}% applied (inter-state supply).`} Subject to reverse charge: No. This is a computer-generated invoice and does not require a physical signature.</div>` : ''}
   <div class="footer">Plantura Care Pvt Ltd · support@gharkamali.com · gharkamali.com<br>Thank you for your order! 🌿</div>
   </body></html>`;
 
@@ -133,7 +133,7 @@ export default function OrderDetailPage() {
       <Navbar />
       <div className="order-details-main" style={{ minHeight: '100svh', background: 'var(--bg)', paddingTop: 'calc(var(--nav-h) + 60px)', paddingBottom: 100, overflowX: 'clip' }}>
         <div className="container">
-          
+
           {/* Header row */}
           <div className="order-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40, flexWrap: 'wrap', gap: 24 }}>
             <div>
@@ -155,14 +155,14 @@ export default function OrderDetailPage() {
               </div>
               <button onClick={() => downloadBill(order)}
                 style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'var(--forest)', color: '#fff', border: 'none', borderRadius: 12, fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'var(--font-body)', boxShadow: '0 4px 14px rgba(3,65,26,0.2)' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
                 Download Bill
               </button>
             </div>
           </div>
 
           <div className="order-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32 }}>
-            
+
             {/* Left Column: Items */}
             <div style={{ minWidth: 0 }}>
               <div style={{ background: '#fff', borderRadius: 32, border: '1.5px solid var(--border)', overflow: 'hidden', boxShadow: 'var(--sh-sm)' }}>
@@ -188,12 +188,12 @@ export default function OrderDetailPage() {
                   ))}
                 </div>
               </div>
-              
+
               {/* Gardener Visits Associated with Order */}
               {order.mali_bookings?.length > 0 && (
                 <div style={{ marginTop: 24, background: '#fff', borderRadius: 32, border: '1.5px solid var(--border)', overflow: 'hidden', boxShadow: 'var(--sh-sm)' }}>
                   <div style={{ padding: '20px 32px', borderBottom: '1px solid var(--border)', background: 'rgba(3,65,26,0.03)', display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" /><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" /></svg>
                     <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--forest)' }}>Assigned Gardener Visits</h3>
                   </div>
                   <div style={{ padding: '0 32px' }}>
@@ -205,8 +205,8 @@ export default function OrderDetailPage() {
                             <div style={{ fontSize: '0.65rem', fontWeight: 800, padding: '3px 10px', borderRadius: 8, background: 'var(--bg-elevated)', color: 'var(--forest)', textTransform: 'uppercase', border: '1px solid var(--border)' }}>{b.status}</div>
                           </div>
                           <div style={{ fontSize: '1.05rem', color: 'var(--text)', fontWeight: 800, marginBottom: 6 }}>
-                             {new Date(b.scheduled_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                             {b.scheduled_time && <span style={{ color: 'var(--gold-deep)' }}> at {b.scheduled_time}</span>}
+                            {new Date(b.scheduled_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {b.scheduled_time && <span style={{ color: 'var(--gold-deep)' }}> at {b.scheduled_time}</span>}
                           </div>
                           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--sage)', fontWeight: 600, lineHeight: 1.5 }} className="truncate">{b.service_address}</p>
                         </div>
@@ -301,7 +301,7 @@ export default function OrderDetailPage() {
 
             {/* Right Column: Summaries */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>
-              
+
               {/* Payment Info */}
               <div className="summary-card" style={{ background: 'var(--bg-elevated)', borderRadius: 32, padding: 32, border: '1.5px solid var(--border-mid)' }}>
                 <h4 style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 20 }}>Order Summary</h4>
@@ -319,12 +319,12 @@ export default function OrderDetailPage() {
                       </div>
                       {order.apply_gst && gstAmt > 0 && (isUP ? (<>
                         <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>SGST ({gstRate/2}%)</span>
-                          <span style={{ fontWeight: 700 }}>₹{(gstAmt/2).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                          <span style={{ color: 'var(--text-muted)' }}>SGST ({gstRate / 2}%)</span>
+                          <span style={{ fontWeight: 700 }}>₹{(gstAmt / 2).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                         </div>
                         <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>CGST ({gstRate/2}%)</span>
-                          <span style={{ fontWeight: 700 }}>₹{(gstAmt/2).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                          <span style={{ color: 'var(--text-muted)' }}>CGST ({gstRate / 2}%)</span>
+                          <span style={{ fontWeight: 700 }}>₹{(gstAmt / 2).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                         </div>
                       </>) : (
                         <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
@@ -362,7 +362,7 @@ export default function OrderDetailPage() {
               <div className="address-card" style={{ background: '#fff', borderRadius: 32, padding: 32, border: '1.5px solid var(--border)', boxShadow: 'var(--sh-xs)' }}>
                 <h4 style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Delivery Address</h4>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text)', lineHeight: 1.7, fontWeight: 500 }}>
-                  {order.shipping_address}<br/>
+                  {order.shipping_address}<br />
                   {order.shipping_city} {order.shipping_pincode}
                 </p>
                 {order.notes && (

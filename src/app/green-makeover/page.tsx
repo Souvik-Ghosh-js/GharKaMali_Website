@@ -1,11 +1,11 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
 
-const WA_URL = 'https://wa.me/919876543210?text=Hi%20GharKaMali!%20I%20want%20to%20know%20about%20the%20Green%20Makeover%20package.';
+const WA_URL = 'https://wa.me/919643701701?text=Hi%20GharKaMali!%20I%20want%20to%20know%20about%20the%20Green%20Makeover%20package.';
 
 /* ── SVG ICONS ── */
 const Ic = {

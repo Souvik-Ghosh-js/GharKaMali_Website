@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import Link from 'next/link';
 import { SHOP_ENABLED } from '@/lib/features';
 
@@ -9,7 +9,7 @@ const IcYT = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="current
 const IcFacebook = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>;
 const IcLinkedIn = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect x="2" y="9" width="4" height="12" /><circle cx="4" cy="4" r="2" /></svg>;
 
-const WA_URL = 'https://wa.me/919876543210?text=Hi%20GharKaMali!%20I%20want%20to%20book%20a%20gardener%20visit.';
+const WA_URL = 'https://wa.me/919643701701?text=Hi%20GharKaMali!%20I%20want%20to%20book%20a%20gardener%20visit.';
 
 const NAV_COLS = [
   {
@@ -192,9 +192,14 @@ export default function Footer() {
           flexWrap: 'wrap',
           gap: 12,
         }}>
-          <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            &copy; {new Date().getFullYear()} Plantura Care Pvt Ltd. Trusted plant care and gardening services.
-          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <span style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--forest)', letterSpacing: '0.01em' }}>
+              Plantura Care Pvt. Ltd.
+            </span>
+            <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+              &copy; {new Date().getFullYear()} All rights reserved.
+            </span>
+          </div>
           <div style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#16A34A', boxShadow: '0 0 10px rgba(22,163,74,0.4)', animation: 'pulse-dot 2s infinite' }} />

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
@@ -548,7 +548,7 @@ const HOW_STEPS = [
   { step: '03', Icon: IcLeaf, title: 'Relax while our expert takes care of your plants', desc: 'Sit back and let our trained mali handle watering, pruning, pest check, and more.' },
 ];
 
-const WA_URL = 'https://wa.me/919876543210?text=Hi%20GharKaMali!%20I%20want%20to%20book%20a%20gardener%20visit%20for%20my%20home.';
+const WA_URL = 'https://wa.me/919643701701?text=Hi%20GharKaMali!%20I%20want%20to%20book%20a%20gardener%20visit%20for%20my%20home.';
 
 /* ── HERO SLIDESHOW ── */
 const HeroSlideshow = () => {

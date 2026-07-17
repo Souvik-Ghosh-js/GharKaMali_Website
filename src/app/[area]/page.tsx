@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: { area: string } })
   };
 }
 
-const WA_URL = 'https://wa.me/919876543210?text=Hi%20GharKaMali!%20I%20want%20to%20book%20a%20gardener%20visit.';
+const WA_URL = 'https://wa.me/919643701701?text=Hi%20GharKaMali!%20I%20want%20to%20book%20a%20gardener%20visit.';
 
 const FEATURES = [
   { icon: '🌿', title: 'Up to 10 plants serviced', desc: 'Complete care for all your plants in a single visit.' },

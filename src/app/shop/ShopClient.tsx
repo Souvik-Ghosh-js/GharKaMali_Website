@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -76,7 +76,7 @@ const IcLeaf = () => (
 );
 
 const WA_URL =
-  "https://wa.me/919876543210?text=Hi%20GharKaMali!%20I%20want%20to%20know%20more%20about%20a%20product.";
+  "https://wa.me/919643701701?text=Hi%20GharKaMali!%20I%20want%20to%20know%20more%20about%20a%20product.";
 const PAGE_SIZE = 24;
 
 // Build the windowed page list: 1 … (cur-1) cur (cur+1) … last

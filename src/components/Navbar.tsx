@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -566,7 +566,7 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'var(--forest)', color: '#fff', borderRadius: 10, fontSize: '0.68rem', fontWeight: 700, textDecoration: 'none' }}><Ic.Apple /> iOS</a>
               <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'var(--forest)', color: '#fff', borderRadius: 10, fontSize: '0.68rem', fontWeight: 700, textDecoration: 'none' }}><Ic.Android /> Android</a>
-              <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'rgba(37,211,102,0.12)', color: '#25D366', borderRadius: 10, fontSize: '0.68rem', fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(37,211,102,0.2)' }}><Ic.WA /> WhatsApp</a>
+              <a href="https://wa.me/919643701701" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'rgba(37,211,102,0.12)', color: '#25D366', borderRadius: 10, fontSize: '0.68rem', fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(37,211,102,0.2)' }}><Ic.WA /> WhatsApp</a>
             </div>
           </div>
         </div>

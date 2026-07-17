@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -390,7 +390,7 @@ export default function PlansPage() {
               <h3 style={{ fontWeight: 700, fontSize: '1.4rem', marginBottom: 8, color: 'var(--forest)' }}>100% Satisfaction Guarantee</h3>
               <p style={{ color: 'var(--sage)', fontSize: '1rem', lineHeight: 1.8, fontWeight:500 }}>Not completely wowed by your visit? We’ll send a replacement expert free of charge within 24 hours. Your garden’s happiness is our priority.</p>
             </div>
-            <a href="https://wa.me/919876543210" className="btn btn-primary" style={{ padding:'18px 36px', borderRadius:18, fontWeight:900 }}>Discuss with Concierge</a>
+            <a href="https://wa.me/919643701701" className="btn btn-primary" style={{ padding:'18px 36px', borderRadius:18, fontWeight:900 }}>Discuss with Concierge</a>
           </div>
 
           {/* Professional vs Normal Gardener Comparison */}
