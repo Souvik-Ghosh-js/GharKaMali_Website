@@ -597,17 +597,15 @@ const HeroSlideshow = () => {
 
 /* ── MARQUEE ── */
 const Marquee = () => {
+  const cityItems = SERVICEABLE_CITIES.map(city => ({
+    text: city.active ? `Serving: ${city.name}` : `🚀 Coming Soon: ${city.name}`,
+    Icon: IcMap,
+  }));
   const items = [
     { text: '1200+ Homes Served', Icon: IcShield },
     { text: 'Verified Experts', Icon: IcShield },
     { text: '4.9 ⭐ Rating', Icon: IcStar },
-    { text: 'Serving: Noida', Icon: IcMap },
-    { text: 'Serving: Greater Noida West', Icon: IcMap },
-    { text: 'Serving: Greater Noida', Icon: IcMap },
-    { text: 'Serving: Ghaziabad', Icon: IcMap },
-    { text: 'Serving: Gurgaon', Icon: IcMap },
-    { text: 'Serving: Delhi', Icon: IcMap },
-    { text: '🚀 Coming Soon: Faridabad', Icon: IcMap },
+    ...cityItems,
   ];
   return (
     <div style={{ background: 'var(--forest)', padding: '20px 0', overflow: 'hidden', borderTop: '1px solid rgba(255,255,255,0.1)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
@@ -636,17 +634,18 @@ const SERVICEABLE_CITIES = [
 ];
 
 const CityMarquee = () => {
+  const services = SERVICE_ITEMS.map((item) => ({ title: item.title, Icon: item.Icon }));
   return (
     <div style={{ background: 'var(--bg-elevated)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '14px 0', overflow: 'hidden' }}>
       <div className="marquee-container" style={{ gap: '60px' }}>
         <div className="marquee-scroller" style={{ animationDuration: '30s', gap: '80px' }}>
           {[...Array(4)].map((_, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '80px' }}>
-              {SERVICEABLE_CITIES.map((city, zi) => (
+              {services.map((service, zi) => (
                 <div key={zi} style={{ display: 'flex', alignItems: 'center', gap: '12px', whiteSpace: 'nowrap' }}>
-                  <span style={{ color: city.active ? 'var(--earth)' : 'var(--sage)' }}><IcMap /></span>
-                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: city.active ? 'var(--forest)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-                    {city.active ? `NOW SERVING: ${city.name}` : `🚀 COMING SOON — ${city.name}`}
+                  <span style={{ color: 'var(--earth)' }}><service.Icon /></span>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                    {service.title}
                   </span>
                 </div>
               ))}

@@ -32,6 +32,13 @@ export const getPlanPrice = (plan: any, zone?: any): string => {
   return num.toLocaleString('en-IN');
 };
 
-// '/mo' for subscriptions, '/visit' for on-demand.
+export const isAnnualPlan = (plan: any): boolean =>
+  Number(plan?.duration_days) >= 360 ||
+  /-annual$/i.test(plan?.slug || '') ||
+  /\(annual\)/i.test(plan?.name || '');
+
+// '/year' for annual subscriptions, '/mo' for monthly subscriptions, '/visit' for on-demand.
 export const priceSuffix = (plan: any): string =>
-  plan?.plan_type === 'subscription' ? '/mo' : '/visit';
+  plan?.plan_type === 'subscription'
+    ? isAnnualPlan(plan) ? '/year' : '/mo'
+    : '/visit';

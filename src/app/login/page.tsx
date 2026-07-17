@@ -13,9 +13,11 @@ function LoginForm() {
   const redirect = params.get('redirect') ?? '/dashboard';
   const { login, isAuthenticated, isLoading } = useAuth();
 
-  const [step, setStep] = useState<'phone' | 'otp'>('phone');
+  const [step, setStep] = useState<'phone' | 'otp' | 'name'>('phone');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
+  const [name, setName] = useState('');
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(false);
   const [resendIn, setResendIn] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -62,15 +64,42 @@ function LoginForm() {
     const code = otp.replace(/\D/g, '');
     if (code.length < 4) { toast.error('Enter the OTP you received'); return; }
     setLoading(true);
-    let location: { lat: number; lng: number } | null = null;
-    try { location = await getLocation(); } catch { /* location optional */ }
+    let loc: { lat: number; lng: number } | null = null;
+    try { loc = await getLocation(); setLocation(loc); } catch { /* location optional */ }
     try {
-      const res: any = await verifyOtp(c, code, undefined, location?.lat, location?.lng);
+      const res: any = await verifyOtp(c, code, undefined, loc?.lat, loc?.lng);
+      if (res?.requires_name) {
+        setStep('name');
+        toast.success('Please enter your name to continue');
+        return;
+      }
       login(res.user, res.token);
       toast.success('Welcome to GharKaMali!');
       router.replace(redirect);
     } catch (e: any) {
       toast.error(e?.message || 'Invalid OTP. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitName = async () => {
+    const c = phone.replace(/\D/g, '');
+    const code = otp.replace(/\D/g, '');
+    const trimmed = name.trim();
+    if (!trimmed) { toast.error('Enter your full name'); return; }
+    setLoading(true);
+    try {
+      const res: any = await verifyOtp(c, code, trimmed, location?.lat, location?.lng);
+      if (res?.requires_name) {
+        toast.error('Name is still required. Please enter a valid name.');
+        return;
+      }
+      login(res.user, res.token);
+      toast.success('Welcome to GharKaMali!');
+      router.replace(redirect);
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not complete login. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -113,7 +142,7 @@ function LoginForm() {
                 {loading ? <div className="btn-spinner" style={{ borderTopColor: '#fff' }} /> : 'Send OTP →'}
               </button>
             </>
-          ) : (
+          ) : step === 'otp' ? (
             <>
               <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem', marginBottom: 6, letterSpacing: '-0.02em' }}>Verify OTP</h1>
               <p style={{ color: 'var(--text-muted)', marginBottom: 28, fontSize: '0.9rem' }}>
@@ -135,6 +164,27 @@ function LoginForm() {
               <button onClick={handleSendOtp} disabled={loading || resendIn > 0}
                 style={{ background: 'none', border: 'none', color: resendIn > 0 ? 'var(--text-faint)' : 'var(--forest)', fontWeight: 600, cursor: resendIn > 0 ? 'default' : 'pointer', fontSize: '0.85rem', marginTop: 14, width: '100%', textAlign: 'center' }}>
                 {resendIn > 0 ? `Resend OTP in ${resendIn}s` : 'Resend OTP'}
+              </button>
+            </>
+          ) : (
+            <>
+              <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem', marginBottom: 6, letterSpacing: '-0.02em' }}>Complete your profile</h1>
+              <p style={{ color: 'var(--text-muted)', marginBottom: 28, fontSize: '0.9rem' }}>Enter your name to finish signing in.</p>
+              <div className="form-group">
+                <label className="form-label">Full Name</label>
+                <input type="text" value={name}
+                  onChange={e => setName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSubmitName()}
+                  placeholder="John Doe" autoFocus
+                  style={{ width: '100%', padding: '14px', border: '1.5px solid var(--border-mid)', borderRadius: 'var(--r)', background: 'var(--bg)', outline: 'none', fontFamily: 'var(--font-body)', fontSize: '1rem', color: 'var(--text)' }} />
+              </div>
+              <button onClick={handleSubmitName} disabled={loading || name.trim().length === 0}
+                className="btn btn-forest w-full" style={{ justifyContent: 'center', padding: '14px' }}>
+                {loading ? <div className="btn-spinner" style={{ borderTopColor: '#fff' }} /> : 'Continue →'}
+              </button>
+              <button onClick={() => setStep('otp')} disabled={loading}
+                style={{ background: 'none', border: 'none', color: 'var(--forest)', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', marginTop: 14, width: '100%', textAlign: 'center' }}>
+                Back to OTP
               </button>
             </>
           )}
