@@ -193,7 +193,7 @@ export default function Footer() {
           gap: 12,
         }}>
           <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            &copy; {new Date().getFullYear()} GharKaMali. Professional gardening made simple.
+            &copy; {new Date().getFullYear()} Plantura Care Pvt Ltd. Trusted plant care and gardening services.
           </span>
           <div style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

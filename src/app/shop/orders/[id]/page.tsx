@@ -20,6 +20,7 @@ function downloadBill(order: any) {
                (order.shipping_address || '').toLowerCase().includes('uttar pradesh');
   const gstAmt = Number(order.gst_amount || 0);
   const subtotal = Number(order.total_amount) - gstAmt;
+  const customerName = order.customer?.name || order.customer_name || order.customerName || order.billing_business_name || 'Customer';
   const gstRate = order.items?.[0]?.product?.gst_rate || 0;
   const halfGst = gstAmt / 2;
 
@@ -55,7 +56,7 @@ function downloadBill(order: any) {
   @media print{body{padding:20px}}</style></head>
   <body>
   <div class="header">
-    <div><div class="logo">🌿 GharKaMali</div><div class="tag">Professional Plant Care Services</div>
+    <div><div class="logo">🌿 Plantura Care Pvt Ltd</div><div class="tag">Trusted plant care and gardening services</div>
     <div style="margin-top:8px;font-size:11px;color:#6b8f71">GSTIN: 09AAQCP7633P1ZD<br>Noida, Uttar Pradesh — 201301</div></div>
     <div class="inv-title"><h2>TAX INVOICE</h2><p>#${order.order_number}</p>
     <p style="margin-top:8px">${new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</p>
@@ -63,7 +64,7 @@ function downloadBill(order: any) {
   </div>
   <div class="grid">
     <div><div class="section-label">Bill To</div>
-    <div class="section-val">${order.billing_business_name ? `<strong>${order.billing_business_name}</strong><br>` : ''}${order.shipping_address || '—'}<br>${order.shipping_city || ''} ${order.shipping_pincode || ''}<br>${order.shipping_state || ''}</div>
+    <div class="section-val"><strong>${customerName}</strong><br>${order.shipping_address || '—'}<br>${order.shipping_city || ''} ${order.shipping_pincode || ''}<br>${order.shipping_state || ''}</div>
     ${order.billing_gstin ? `<div style="margin-top:8px;font-size:12px"><strong>GSTIN:</strong> ${order.billing_gstin}</div>` : ''}</div>
     <div><div class="section-label">Order Info</div>
     <div class="section-val">Order Date: ${new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN')}<br>Order No: ${order.order_number}<br>Payment: ${order.payment_status || 'Paid'}</div></div>
@@ -76,7 +77,7 @@ function downloadBill(order: any) {
   </tbody>
   <tfoot><tr class="total-row"><td colspan="3">Total Amount</td><td>₹${Number(order.total_amount).toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr></tfoot></table>
   ${order.apply_gst && gstAmt > 0 ? `<div class="note">💡 <strong>GST Note:</strong> ${isUP ? `SGST @ ${gstRate/2}% + CGST @ ${gstRate/2}% applied (intra-state — Uttar Pradesh).` : `IGST @ ${gstRate}% applied (inter-state supply).`} Subject to reverse charge: No. This is a computer-generated invoice and does not require a physical signature.</div>` : ''}
-  <div class="footer">GharKaMali · info@gharkamali.com · +91-9999999999 · gharkamali.com<br>Thank you for your order! 🌿</div>
+  <div class="footer">Plantura Care Pvt Ltd · support@gharkamali.com · gharkamali.com<br>Thank you for your order! 🌿</div>
   </body></html>`;
 
   const win = window.open('', '_blank');

@@ -74,6 +74,7 @@ function downloadBookingBill(booking: any) {
   const halfGst = gstAmt / 2;
   const baseAmt = Number(booking.base_amount) || subtotal;
   const addons = Array.isArray(booking.addons) ? booking.addons : [];
+  const customerName = booking.customer?.name || booking.customer_name || booking.customerName || booking.customer?.full_name || booking.customer_info?.name || 'Customer';
 
   const lines = [
     { name: `Gardener Visit${booking.plan?.name ? ` — ${booking.plan.name}` : ''} (${booking.plant_count || 0} plants)`, amount: baseAmt },
@@ -105,7 +106,7 @@ function downloadBookingBill(booking: any) {
   @media print{body{padding:20px}}</style></head>
   <body>
   <div class="header">
-    <div><div class="logo">🌿 GharKaMali</div><div class="tag">Professional Plant Care Services</div>
+    <div><div class="logo">🌿 Plantura Care Pvt Ltd</div><div class="tag">Trusted plant care and gardening services</div>
     <div style="margin-top:8px;font-size:11px;color:#6b8f71">GSTIN: 09AAQCP7633P1ZD<br>Noida, Uttar Pradesh — 201301</div></div>
     <div class="inv-title"><h2>TAX INVOICE</h2><p>#${booking.booking_number}</p>
     <p style="margin-top:8px">${new Date(booking.created_at || Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Kolkata'})}</p>
@@ -113,7 +114,7 @@ function downloadBookingBill(booking: any) {
   </div>
   <div class="grid">
     <div><div class="section-label">Bill To</div>
-    <div class="section-val">${booking.customer?.name || ''}<br>${booking.service_address || '—'}</div></div>
+    <div class="section-val"><strong>${customerName}</strong><br>${booking.service_address || '—'}</div></div>
     <div><div class="section-label">Booking Info</div>
     <div class="section-val">Booking No: ${booking.booking_number}<br>Date: ${booking.scheduled_date || ''} ${booking.scheduled_time || ''}<br>Payment: ${booking.payment_status || 'Paid'}</div></div>
   </div>
@@ -124,7 +125,7 @@ function downloadBookingBill(booking: any) {
   </tbody>
   <tfoot><tr class="total-row"><td>Total Amount</td><td>₹${total.toLocaleString('en-IN',{minimumFractionDigits:2})}</td></tr></tfoot></table>
   <div class="note">💡 <strong>GST Note:</strong> ${isUP ? 'SGST @ 9% + CGST @ 9% applied (intra-state — Uttar Pradesh).' : 'IGST @ 18% applied (inter-state supply).'} This is a computer-generated invoice and does not require a physical signature.</div>
-  <div class="footer">GharKaMali · info@gharkamali.com · gharkamali.com<br>Thank you for choosing GharKaMali! 🌿</div>
+  <div class="footer">Plantura Care Pvt Ltd · support@gharkamali.com · gharkamali.com<br>Thank you for choosing Plantura Care Pvt Ltd! 🌿</div>
   </body></html>`;
 
   const win = window.open('', '_blank');
