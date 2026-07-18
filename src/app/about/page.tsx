@@ -39,28 +39,20 @@ const STATS = [
 
 const TEAM = [
   {
-    name: 'Rohan Kapoor',
-    role: 'Co-Founder & CEO',
-    specialty: '🌿 Urban Gardening',
-    bio: 'Rohan started GharKaMali after watching his own balcony plants die for lack of reliable help. He believes every home deserves a living green corner.',
+    name: 'Abhishek Kumar Singh',
+    role: 'Founder & CEO',
+    label: 'Founder',
+    bio: 'Abhishek Kumar Singh founded GharKaMali with a vision to organize India\'s fragmented home gardening industry through technology. With over seven years of experience in sales, operations, and business development across leading organizations, he is building GharKaMali into a trusted consumer brand that simplifies plant care for urban households. His long-term vision is to make GharKaMali India\'s largest technology-enabled home gardening platform while creating sustainable livelihood opportunities for professional gardeners.',
     headerColor: 'linear-gradient(135deg, var(--forest) 0%, #065e28 100%)',
     accentColor: 'var(--forest)',
   },
   {
-    name: 'Anjali Mehra',
-    role: 'Head of Operations',
-    specialty: '🌸 Plant Health Expert',
-    bio: 'With a background in horticulture, Anjali oversees our gardener network, quality standards, and ensures every customer visit exceeds expectations.',
-    headerColor: 'linear-gradient(135deg, #96794f 0%, #7a5f38 100%)',
+    name: 'Snigdha Singh',
+    role: 'Co-Founder',
+    label: 'Co-Founder',
+    bio: 'Snigdha Singh co-founded GharKaMali with a passion for creating greener homes and exceptional customer experiences. She leads customer experience, brand development, and service quality, ensuring every customer receives reliable, professional, and delightful plant care. She shares the vision of making gardening accessible and enjoyable for every household in India.',
+    headerColor: 'linear-gradient(135deg, #7a5f38 0%, #96794f 100%)',
     accentColor: 'var(--earth)',
-  },
-  {
-    name: 'Dev Singh Rawat',
-    role: 'Technology Lead',
-    specialty: '💡 Product & Growth',
-    bio: 'Dev builds the platform that connects plant parents with expert gardeners, making the booking experience as smooth and delightful as possible.',
-    headerColor: 'linear-gradient(135deg, #0f4c5c 0%, #083d4c 100%)',
-    accentColor: '#0f4c5c',
   },
 ];
 
@@ -314,37 +306,55 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 28 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
             {TEAM.map((member, i) => (
               <div key={i} className="team-card-item"
-                style={{ borderRadius: 28, overflow: 'hidden', background: '#fff', boxShadow: 'var(--sh-md)', border: '1.5px solid var(--border-gold)', transition: 'all 0.38s cubic-bezier(0.22,1,0.36,1)', cursor: 'default' }}
-                onMouseEnter={e => { const el = e.currentTarget; el.style.transform = 'translateY(-14px)'; el.style.boxShadow = '0 32px 80px rgba(3,65,26,0.22)'; }}
+                style={{
+                  borderRadius: 24,
+                  background: '#fff',
+                  boxShadow: 'var(--sh-md)',
+                  border: '1.5px solid var(--border-gold)',
+                  transition: 'all 0.35s cubic-bezier(0.22,1,0.36,1)',
+                  cursor: 'default',
+                  display: 'flex',
+                  overflow: 'hidden',
+                }}
+                onMouseEnter={e => { const el = e.currentTarget; el.style.transform = 'translateY(-6px)'; el.style.boxShadow = '0 24px 64px rgba(3,65,26,0.18)'; }}
                 onMouseLeave={e => { const el = e.currentTarget; el.style.transform = ''; el.style.boxShadow = 'var(--sh-md)'; }}
               >
-                {/* Colored header */}
-                <div style={{ height: 120, background: member.headerColor, position: 'relative', overflow: 'hidden' }}>
-                  {/* decorative large leaf in header bg */}
-                  <div style={{ position: 'absolute', right: -20, top: -20, opacity: 0.12, transform: 'scale(5) rotate(20deg)', color: '#fff', pointerEvents: 'none' }}><IcLeaf /></div>
-                  {/* small badge top-left */}
-                  <div style={{ position: 'absolute', top: 14, left: 16, background: 'rgba(255,255,255,0.18)', borderRadius: 99, padding: '4px 12px', fontSize: '0.65rem', fontWeight: 800, color: '#fff', letterSpacing: '0.1em', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.2)' }}>
-                    {member.specialty}
+                {/* Left accent strip + avatar column */}
+                <div style={{
+                  width: 180,
+                  flexShrink: 0,
+                  background: member.headerColor,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 14,
+                  padding: '32px 20px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}>
+                  {/* decorative leaf bg */}
+                  <div style={{ position: 'absolute', bottom: -24, right: -24, opacity: 0.1, transform: 'scale(6) rotate(20deg)', color: '#fff', pointerEvents: 'none' }}><IcLeaf /></div>
+                  {/* Avatar */}
+                  <div style={{ width: 76, height: 76, borderRadius: '50%', background: 'rgba(255,255,255,0.18)', border: '3px solid rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', position: 'relative', zIndex: 1 }}>
+                    <IcPerson size={38} />
+                  </div>
+                  {/* Label pill */}
+                  <div style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 99, padding: '4px 12px', fontSize: '0.6rem', fontWeight: 900, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.14em', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+                    {member.label}
                   </div>
                 </div>
 
-                {/* Avatar bridging header + content */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: -40, position: 'relative', zIndex: 2 }}>
-                  <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#fff', border: '4px solid #fff', boxShadow: `0 8px 28px ${member.accentColor}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', transition: 'box-shadow 0.3s ease' }}>
-                    <div style={{ width: 72, height: 72, borderRadius: '50%', background: `${member.headerColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                      <IcPerson size={36} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div style={{ padding: '16px 26px 30px', textAlign: 'center' }}>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--forest)', marginBottom: 4 }}>{member.name}</h3>
-                  <div style={{ display: 'inline-block', background: `${member.accentColor}18`, color: member.accentColor, borderRadius: 99, padding: '4px 14px', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16, border: `1px solid ${member.accentColor}30` }}>
-                    {member.role}
+                {/* Right content */}
+                <div style={{ flex: 1, padding: '28px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                    <h3 style={{ fontSize: 'clamp(1rem, 1.8vw, 1.25rem)', fontWeight: 900, color: 'var(--forest)', margin: 0 }}>{member.name}</h3>
+                    <span style={{ background: `${member.accentColor}15`, color: member.accentColor, borderRadius: 99, padding: '3px 12px', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', border: `1px solid ${member.accentColor}28`, whiteSpace: 'nowrap' }}>
+                      {member.role}
+                    </span>
                   </div>
                   <p style={{ color: 'var(--text-2)', lineHeight: 1.75, fontSize: '0.88rem', fontWeight: 500, margin: 0 }}>{member.bio}</p>
                 </div>
@@ -408,7 +418,11 @@ export default function AboutPage() {
 
       <style jsx global>{`
         @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.7;transform:scale(1.35)} }
-        .team-card-item:hover > div:nth-child(2) > div { box-shadow: 0 12px 36px rgba(3,65,26,0.3) !important; }
+        @media (max-width: 600px) {
+          .team-card-item { flex-direction: column !important; }
+          .team-card-item > div:first-child { width: 100% !important; flex-direction: row !important; padding: 20px 24px !important; gap: 16px !important; justify-content: flex-start !important; }
+          .team-card-item > div:last-child { padding: 20px 24px 28px !important; }
+        }
       `}</style>
     </SmoothScrollProvider>
   );
