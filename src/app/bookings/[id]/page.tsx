@@ -106,7 +106,8 @@ function downloadBookingBill(booking: any) {
   @media print{body{padding:20px}}</style></head>
   <body>
   <div class="header">
-    <div><div class="logo"> Plantura Care Pvt Ltd</div><div class="tag">Trusted plant care and gardening services</div>
+    <div><img src="${typeof window !== 'undefined' ? window.location.origin : ''}/logo.png" alt="GharKaMali" style="height:44px;margin-bottom:6px"/>
+    <div class="logo">GharKaMali</div><div class="tag">A unit of Plantura Care Pvt Ltd · Trusted plant care and gardening services</div>
     <div style="margin-top:8px;font-size:11px;color:#6b8f71">GSTIN: 09AAQCP7633P1ZD<br>Noida, Uttar Pradesh — 201301</div></div>
     <div class="inv-title"><h2>TAX INVOICE</h2><p>#${booking.booking_number}</p>
     <p style="margin-top:8px">${new Date(booking.created_at || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })}</p>
@@ -125,7 +126,7 @@ function downloadBookingBill(booking: any) {
   </tbody>
   <tfoot><tr class="total-row"><td>Total Amount</td><td>₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr></tfoot></table>
   <div class="note">💡 <strong>GST Note:</strong> ${isUP ? 'SGST @ 9% + CGST @ 9% applied (intra-state — Uttar Pradesh).' : 'IGST @ 18% applied (inter-state supply).'} This is a computer-generated invoice and does not require a physical signature.</div>
-  <div class="footer">Plantura Care Pvt Ltd · support@gharkamali.com · gharkamali.com<br>Thank you for choosing Plantura Care Pvt Ltd! 🌿</div>
+  <div class="footer">GharKaMali (a unit of Plantura Care Pvt Ltd) · support@gharkamali.com · gharkamali.com<br>Thank you for choosing GharKaMali! 🌿</div>
   </body></html>`;
 
   const win = window.open('', '_blank');
