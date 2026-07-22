@@ -6,83 +6,21 @@ import { useQuery } from '@tanstack/react-query';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/store/auth';
-import { getMyOrders } from '@/lib/api';
+import { getMyOrders, downloadInvoice } from '@/lib/api';
 
 const IcBox = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg>;
 const IcArrow = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>;
 const IcCheck = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>;
 const IcTruck = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>;
 
-function downloadBill(order: any) {
-  const isUP = (order.shipping_state || order.shipping_city || '').toLowerCase().includes('uttar pradesh') ||
-    (order.shipping_address || '').toLowerCase().includes('noida') ||
-    (order.shipping_address || '').toLowerCase().includes('greater noida') ||
-    (order.shipping_address || '').toLowerCase().includes('uttar pradesh');
-  const gstAmt = Number(order.gst_amount || 0);
-  const subtotal = Number(order.total_amount) - gstAmt;
-  const customerName = order.customer?.name || order.customer_name || order.customerName || order.billing_business_name || 'Customer';
-  const gstRate = order.items?.[0]?.product?.gst_rate || 0;
-  const halfGst = gstAmt / 2;
-
-  const rows = (order.items || []).map((item: any) => `
-    <tr>
-      <td style="padding:10px 8px;border-bottom:1px solid #e8f0e8">${item.product?.name || 'Product'}</td>
-      <td style="padding:10px 8px;border-bottom:1px solid #e8f0e8;text-align:center">${item.quantity}</td>
-      <td style="padding:10px 8px;border-bottom:1px solid #e8f0e8;text-align:right">₹${Number(item.price).toLocaleString('en-IN')}</td>
-      <td style="padding:10px 8px;border-bottom:1px solid #e8f0e8;text-align:right">₹${(item.quantity * Number(item.price)).toLocaleString('en-IN')}</td>
-    </tr>`).join('');
-
-  const gstRows = order.apply_gst && gstAmt > 0 ? (isUP ? `
-    <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">SGST (${gstRate / 2}%)</td><td style="padding:6px 8px;text-align:right">₹${halfGst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>
-    <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">CGST (${gstRate / 2}%)</td><td style="padding:6px 8px;text-align:right">₹${halfGst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>` : `
-    <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">IGST (${gstRate}%)</td><td style="padding:6px 8px;text-align:right">₹${gstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>`) : '';
-
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${order.order_number}</title>
-  <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;color:#1a2e1a;background:#fff;padding:40px}
-  .header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:2px solid #03411a;margin-bottom:24px}
-  .logo{font-size:24px;font-weight:900;color:#03411a;letter-spacing:-0.5px}.tag{font-size:11px;color:#6b8f71;font-weight:600;margin-top:2px}
-  .inv-title{text-align:right}.inv-title h2{font-size:22px;font-weight:800;color:#03411a}.inv-title p{font-size:12px;color:#6b8f71;margin-top:4px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px}
-  .section-label{font-size:10px;font-weight:700;color:#6b8f71;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-  .section-val{font-size:13px;color:#1a2e1a;line-height:1.6}
-  table{width:100%;border-collapse:collapse;margin-bottom:16px}
-  th{background:#03411a;color:#fff;padding:10px 8px;text-align:left;font-size:12px;font-weight:700}
-  th:last-child,th:nth-child(3){text-align:right}th:nth-child(2){text-align:center}
-  .total-row td{padding:10px 8px;font-weight:800;font-size:15px;color:#03411a;border-top:2px solid #03411a}
-  .total-row td:first-child{text-align:right}
-  .footer{margin-top:40px;padding-top:20px;border-top:1px solid #e8f0e8;text-align:center;font-size:11px;color:#6b8f71}
-  .badge{display:inline-block;padding:3px 10px;background:#dcfce7;color:#16a34a;border-radius:99px;font-size:11px;font-weight:700}
-  .note{background:#f0f7f2;border-radius:8px;padding:14px;font-size:12px;color:#3d6147;margin-top:16px;line-height:1.6}
-  @media print{body{padding:20px}}</style></head>
-  <body>
-  <div class="header">
-    <div><img src="${typeof window !== 'undefined' ? window.location.origin : ''}/logo.png" alt="GharKaMali" style="height:44px;margin-bottom:6px"/>
-    <div class="logo">GharKaMali</div><div class="tag">Plantura Care Pvt Ltd · Trusted plant care and gardening services</div>
-    <div style="margin-top:8px;font-size:11px;color:#6b8f71">GSTIN: 09AAQCP7633P1ZD<br>Noida, Uttar Pradesh — 201301</div></div>
-    <div class="inv-title"><h2>TAX INVOICE</h2><p>#${order.order_number}</p>
-    <p style="margin-top:8px">${new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-    <div class="badge" style="margin-top:8px">${order.payment_status?.toUpperCase() || 'PAID'}</div></div>
-  </div>
-  <div class="grid">
-    <div><div class="section-label">Bill To</div>
-    <div class="section-val"><strong>${customerName}</strong><br>${order.shipping_address || '—'}<br>${order.shipping_city || ''} ${order.shipping_pincode || ''}<br>${order.shipping_state || ''}</div>
-    ${order.billing_gstin ? `<div style="margin-top:8px;font-size:12px"><strong>GSTIN:</strong> ${order.billing_gstin}</div>` : ''}</div>
-    <div><div class="section-label">Order Info</div>
-    <div class="section-val">Order Date: ${new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN')}<br>Order No: ${order.order_number}<br>Payment: ${order.payment_status || 'Paid'}</div></div>
-  </div>
-  <table><thead><tr><th>Product</th><th style="text-align:center">Qty</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Amount</th></tr></thead>
-  <tbody>${rows}
-  <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555;border-top:1px solid #e8f0e8">Subtotal</td><td style="padding:6px 8px;text-align:right;border-top:1px solid #e8f0e8">₹${subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>
-  ${gstRows}
-  <tr><td colspan="3" style="padding:6px 8px;text-align:right;color:#555">Shipping</td><td style="padding:6px 8px;text-align:right;color:#16a34a;font-weight:700">FREE</td></tr>
-  </tbody>
-  <tfoot><tr class="total-row"><td colspan="3">Total Amount</td><td>₹${Number(order.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr></tfoot></table>
-  ${order.apply_gst && gstAmt > 0 ? `<div class="note">💡 <strong>GST Note:</strong> ${isUP ? `SGST @ ${gstRate / 2}% + CGST @ ${gstRate / 2}% applied (intra-state — Uttar Pradesh).` : `IGST @ ${gstRate}% applied (inter-state supply).`} Subject to reverse charge: No. This is a computer-generated invoice and does not require a physical signature.</div>` : ''}
-  <div class="footer">GharKaMali (Plantura Care Pvt Ltd) · support@gharkamali.com · gharkamali.com<br>Thank you for your order! 🌿</div>
-  </body></html>`;
-
-  const win = window.open('', '_blank');
-  if (win) { win.document.write(html); win.document.close(); win.focus(); setTimeout(() => win.print(), 500); }
+// Download the official tax invoice PDF from the backend — the single source of
+// truth shared by the website, admin dashboard and mobile app.
+async function downloadBill(order: any) {
+  try {
+    await downloadInvoice('shop/orders', order.id, `invoice-${order.order_number || order.id}.pdf`);
+  } catch (e: any) {
+    alert(e?.message || 'Could not download the invoice. Please try again.');
+  }
 }
 
 const STATUS_COLORS: Record<string, string> = {

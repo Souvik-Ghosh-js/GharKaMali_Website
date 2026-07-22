@@ -6,6 +6,39 @@ export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://gkm.gobt.in/
 export const getToken = () =>
   typeof window !== 'undefined' ? localStorage.getItem('gkm_token') : null;
 
+/**
+ * Download the official tax-invoice PDF from the backend.
+ *
+ * The backend is the SINGLE source of truth for invoices — admin, website and
+ * the mobile app all download this same document, so they can never drift.
+ * (Previously the website built its own print-HTML; that has been removed.)
+ */
+export async function downloadInvoice(
+  kind: 'bookings' | 'subscriptions' | 'shop/orders',
+  id: number | string,
+  fallbackName = 'invoice.pdf',
+): Promise<void> {
+  const headers: Record<string, string> = {};
+  const t = getToken();
+  if (t) headers['Authorization'] = `Bearer ${t}`;
+  const res = await fetch(`${API_BASE}/${kind}/${id}/invoice`, { headers });
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({}));
+    throw new Error(j?.message || `Could not download invoice (${res.status})`);
+  }
+  const cd = res.headers.get('Content-Disposition') || '';
+  const m = cd.match(/filename="?([^"]+)"?/i);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = m ? m[1] : fallbackName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export class ApiError extends Error {
   constructor(public message: string, public status: number, public data?: any) {
     super(message);

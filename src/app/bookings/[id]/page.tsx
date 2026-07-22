@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/store/auth';
-import { getBooking, cancelBooking, rateBooking, rescheduleBooking, getTimeAddons, requestTimeAddon } from '@/lib/api';
+import { getBooking, cancelBooking, rateBooking, rescheduleBooking, getTimeAddons, requestTimeAddon, downloadInvoice } from '@/lib/api';
 import { payWithRazorpay } from '@/lib/razorpay';
 
 /* ─── Icons ──────────────────────────────────────────────────────────────────── */
@@ -63,74 +63,14 @@ function StarRating({ value, onChange }: { value: number; onChange: (n: number) 
   );
 }
 
-// Generate a printable TAX INVOICE for a booking. total_amount is GST-inclusive
-// (18% added at booking time), so the tax split is derived from it.
-function downloadBookingBill(booking: any) {
-  const addr = (booking.service_address || '').toLowerCase();
-  const isUP = addr.includes('uttar pradesh') || addr.includes('noida') || addr.includes('ghaziabad');
-  const total = Number(booking.total_amount) || 0;
-  const subtotal = Math.round((total / 1.18) * 100) / 100; // taxable value
-  const gstAmt = Math.round((total - subtotal) * 100) / 100;
-  const halfGst = gstAmt / 2;
-  const baseAmt = Number(booking.base_amount) || subtotal;
-  const addons = Array.isArray(booking.addons) ? booking.addons : [];
-  const customerName = booking.customer?.name || booking.customer_name || booking.customerName || booking.customer?.full_name || booking.customer_info?.name || 'Customer';
-
-  const lines = [
-    { name: `Gardener Visit${booking.plan?.name ? ` — ${booking.plan.name}` : ''} (${booking.plant_count || 0} plants)`, amount: baseAmt },
-    ...addons.map((a: any) => ({ name: a.addon?.name || 'Add-on', amount: (Number(a.price) || Number(a.addon?.price) || 0) * (a.quantity || 1) })),
-  ];
-  const rows = lines.map(l => `
-    <tr><td style="padding:10px 8px;border-bottom:1px solid #e8f0e8">${l.name}</td>
-    <td style="padding:10px 8px;border-bottom:1px solid #e8f0e8;text-align:right">₹${l.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>`).join('');
-
-  const gstRows = isUP ? `
-    <tr><td style="padding:6px 8px;text-align:right;color:#555">SGST (9%)</td><td style="padding:6px 8px;text-align:right">₹${halfGst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>
-    <tr><td style="padding:6px 8px;text-align:right;color:#555">CGST (9%)</td><td style="padding:6px 8px;text-align:right">₹${halfGst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>` : `
-    <tr><td style="padding:6px 8px;text-align:right;color:#555">IGST (18%)</td><td style="padding:6px 8px;text-align:right">₹${gstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>`;
-
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${booking.booking_number}</title>
-  <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',sans-serif;color:#1a2e1a;background:#fff;padding:40px}
-  .header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:2px solid #03411a;margin-bottom:24px}
-  .logo{font-size:24px;font-weight:900;color:#03411a;letter-spacing:-0.5px}.tag{font-size:11px;color:#6b8f71;font-weight:600;margin-top:2px}
-  .inv-title{text-align:right}.inv-title h2{font-size:22px;font-weight:800;color:#03411a}.inv-title p{font-size:12px;color:#6b8f71;margin-top:4px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px}
-  .section-label{font-size:10px;font-weight:700;color:#6b8f71;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-  .section-val{font-size:13px;color:#1a2e1a;line-height:1.6}
-  table{width:100%;border-collapse:collapse;margin-bottom:16px}
-  th{background:#03411a;color:#fff;padding:10px 8px;text-align:left;font-size:12px;font-weight:700}th:last-child{text-align:right}
-  .total-row td{padding:10px 8px;font-weight:800;font-size:15px;color:#03411a;border-top:2px solid #03411a}.total-row td:first-child{text-align:right}
-  .footer{margin-top:40px;padding-top:20px;border-top:1px solid #e8f0e8;text-align:center;font-size:11px;color:#6b8f71}
-  .badge{display:inline-block;padding:3px 10px;background:#dcfce7;color:#16a34a;border-radius:99px;font-size:11px;font-weight:700}
-  .note{background:#f0f7f2;border-radius:8px;padding:14px;font-size:12px;color:#3d6147;margin-top:16px;line-height:1.6}
-  @media print{body{padding:20px}}</style></head>
-  <body>
-  <div class="header">
-    <div><img src="${typeof window !== 'undefined' ? window.location.origin : ''}/logo.png" alt="GharKaMali" style="height:44px;margin-bottom:6px"/>
-    <div class="logo">GharKaMali</div><div class="tag">Plantura Care Pvt Ltd · Trusted plant care and gardening services</div>
-    <div style="margin-top:8px;font-size:11px;color:#6b8f71">GSTIN: 09AAQCP7633P1ZD<br>Noida, Uttar Pradesh — 201301</div></div>
-    <div class="inv-title"><h2>TAX INVOICE</h2><p>#${booking.booking_number}</p>
-    <p style="margin-top:8px">${new Date(booking.created_at || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })}</p>
-    <div class="badge" style="margin-top:8px">${(booking.payment_status || 'PAID').toUpperCase()}</div></div>
-  </div>
-  <div class="grid">
-    <div><div class="section-label">Bill To</div>
-    <div class="section-val"><strong>${customerName}</strong><br>${booking.service_address || '—'}</div></div>
-    <div><div class="section-label">Booking Info</div>
-    <div class="section-val">Booking No: ${booking.booking_number}<br>Date: ${booking.scheduled_date || ''} ${booking.scheduled_time || ''}<br>Payment: ${booking.payment_status || 'Paid'}</div></div>
-  </div>
-  <table><thead><tr><th>Description</th><th style="text-align:right">Amount</th></tr></thead>
-  <tbody>${rows}
-  <tr><td style="padding:6px 8px;text-align:right;color:#555;border-top:1px solid #e8f0e8">Subtotal (excl. GST)</td><td style="padding:6px 8px;text-align:right;border-top:1px solid #e8f0e8">₹${subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr>
-  ${gstRows}
-  </tbody>
-  <tfoot><tr class="total-row"><td>Total Amount</td><td>₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td></tr></tfoot></table>
-  <div class="note">💡 <strong>GST Note:</strong> ${isUP ? 'SGST @ 9% + CGST @ 9% applied (intra-state — Uttar Pradesh).' : 'IGST @ 18% applied (inter-state supply).'} This is a computer-generated invoice and does not require a physical signature.</div>
-  <div class="footer">GharKaMali (Plantura Care Pvt Ltd) · support@gharkamali.com · gharkamali.com<br>Thank you for choosing GharKaMali! 🌿</div>
-  </body></html>`;
-
-  const win = window.open('', '_blank');
-  if (win) { win.document.write(html); win.document.close(); win.focus(); setTimeout(() => win.print(), 500); }
+// Download the official tax invoice PDF from the backend — the single source of
+// truth shared by the website, admin dashboard and mobile app.
+async function downloadBookingBill(booking: any) {
+  try {
+    await downloadInvoice('bookings', booking.id, `invoice-${booking.booking_number || booking.id}.pdf`);
+  } catch (e: any) {
+    alert(e?.message || 'Could not download the invoice. Please try again.');
+  }
 }
 
 export default function BookingDetailPage() {
