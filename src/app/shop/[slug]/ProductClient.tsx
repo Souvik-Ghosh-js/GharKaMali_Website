@@ -115,6 +115,7 @@ export default function ProductClient({ slug, initialProduct }: Props) {
         name: product.name,
         price,
         mrp,
+        gst_rate: Number(product.gst_rate) || 0,
         category: product.category?.name || 'General',
         icon: product.icon_key || 'default',
       });

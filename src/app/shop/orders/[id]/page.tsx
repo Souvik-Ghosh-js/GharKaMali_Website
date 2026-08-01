@@ -256,7 +256,7 @@ export default function OrderDetailPage() {
                         <span style={{ color: 'var(--text-muted)' }}>Subtotal</span>
                         <span style={{ fontWeight: 700 }}>₹{subtotal.toLocaleString('en-IN')}</span>
                       </div>
-                      {order.apply_gst && gstAmt > 0 && (isUP ? (<>
+                      {gstAmt > 0 && (isUP ? (<>
                         <div className="summary-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
                           <span style={{ color: 'var(--text-muted)' }}>SGST ({gstRate / 2}%)</span>
                           <span style={{ fontWeight: 700 }}>₹{(gstAmt / 2).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>

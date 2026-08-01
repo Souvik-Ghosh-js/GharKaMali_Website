@@ -428,6 +428,7 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
       name: p.name,
       price: Number(p.price),
       mrp: Number(p.mrp),
+      gst_rate: Number(p.gst_rate) || 0,
       category: p.category?.name || "General",
       icon: p.icon_key || "default",
     });

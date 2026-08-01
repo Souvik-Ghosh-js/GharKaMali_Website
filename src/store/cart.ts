@@ -9,6 +9,7 @@ export interface CartItem {
   price: number;
   mrp: number;
   qty: number;
+  gst_rate?: number; // products: GST % added on top of price at checkout
   category: string;
   icon: string; // SVG path data or identifier
   type?: 'product' | 'service';

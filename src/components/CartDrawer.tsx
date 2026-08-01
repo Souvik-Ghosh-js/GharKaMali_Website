@@ -139,8 +139,13 @@ export default function CartDrawer() {
 
   const total = totalItems();
   const price = totalPrice();
+  // GST is always charged on products (added on top of the listed price).
+  // Service prices in the cart are already GST-inclusive — no extra GST here.
+  const productGst = Math.round(items
+    .filter(i => !i.type || i.type === 'product')
+    .reduce((s, i) => s + i.price * i.qty * (Number(i.gst_rate) || 0) / 100, 0) * 100) / 100;
   const discount = appliedCoupon ? Math.min(appliedCoupon.discount, productSubtotal) : 0;
-  const payable = Math.max(0, price - discount);
+  const payable = Math.max(0, price + productGst - discount);
 
   const applyCoupon = async (codeArg?: string) => {
     const code = (codeArg ?? couponInput).trim();
@@ -517,6 +522,12 @@ export default function CartDrawer() {
                   <span>Subtotal ({items.length === total ? `${total} ${total === 1 ? 'item' : 'items'}` : `${items.length} ${items.length === 1 ? 'product' : 'products'} · ${total} items`})</span>
                   <span style={{ fontWeight: 800 }}>₹{price.toLocaleString('en-IN')}</span>
                 </div>
+                {productGst > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.9rem', color: 'var(--text-2)' }}>
+                    <span>GST</span>
+                    <span style={{ fontWeight: 800 }}>+ ₹{productGst.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 18, fontSize: '0.9rem', color: 'var(--text-2)' }}>
                   <span>Delivery Cost</span>
                   <span style={{ fontWeight: 800, color: 'var(--forest-mid)' }}>FREE</span>
@@ -659,8 +670,8 @@ export default function CartDrawer() {
                         style={{ width: 18, height: 18, marginTop: 2, accentColor: 'var(--forest)', cursor: 'pointer', flexShrink: 0 }}
                       />
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--forest)' }}>Claim GST Invoice</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--sage)' }}>For business purchases. We'll issue a tax invoice with your GSTIN.</div>
+                        <div style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--forest)' }}>Add GSTIN for input credit</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--sage)' }}>GST is already included in your total. Businesses can add their GSTIN so the tax invoice supports an input-credit claim.</div>
                       </div>
                     </label>
 
