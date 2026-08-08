@@ -317,7 +317,7 @@ export default function ServicesPage() {
 
   return (
     <SmoothScrollProvider>
-      <Navbar />
+      <Navbar transparent />
 
       {/* Hero */}
       <section style={{
