@@ -1,0 +1,7 @@
+# Force the canonical domain: anyone landing on the free Netlify subdomain is
+# 301-redirected to the same path on gharkamali.com. Requests already on
+# gharkamali.com don't match these host-scoped rules, so there is no loop.
+# (Razorpay only allows payments from registered domains — this stops payment
+# attempts originating from gkmapp.netlify.app.)
+https://gkmapp.netlify.app/* https://gharkamali.com/:splat 301!
+http://gkmapp.netlify.app/* https://gharkamali.com/:splat 301!
