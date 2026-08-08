@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -9,6 +9,8 @@ import toast from "react-hot-toast";
 import { getShopCategories, getShopProductsPaged } from "@/lib/api";
 import { slugify } from "@/lib/slug";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
+import ProductCard from "@/components/ProductCard";
+import { useInView } from "react-intersection-observer";
 
 const IcSearch = ({ className = "" }) => (
   <svg
@@ -206,16 +208,19 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const { addItem, items, openCart, totalItems, updateQty, removeItem } =
-    useCart();
+  const [loadingMore, setLoadingMore] = useState(false);
+  const { openCart, totalItems } = useCart();
   const heroRef = useRef<HTMLDivElement>(null);
   const listTopRef = useRef<HTMLDivElement>(null);
+  const { ref: loadMoreRef, inView } = useInView();
 
-  const goPage = (n: number) => {
-    if (n < 1 || n > pages || n === page) return;
-    setPage(n);
-    listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  useEffect(() => {
+    if (inView && !loading && !loadingMore && page < pages) {
+      setPage(prev => prev + 1);
+    }
+  }, [inView, loading, loadingMore, page, pages]);
+
+
 
   useEffect(() => {
     setMounted(true);
@@ -343,27 +348,6 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
               },
             },
           );
-          card.addEventListener("mouseenter", () =>
-            gsap.to(card, {
-              y: -8,
-              rotateX: -5,
-              rotateY: 3,
-              transformPerspective: 900,
-              duration: 0.3,
-              ease: "power2.out",
-              boxShadow: "0 24px 60px rgba(3,65,26,0.25)",
-            }),
-          );
-          card.addEventListener("mouseleave", () =>
-            gsap.to(card, {
-              y: 0,
-              rotateX: 0,
-              rotateY: 0,
-              duration: 0.4,
-              ease: "power3.out",
-              boxShadow: "var(--sh-sm)",
-            }),
-          );
         });
         ScrollTrigger.refresh();
       };
@@ -399,41 +383,43 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
   // all pages). The 250ms debounce + cleanup cancels the stale fetch that fires
   // momentarily when a filter change also resets the page.
   useEffect(() => {
-    setLoading(true);
+    if (page === 1) setLoading(true);
+    else setLoadingMore(true);
+
     const params: any = { page, limit: PAGE_SIZE };
     if (cat !== "All") params.category = cat;
     if (search) params.search = search;
     if (sort && sort !== "featured") params.sort = sort;
+    
     const t = setTimeout(() => {
       getShopProductsPaged(params)
         .then(({ items, total, pages }) => {
-          setProducts(items);
+          if (page === 1) {
+            setProducts(items);
+          } else {
+            setProducts(prev => {
+                const newItems = items.filter((i: any) => !prev.some(p => p.id === i.id));
+                return [...prev, ...newItems];
+            });
+          }
           setTotal(total);
           setPages(pages);
         })
         .catch(() => {
-          setProducts([]);
-          setTotal(0);
-          setPages(1);
+          if (page === 1) {
+            setProducts([]);
+            setTotal(0);
+            setPages(1);
+          }
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          setLoading(false);
+          setLoadingMore(false);
+        });
     }, 250);
     return () => clearTimeout(t);
   }, [cat, search, sort, page]);
 
-  const getQty = (id: number) => items.find((i) => i.id === id)?.qty ?? 0;
-  const handleAdd = (p: any) => {
-    addItem({
-      id: p.id,
-      name: p.name,
-      price: Number(p.price),
-      mrp: Number(p.mrp),
-      gst_rate: Number(p.gst_rate) || 0,
-      category: p.category?.name || "General",
-      icon: p.icon_key || "default",
-    });
-    toast.success(`${p.name} added!`, { duration: 1800 });
-  };
   const cartCount = mounted ? totalItems() : 0;
 
   return (
@@ -1012,413 +998,16 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
                 width: "100%",
               }}
             >
-              {products.map((p, i) => {
-                const qty = getQty(p.id);
-                const price = Number(p.price),
-                  mrp = Number(p.mrp);
-                const disc =
-                  mrp > price ? Math.round((1 - price / mrp) * 100) : 0;
-                return (
-                  <div
-                    key={p.id}
-                    className="product-tile card"
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "stretch",
-                      padding: 0,
-                      borderRadius: 24,
-                      gap: 0,
-                      overflow: "hidden",
-                      animation: `fade-up 0.5s var(--ease) ${i * 40}ms both`,
-                    }}
-                  >
-                    <Link
-                      href={`/shop/${p.slug || p._id || p.id}`}
-                      style={{ textDecoration: "none", display: "block" }}
-                    >
-                      {/* Image Area */}
-                      <div
-                        className="product-img-area"
-                        style={{
-                          width: "100%",
-                          height: 200,
-                          background:
-                            "linear-gradient(135deg, #f0f7f2 0%, #e8f5ed 100%)",
-                          overflow: "hidden",
-                          flexShrink: 0,
-                          borderBottom: "1px solid var(--border)",
-                          position: "relative",
-                        }}
-                      >
-                        {p.images?.[0] || p.thumbnail ? (
-                          <img
-                            src={p.images?.[0] || p.thumbnail}
-                            alt={p.name}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                            onError={(e) => {
-                              (
-                                e.currentTarget as HTMLImageElement
-                              ).style.display = "none";
-                            }}
-                          />
-                        ) : (
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              height: "100%",
-                              opacity: 0.2,
-                            }}
-                          >
-                            <IcLeaf />
-                          </div>
-                        )}
-                        {disc > 0 && (
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: 12,
-                              right: 12,
-                              padding: "4px 12px",
-                              background: "#dcfce7",
-                              color: "#16a34a",
-                              borderRadius: 99,
-                              fontSize: "0.68rem",
-                              fontWeight: 900,
-                              boxShadow: "var(--sh-sm)",
-                            }}
-                          >
-                            {disc}% OFF
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Content Area */}
-                      <div
-                        style={{
-                          padding: "16px 16px 0",
-                          display: "flex",
-                          flexDirection: "column",
-                        }}
-                      >
-                        <div style={{ marginBottom: 4 }}>
-                          <span
-                            style={{
-                              fontSize: "0.68rem",
-                              color: "var(--earth)",
-                              fontWeight: 800,
-                              textTransform: "uppercase",
-                              letterSpacing: "0.08em",
-                            }}
-                          >
-                            {typeof p.category === "string"
-                              ? p.category
-                              : p.category?.name || "General"}
-                          </span>
-                        </div>
-                        <h3
-                          style={{
-                            fontSize: "1.15rem",
-                            color: "var(--forest)",
-                            fontWeight: 900,
-                            marginBottom: 8,
-                            letterSpacing: "-0.01em",
-                            lineHeight: 1.2,
-                          }}
-                        >
-                          {p.name}
-                        </h3>
-
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            marginBottom: 12,
-                            minHeight: 18,
-                          }}
-                        >
-                          {Number(p.rating) > 0 ? (
-                            <>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 2,
-                                }}
-                              >
-                                {[1, 2, 3, 4, 5].map((n) => (
-                                  <IcStar key={n} />
-                                ))}
-                              </div>
-                              <span
-                                style={{
-                                  fontSize: "0.72rem",
-                                  fontWeight: 800,
-                                  color: "var(--forest)",
-                                }}
-                              >
-                                {Number(p.rating).toFixed(1)}
-                              </span>
-                              {p.review_count > 0 && (
-                                <span
-                                  style={{
-                                    fontSize: "0.7rem",
-                                    color: "var(--text-muted)",
-                                  }}
-                                >
-                                  ({p.review_count})
-                                </span>
-                              )}
-                            </>
-                          ) : (
-                            <span
-                              style={{
-                                fontSize: "0.72rem",
-                                fontWeight: 700,
-                                color: "var(--text-muted)",
-                                fontStyle: "italic",
-                              }}
-                            >
-                              Not rated yet
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-
-                    <div
-                      style={{
-                        padding: "0 16px 16px",
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                      }}
-                    >
-                      <div
-                        style={{
-                          marginTop: "auto",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          borderTop: "1px solid var(--border)",
-                          paddingTop: 16,
-                        }}
-                      >
-                        <div>
-                          <div
-                            className="price-val"
-                            style={{
-                              fontWeight: 900,
-                              fontSize: "1.25rem",
-                              color: "var(--forest)",
-                              lineHeight: 1,
-                            }}
-                          >
-                            ₹{price.toLocaleString("en-IN")}
-                          </div>
-                          {mrp > price && (
-                            <div
-                              style={{
-                                fontSize: "0.7rem",
-                                color: "var(--text-faint)",
-                                textDecoration: "line-through",
-                                marginTop: 2,
-                              }}
-                            >
-                              ₹{mrp.toLocaleString("en-IN")}
-                            </div>
-                          )}
-                        </div>
-
-                        <div>
-                          {qty > 0 ? (
-                            <div
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 8,
-                                background: "var(--bg-elevated)",
-                                borderRadius: 10,
-                                padding: "4px 8px",
-                                border: "1.5px solid var(--border-mid)",
-                              }}
-                            >
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  qty > 1
-                                    ? updateQty(p.id, qty - 1)
-                                    : removeItem(p.id);
-                                }}
-                                style={{
-                                  width: 28,
-                                  height: 28,
-                                  borderRadius: 8,
-                                  background: "#fff",
-                                  border: "1px solid var(--border)",
-                                  color: "var(--forest)",
-                                  fontWeight: 900,
-                                  fontSize: "1rem",
-                                  cursor: "pointer",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                −
-                              </button>
-                              <span
-                                style={{
-                                  fontWeight: 800,
-                                  color: "var(--forest)",
-                                  minWidth: 20,
-                                  textAlign: "center",
-                                  fontSize: "0.9rem",
-                                }}
-                              >
-                                {qty}
-                              </span>
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleAdd(p);
-                                }}
-                                style={{
-                                  width: 28,
-                                  height: 28,
-                                  borderRadius: 8,
-                                  background: "var(--forest)",
-                                  border: "none",
-                                  color: "#fff",
-                                  fontWeight: 900,
-                                  fontSize: "1rem",
-                                  cursor: "pointer",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                +
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleAdd(p);
-                              }}
-                              style={{
-                                background: "var(--forest)",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: 10,
-                                padding: "8px 14px",
-                                fontWeight: 800,
-                                fontSize: "0.75rem",
-                                cursor: "pointer",
-                                fontFamily: "var(--font-body)",
-                                boxShadow: "0 4px 12px rgba(3,65,26,0.2)",
-                              }}
-                            >
-                              Add
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {products.map((p, i) => (
+                <ProductCard key={p.id} product={p} index={i} />
+              ))}
             </div>
           )}
 
-          {/* Pagination */}
-          {!loading && pages > 1 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: 6,
-                marginTop: 48,
-                flexWrap: "wrap",
-              }}
-            >
-              <button
-                onClick={() => goPage(page - 1)}
-                disabled={page <= 1}
-                style={{
-                  padding: "9px 16px",
-                  borderRadius: 10,
-                  border: "1.5px solid var(--border)",
-                  background: "#fff",
-                  color: "var(--forest)",
-                  fontWeight: 800,
-                  fontSize: "0.85rem",
-                  cursor: page <= 1 ? "not-allowed" : "pointer",
-                  opacity: page <= 1 ? 0.4 : 1,
-                }}
-              >
-                ‹ Prev
-              </button>
-              {pageList(page, pages).map((n, i) =>
-                n === "…" ? (
-                  <span
-                    key={`e${i}`}
-                    style={{
-                      padding: "0 6px",
-                      color: "var(--text-muted)",
-                      fontWeight: 700,
-                    }}
-                  >
-                    …
-                  </span>
-                ) : (
-                  <button
-                    key={n}
-                    onClick={() => goPage(n as number)}
-                    style={{
-                      minWidth: 40,
-                      padding: "9px 0",
-                      borderRadius: 10,
-                      border: `1.5px solid ${n === page ? "var(--forest)" : "var(--border)"}`,
-                      background: n === page ? "var(--forest)" : "#fff",
-                      color: n === page ? "#fff" : "var(--forest)",
-                      fontWeight: 800,
-                      fontSize: "0.85rem",
-                      cursor: "pointer",
-                      boxShadow:
-                        n === page ? "0 6px 16px rgba(3,65,26,0.2)" : "none",
-                    }}
-                  >
-                    {n}
-                  </button>
-                ),
-              )}
-              <button
-                onClick={() => goPage(page + 1)}
-                disabled={page >= pages}
-                style={{
-                  padding: "9px 16px",
-                  borderRadius: 10,
-                  border: "1.5px solid var(--border)",
-                  background: "#fff",
-                  color: "var(--forest)",
-                  fontWeight: 800,
-                  fontSize: "0.85rem",
-                  cursor: page >= pages ? "not-allowed" : "pointer",
-                  opacity: page >= pages ? 0.4 : 1,
-                }}
-              >
-                Next ›
-              </button>
+          {/* Load More Trigger */}
+          {!loading && page < pages && (
+            <div ref={loadMoreRef} style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+              <div className="spinner" style={{ width: 30, height: 30, border: '3px solid var(--border)', borderTopColor: 'var(--forest)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
             </div>
           )}
 
@@ -1548,13 +1137,13 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
           }
           .product-grid {
             grid-template-columns: repeat(2, 1fr) !important;
-            gap: 12px !important;
+            gap: 10px !important;
           }
           .product-grid .product-tile {
-            border-radius: 18px !important;
+            border-radius: 16px !important;
           }
           .product-img-area {
-            height: 70px !important;
+            height: 150px !important;
           }
           .product-grid .product-tile Link > div:nth-child(2) {
             padding: 12px 12px 0 !important;

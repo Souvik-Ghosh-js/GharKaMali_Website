@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
@@ -13,6 +13,7 @@ import { SHOP_ENABLED } from '@/lib/features';
 import { cleanPlanDescription, planCoverageText, getPlanPrice, priceSuffix } from '@/lib/planHelpers';
 import dynamic from 'next/dynamic';
 import SmoothScrollProvider from '@/components/SmoothScrollProvider';
+import ProductCard from '@/components/ProductCard';
 const ValleyScene = dynamic(() => import('@/components/ValleyScene'), { ssr: false });
 
 /* ── TYPEWRITER — absolutely smooth, zero layout shift ── */
@@ -324,9 +325,9 @@ const BEFORE_AFTER = [
 ];
 
 const MAKEOVER_SLIDES = [
-  { img: '/balcony.jpeg',  label: 'Balcony',  tag: 'Balcony Paradise' },
-  { img: '/indoor.jpeg',   label: 'Indoor',   tag: 'Indoor Sanctuary' },
-  { img: '/terrace.jpeg',  label: 'Terrace',  tag: 'Terrace Garden'   },
+  { img: '/balcony.jpeg', label: 'Balcony', tag: 'Balcony Paradise' },
+  { img: '/indoor.jpeg', label: 'Indoor', tag: 'Indoor Sanctuary' },
+  { img: '/terrace.jpeg', label: 'Terrace', tag: 'Terrace Garden' },
 ];
 
 /* ── GREEN MAKEOVER AUTO SLIDER ── */
@@ -802,25 +803,25 @@ export default function HomePage() {
                 {
                   value: '4.9★',
                   label: 'Rating',
-                  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="#edcf87" stroke="#edcf87" strokeWidth="0.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+                  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="#edcf87" stroke="#edcf87" strokeWidth="0.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
                   accent: 'rgba(237,207,135,0.25)',
                 },
                 {
                   value: <Counter end={1200} suffix="+" />,
                   label: 'Homes Served',
-                  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.8" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+                  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.8" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
                   accent: 'rgba(255,255,255,0.12)',
                 },
                 {
                   value: '✓',
                   label: 'Verified Experts',
-                  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+                  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.8" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>,
                   accent: 'rgba(255,255,255,0.12)',
                 },
                 {
                   value: <Counter end={55} suffix="+" />,
                   label: 'Societies',
-                  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.8" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+                  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="1.8" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>,
                   accent: 'rgba(255,255,255,0.12)',
                 },
               ].map((s, i) => (
@@ -1281,25 +1282,12 @@ export default function HomePage() {
             </div>
             <ScrollMarquee id="shop-track" speed={0.55} gap={24}>
               {[...shopProducts, ...shopProducts].map((p: any, i: number) => (
-                <Link key={`${p._id || p.id}-${i}`} href={`/shop/${p.slug || p._id || p.id}`} className="card shop-card-animate" style={{
-                  padding: 12, borderRadius: 24, display: 'block', textDecoration: 'none',
-                  width: '300px', flexShrink: 0, border: '1px solid var(--border)',
-                  background: '#fff', boxShadow: 'var(--sh-sm)', transition: 'transform 0.3s ease'
-                }}>
-                  <div style={{ position: 'relative', width: '100%', height: 260, borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
-                    {p.thumbnail || p.images?.[0] ? (
-                      <img src={p.thumbnail || p.images?.[0]} alt={p.name || 'GharKaMali product'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <img src="/no-img.svg" alt="No image available" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    )}
-                    <div style={{ position: 'absolute', top: 12, right: 12, background: 'var(--forest)', color: '#fff', fontSize: '0.75rem', padding: '6px 12px', borderRadius: 99, fontWeight: 800, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>₹{p.price}</div>
-                  </div>
-                  <div style={{ padding: '0 4px' }}>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--earth)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{p.category?.name || p.category || 'Premium Care'}</div>
-                    <h3 style={{ fontSize: '0.95rem', color: 'var(--forest)', fontWeight: 900, marginBottom: 10, lineHeight: 1.2 }}>{p.name}</h3>
-                    <div style={{ display: 'flex', gap: 2 }}><Stars /></div>
-                  </div>
-                </Link>
+                <ProductCard
+                  key={`${p._id || p.id}-${i}`}
+                  product={p}
+                  index={i}
+                  style={{ width: 300, flexShrink: 0, padding: 0 }}
+                />
               ))}
             </ScrollMarquee>
           </div>
@@ -1339,6 +1327,46 @@ export default function HomePage() {
       {/* ═══ TESTIMONIALS ═══ */}
       <TestimonialsSection reviews={activeReviews} />
 
+      {/* ═══ SERVICES CTA ═══ */}
+      <section className="section s-reveal" style={{ background: 'linear-gradient(160deg, #021a09 0%, #03411a 70%, #065e28 100%)', position: 'relative', overflow: 'hidden', zIndex: 11 }}>
+        <div style={{ position: 'absolute', top: -100, right: -100, width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(74,222,128,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -60, left: -60, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(74,222,128,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 32 }}>
+            <div style={{ flex: '1 1 400px' }}>
+              <h2 style={{ fontSize: 'clamp(1.5rem, 3.5vw, 2.4rem)', fontWeight: 900, color: '#fff', margin: '0 0 12px', letterSpacing: '-0.03em', lineHeight: 1.15 }}>
+                Not sure which service<br />
+                <span style={{ color: '#4ade80' }}>is right for you?</span>
+              </h2>
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 'clamp(0.875rem, 1.5vw, 1rem)', lineHeight: 1.75, margin: '0 0 0', maxWidth: 460 }}>
+                Browse all 15 gardening services — see exactly what's included, what's not, and get answers to common questions before you book.
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: '0 0 auto' }}>
+              {[
+                { label: 'One-Time Plant Care', tag: 'Most Popular' },
+                { label: 'Monthly Subscription', tag: null },
+                { label: 'Garden Setup & Design', tag: null },
+              ].map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80', flexShrink: 0 }} />
+                  <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.9rem', fontWeight: 500 }}>{item.label}</span>
+                  {item.tag && <span style={{ fontSize: '0.65rem', fontWeight: 800, background: 'rgba(74,222,128,0.15)', color: '#4ade80', borderRadius: 99, padding: '2px 9px' }}>{item.tag}</span>}
+                </div>
+              ))}
+              <div style={{ display: 'flex', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
+                <Link href="/services" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#4ade80', color: '#03411a', padding: '13px 24px', borderRadius: 12, fontWeight: 800, textDecoration: 'none', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+                  Browse All Services
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                </Link>
+                <Link href="/book" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', color: 'rgba(255,255,255,0.7)', padding: '13px 24px', borderRadius: 12, fontWeight: 700, textDecoration: 'none', fontSize: '0.9rem', border: '1.5px solid rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>
+                  Book Now
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ═══ BLOG JOURNAL ═══ */}
       {blogs?.length > 0 && (

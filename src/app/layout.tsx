@@ -53,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="facebook-domain-verification" content="hgaby49xlwkoefj0q4c8pjp8hfdr4q" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
@@ -129,11 +130,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               t.src=v;s=b.getElementsByTagName(e)[0];
               s.parentNode.insertBefore(t,s)}(window,document,'script',
               'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init','1468638878299435');
+              fbq('init','1684127352784578');
               fbq('track','PageView');
             `,
           }}
         />
+        <noscript>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img height="1" width="1" style={{ display: 'none' }} src="https://www.facebook.com/tr?id=1684127352784578&ev=PageView&noscript=1" alt="" />
+        </noscript>
       </head>
       <body>
         <Providers>{children}</Providers>

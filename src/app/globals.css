@@ -8602,3 +8602,12 @@ body {
     line-height: 1.65 !important;
   }
 }
+
+/* ── PRODUCT CARD GLOBALS ── */
+.product-tile {
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out !important;
+}
+.product-tile:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: 0 16px 40px rgba(3,65,26,0.18) !important;
+}

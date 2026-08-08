@@ -46,17 +46,24 @@ export default function SocialProofToast() {
     let isMounted = true;
     async function init() {
       try {
-        // Count every page load as a visit so the live number keeps climbing.
-        const res = await getSocialProof(true);
+        const res = await getSocialProof(false);
         if (!isMounted) return;
         if (res?.enabled !== false && res?.items?.length > 0) {
-          setItems(res.items);
-          setConfig({ interval: res.interval || 8000, delay: res.delay || 5000, duration: res.duration || 5000 });
-          timerRef.current = setTimeout(() => {
-            if (!isMounted) return;
-            setActiveIndex(0);
-            setVisible(true);
-          }, Math.max(1000, res.delay || 5000));
+          // Filter out fake visitor count popups to keep site authentic
+          const validItems = res.items.filter((item: SocialProofItem) => item.type !== 'visitor');
+          if (validItems.length > 0) {
+            setItems(validItems);
+            setConfig({
+              interval: 20000,
+              delay: 15000,
+              duration: 4000
+            });
+            timerRef.current = setTimeout(() => {
+              if (!isMounted) return;
+              setActiveIndex(0);
+              setVisible(true);
+            }, 15000);
+          }
         }
       } catch {}
     }

@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import { useCart } from '@/store/cart';
 import { getShopProducts } from '@/lib/api';
 import toast from 'react-hot-toast';
+import ProductCard from '@/components/ProductCard';
 
 /* ── ICONS ── */
 const IcCart   = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>;
@@ -188,7 +189,7 @@ export default function ProductClient({ slug, initialProduct }: Props) {
                 <img
                   src={images[activeImg] || PLACEHOLDER}
                   alt={product.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '20px', boxSizing: 'border-box', display: 'block' }}
                 />
                 {disc > 0 && (
                   <div style={{ position: 'absolute', top: 14, left: 14, background: '#16a34a', color: '#fff', padding: '5px 12px', borderRadius: 8, fontWeight: 800, fontSize: '0.78rem' }}>
@@ -439,29 +440,9 @@ export default function ProductClient({ slug, initialProduct }: Props) {
                 <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.2rem,2.2vw,1.6rem)', fontWeight: 800, color: 'var(--forest)' }}>You may also like</h2>
                 <Link href="/shop" style={{ color: 'var(--forest)', fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none' }}>View All →</Link>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px,1fr))', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px,1fr))', gap: 16 }}>
                 {related.map((p, i) => (
-                  <Link
-                    key={p.id || i}
-                    href={`/shop/${p.slug || p._id || p.id}`}
-                    className="card"
-                    style={{ display: 'block', textDecoration: 'none', overflow: 'hidden', borderRadius: 14 }}
-                  >
-                    <div style={{ height: 160, overflow: 'hidden', background: 'var(--bg-elevated)' }}>
-                      <img
-                        src={p.images?.[0] || p.thumbnail || '/no-img.svg'}
-                        alt={p.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }}
-                        onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.06)')}
-                        onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                      />
-                    </div>
-                    <div style={{ padding: '10px 12px 12px' }}>
-                      <div style={{ fontSize: '0.62rem', color: 'var(--earth)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 3 }}>{p.category?.name || 'Care'}</div>
-                      <h3 style={{ fontSize: '0.88rem', color: 'var(--forest)', fontWeight: 800, marginBottom: 5, lineHeight: 1.3 }}>{p.name}</h3>
-                      <div style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '0.95rem' }}>₹{Number(p.price).toLocaleString('en-IN')}</div>
-                    </div>
-                  </Link>
+                  <ProductCard key={p.id || i} product={p} index={i} />
                 ))}
               </div>
             </div>
