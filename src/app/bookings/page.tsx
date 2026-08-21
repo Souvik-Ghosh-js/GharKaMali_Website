@@ -143,7 +143,7 @@ export default function BookingsPage() {
                       {b.scheduled_date && (
                         <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           <IcCal /> 
-                          {new Date(b.scheduled_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}
+                          {(b.scheduled_date && !isNaN(new Date(b.scheduled_date).getTime())) ? new Date(b.scheduled_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }) : 'Date to be scheduled'}
                           {b.scheduled_time && ` at ${b.scheduled_time}`}
                         </span>
                       )}

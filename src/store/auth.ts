@@ -30,3 +30,14 @@ export const useAuth = create<AuthState>((set) => ({
     else { set({ isLoading: false }); }
   },
 }));
+
+// When the API rejects the stored token (expired / server secret rotated), the
+// request layer clears storage and fires this event — flip the in-memory state
+// to logged-out too, so the UI (nav, coupon box, checkout) stops showing a
+// phantom session and asks the customer to log in again. No hard redirect: the
+// customer keeps their place on the page (e.g. mid-booking).
+if (typeof window !== 'undefined') {
+  window.addEventListener('gkm:session-expired', () => {
+    useAuth.setState({ user: null, token: null, isAuthenticated: false, isLoading: false });
+  });
+}

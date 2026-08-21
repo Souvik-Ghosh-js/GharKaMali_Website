@@ -191,7 +191,7 @@ export default function SubscriptionsPage() {
                          {sub.next_visit_date && (
                            <div style={{ textAlign: 'center' }}>
                              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Next Visit</div>
-                             <div style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '0.9rem' }}>{new Date(sub.next_visit_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
+                             <div style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '0.9rem' }}>{(sub.next_visit_date && !isNaN(new Date(sub.next_visit_date).getTime())) ? new Date(sub.next_visit_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Not scheduled yet'}</div>
                            </div>
                          )}
                          <div style={{ textAlign: 'center' }}>

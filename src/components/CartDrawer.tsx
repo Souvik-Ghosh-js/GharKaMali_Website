@@ -413,7 +413,18 @@ export default function CartDrawer() {
                           
                           {isService && item.bookingDetails && (
                             <div style={{ fontSize: '0.75rem', color: 'var(--sage)', fontWeight: 600, marginBottom: 8, background: '#fff', padding: '6px 10px', borderRadius: 8, border: '1px solid var(--border-light)' }}>
-                              <div>📅 {new Date(item.bookingDetails.scheduled_date!).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} at {item.bookingDetails.scheduled_time}</div>
+                              <div>📅 {(() => {
+                                // Subscription plans carry no visit date (visits are scheduled after
+                                // purchase) — never render "Invalid Date" for them.
+                                const raw = item.bookingDetails?.scheduled_date;
+                                const d = raw ? new Date(raw) : null;
+                                if (d && !isNaN(d.getTime())) {
+                                  return `${d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}${item.bookingDetails?.scheduled_time ? ` at ${item.bookingDetails.scheduled_time}` : ''}`;
+                                }
+                                return item.bookingDetails?.plan_type?.toLowerCase() === 'subscription'
+                                  ? 'Starts on purchase · visits scheduled after'
+                                  : 'Date to be scheduled';
+                              })()}</div>
                               <div className="truncate">📍 {item.bookingDetails.service_address}</div>
                             </div>
                           )}

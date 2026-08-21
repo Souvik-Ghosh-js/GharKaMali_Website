@@ -58,6 +58,17 @@ async function req<T = any>(path: string, opts: RequestInit & { auth?: boolean; 
     const res = await fetch(`${API_BASE}${path}`, { ...rest, headers, signal: controller.signal });
     clearTimeout(timeoutId);
     const json = await res.json().catch(() => ({}));
+    if (res.status === 401 && auth && getToken()) {
+      // The stored login token was rejected (expired / server secret rotated).
+      // Drop it so the UI flips to the logged-out state and asks for a fresh
+      // login, instead of retrying a dead token forever ("Invalid or expired token").
+      try {
+        localStorage.removeItem('gkm_token');
+        localStorage.removeItem('gkm_user');
+        window.dispatchEvent(new Event('gkm:session-expired'));
+      } catch { /* SSR / storage unavailable */ }
+      throw new ApiError('Your session has expired. Please log in again.', 401, json);
+    }
     if (!res.ok) throw new ApiError(json?.message || `Error ${res.status}`, res.status, json);
     return (json?.data ?? json) as T;
   } catch (error) {
