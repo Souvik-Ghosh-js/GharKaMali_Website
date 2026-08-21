@@ -451,8 +451,15 @@ export const validateCoupon = (code: string, subtotal: number, scope: CouponScop
   req('/coupons/validate', { method: 'POST', body: JSON.stringify({ code, subtotal, scope }) });
 
 // Coupons the logged-in customer can currently apply (for the "available
-// coupons" list at checkout). Optionally filtered to one scope. Returns an array.
-export const getAvailableCoupons = (scope?: CouponScope) => req(`/coupons${scope ? `?scope=${scope}` : ''}`);
+// coupons" list at checkout). Optionally filtered to one scope. When a (pre-GST)
+// subtotal is supplied the server marks each coupon `eligible`/`reason` and
+// fills `discount_amount` with the exact saving, sorted eligible-first.
+// Returns an array.
+export const getAvailableCoupons = (scope?: CouponScope, subtotal?: number) =>
+  req(`/coupons${qs({
+    ...(scope ? { scope } : {}),
+    ...(typeof subtotal === 'number' && Number.isFinite(subtotal) ? { subtotal } : {}),
+  })}`);
 export const getTaglines = () => req('/taglines', { auth: false });
 
 // ─── REVIEWS (public) ─────────────────────────────────────────────────────────

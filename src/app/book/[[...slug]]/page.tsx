@@ -10,6 +10,7 @@ import StateSelect from '@/components/StateSelect';
 import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
 import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, submitContact, validateCoupon, getAvailableCoupons, CouponScope } from '@/lib/api';
+import CouponList, { AvailableCoupon } from '@/components/CouponList';
 import { cleanPlanDescription } from '@/lib/planHelpers';
 import { payWithRazorpay } from '@/lib/razorpay';
 import { v, firstError, sanitize } from '@/lib/validators';
@@ -114,7 +115,7 @@ function BookFlow() {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponMsg, setCouponMsg] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
-  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+  const [availableCoupons, setAvailableCoupons] = useState<AvailableCoupon[]>([]);
 
   const { data: plansRaw } = useQuery({ queryKey: ['plans'], queryFn: getPlans });
   const { data: addonsRaw } = useQuery({ queryKey: ['addons'], queryFn: getAddons });
@@ -324,13 +325,20 @@ function BookFlow() {
     }
   }, [globalZone, zone]);
 
-  // Load coupons the customer can apply for this scope (shown on the review step).
+  // Load coupons for this scope with server-side eligibility + exact savings for
+  // the current (pre-GST) subtotal. Shown on the review step and re-fetched
+  // (debounced) whenever the rounded subtotal or scope changes.
+  const couponSubtotalKey = Math.round(subtotal);
   useEffect(() => {
     if (activeStep !== 5 || !isAuthenticated || !selectedPlan) return;
-    getAvailableCoupons(couponScope)
-      .then((res: any) => setAvailableCoupons(Array.isArray(res) ? res : []))
-      .catch(() => setAvailableCoupons([]));
-  }, [activeStep, isAuthenticated, selectedPlan, couponScope]);
+    let cancelled = false;
+    const t = setTimeout(() => {
+      getAvailableCoupons(couponScope, couponSubtotalKey)
+        .then((res: any) => { if (!cancelled) setAvailableCoupons(Array.isArray(res) ? res : []); })
+        .catch(() => { if (!cancelled) setAvailableCoupons([]); });
+    }, 300);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [activeStep, isAuthenticated, selectedPlan, couponScope, couponSubtotalKey]);
 
   // Drop any applied coupon when the subtotal, plan or scope changes, so a
   // stale discount can't outlive the amount it was validated against.
@@ -851,38 +859,17 @@ function BookFlow() {
                           )}
                           {couponMsg && <div style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 600, marginTop: 6 }}>{couponMsg}</div>}
 
-                          {/* ── Available coupons for this scope ── */}
+                          {/* ── Available coupons for this scope: eligible first with exact savings ── */}
                           {!appliedCoupon && availableCoupons.length > 0 && (
                             <div style={{ marginTop: 14 }}>
-                              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Available Coupons</div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                {availableCoupons.map((c: any) => {
-                                  const min = Number(c.min_order_amount) || 0;
-                                  const eligible = subtotal >= min;
-                                  const label = c.discount_type === 'percentage'
-                                    ? `${Number(c.discount_value)}% OFF${c.max_discount ? ` up to ₹${Number(c.max_discount).toLocaleString('en-IN')}` : ''}`
-                                    : `₹${Number(c.discount_value).toLocaleString('en-IN')} OFF`;
-                                  const shortfall = Math.max(0, min - subtotal);
-                                  return (
-                                    <div key={c.code} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 13px', borderRadius: 12, border: '1px dashed var(--border)', background: eligible ? 'rgba(22,163,74,0.04)' : '#fff' }}>
-                                      <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                                          <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '0.82rem', color: 'var(--forest)', letterSpacing: '0.04em' }}>{c.code}</span>
-                                          <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#16a34a' }}>{label}</span>
-                                        </div>
-                                        {c.description && <div style={{ fontSize: '0.7rem', color: 'var(--text-2)', marginTop: 2 }}>{c.description}</div>}
-                                        {!eligible && <div style={{ fontSize: '0.68rem', color: 'var(--earth)', fontWeight: 600, marginTop: 2 }}>Minimum order ₹{min.toLocaleString('en-IN')} (₹{shortfall.toLocaleString('en-IN')} more)</div>}
-                                      </div>
-                                      <button
-                                        onClick={() => applyCoupon(c.code)}
-                                        disabled={!eligible || couponLoading}
-                                        style={{ flexShrink: 0, padding: '7px 16px', borderRadius: 8, border: 'none', background: eligible ? 'var(--forest)' : 'var(--border)', color: eligible ? '#fff' : 'var(--text-muted)', fontWeight: 800, fontSize: '0.72rem', cursor: eligible && !couponLoading ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
-                                        APPLY
-                                      </button>
-                                    </div>
-                                  );
-                                })}
-                              </div>
+                              <CouponList
+                                coupons={availableCoupons}
+                                onApply={code => applyCoupon(code)}
+                                busy={couponLoading}
+                                eligibleTitle={isSubscriptionPlan ? 'Eligible for this plan' : 'Eligible for this booking'}
+                                emptyText={isSubscriptionPlan ? 'No coupons eligible for this plan yet' : 'No coupons eligible for this booking yet'}
+                                mutedSurface="#fff"
+                              />
                             </div>
                           )}
                         </div>

@@ -4,6 +4,7 @@ import { useCart } from '@/store/cart';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { createOrder, validateCoupon, getAvailableCoupons } from '@/lib/api';
+import CouponList, { AvailableCoupon } from '@/components/CouponList';
 import { payWithRazorpay } from '@/lib/razorpay';
 import { sanitize } from '@/lib/validators';
 import StateSelect from '@/components/StateSelect';
@@ -64,7 +65,7 @@ export default function CartDrawer() {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponMsg, setCouponMsg] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
-  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+  const [availableCoupons, setAvailableCoupons] = useState<AvailableCoupon[]>([]);
   // products only
   const productItemsForGst = items.filter(i => !i.type || i.type === 'product');
   const hasGstableProducts = productItemsForGst.length > 0;
@@ -114,19 +115,25 @@ export default function CartDrawer() {
   const serviceAddressItem = items.find(i => i.type === 'service' && i.bookingDetails?.service_address);
   const addressAlreadyKnown = !hasProducts && !!serviceAddressItem;
 
-  // Load coupons the customer can apply (for the available-coupons list).
-  useEffect(() => {
-    if (isOpen && user) {
-      getAvailableCoupons('products')
-        .then((res: any) => setAvailableCoupons(Array.isArray(res) ? res : []))
-        .catch(() => setAvailableCoupons([]));
-    }
-  }, [isOpen, user]);
-
   // Product-only subtotal — coupons apply to merchandise, not service bookings.
   const productSubtotal = items
     .filter(i => !i.type || i.type === 'product')
     .reduce((s, i) => s + i.price * i.qty, 0);
+
+  // Load coupons with server-side eligibility + exact savings for the current
+  // product subtotal. Re-fetched (debounced) whenever the rounded subtotal
+  // changes so the "Save ₹x" figures and eligibility always match the cart.
+  const couponSubtotalKey = Math.round(productSubtotal);
+  useEffect(() => {
+    if (!isOpen || !user) return;
+    let cancelled = false;
+    const t = setTimeout(() => {
+      getAvailableCoupons('products', couponSubtotalKey)
+        .then((res: any) => { if (!cancelled) setAvailableCoupons(Array.isArray(res) ? res : []); })
+        .catch(() => { if (!cancelled) setAvailableCoupons([]); });
+    }, 300);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [isOpen, user, couponSubtotalKey]);
 
   // Drop any applied coupon when the product subtotal changes, so a stale
   // discount can't outlive the cart it was validated against.
@@ -481,39 +488,16 @@ export default function CartDrawer() {
                     </div>
                   )}
 
-                  {/* ── Available coupons (Zomato-style) ── */}
+                  {/* ── Available coupons (Zomato-style): eligible first with exact savings ── */}
                   {productSubtotal > 0 && !appliedCoupon && availableCoupons.length > 0 && (
-                    <div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Available Coupons</div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        {availableCoupons.map((c: any) => {
-                          const min = Number(c.min_order_amount) || 0;
-                          const eligible = productSubtotal >= min;
-                          const label = c.discount_type === 'percentage'
-                            ? `${Number(c.discount_value)}% OFF${c.max_discount ? ` up to ₹${Number(c.max_discount).toLocaleString('en-IN')}` : ''}`
-                            : `₹${Number(c.discount_value).toLocaleString('en-IN')} OFF`;
-                          const shortfall = Math.max(0, min - productSubtotal);
-                          return (
-                            <div key={c.code} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 13px', borderRadius: 12, border: '1px dashed var(--border)', background: eligible ? 'rgba(22,163,74,0.04)' : 'var(--bg-elevated)' }}>
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                                  <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '0.82rem', color: 'var(--forest)', letterSpacing: '0.04em' }}>{c.code}</span>
-                                  <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#16a34a' }}>{label}</span>
-                                </div>
-                                {c.description && <div style={{ fontSize: '0.7rem', color: 'var(--text-2)', marginTop: 2 }}>{c.description}</div>}
-                                {!eligible && <div style={{ fontSize: '0.68rem', color: 'var(--earth)', fontWeight: 600, marginTop: 2 }}>Add ₹{shortfall.toLocaleString('en-IN')} more to apply</div>}
-                              </div>
-                              <button
-                                onClick={() => applyCoupon(c.code)}
-                                disabled={!eligible || couponLoading}
-                                style={{ flexShrink: 0, padding: '7px 16px', borderRadius: 8, border: 'none', background: eligible ? 'var(--forest)' : 'var(--border)', color: eligible ? '#fff' : 'var(--text-muted)', fontWeight: 800, fontSize: '0.72rem', cursor: eligible && !couponLoading ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
-                                APPLY
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+                    <CouponList
+                      coupons={availableCoupons}
+                      onApply={code => applyCoupon(code)}
+                      busy={couponLoading}
+                      eligibleTitle="Eligible for your cart"
+                      emptyText="No coupons eligible for this cart yet"
+                      mutedSurface="var(--bg-elevated)"
+                    />
                   )}
                 </div>
               )}
