@@ -131,6 +131,7 @@ export const createBooking = (b: {
   addon_ids?: { addon_id: number; quantity: number }[];
   total_amount?: number;
   is_instant?: boolean;
+  coupon_code?: string;
 }) => req('/bookings', { method: 'POST', body: JSON.stringify(b) });
 
 export const getMyBookings = (p?: { status?: string; page?: number; limit?: number }) =>
@@ -183,6 +184,7 @@ export const createSubscription = (b: {
   addon_ids?: { addon_id: number; quantity: number }[];
   total_amount?: number;
   payment_method?: string;
+  coupon_code?: string;
 }) => req('/subscriptions', { method: 'POST', body: JSON.stringify(b) });
 
 export const getMySubscriptions = () => req('/subscriptions/my');
@@ -438,15 +440,19 @@ export const createOrder = (b: {
 }) => req('/shop/orders', { method: 'POST', body: JSON.stringify(b) });
 export const getMyOrders = () => req('/shop/orders/my');
 
-// Validate a discount coupon against the cart subtotal.
+// What a coupon can be applied to. 'products' = shop cart, 'subscription' =
+// monthly plan, 'booking' = one-time gardener visit.
+export type CouponScope = 'products' | 'subscription' | 'booking';
+
+// Validate a discount coupon against the (pre-GST) subtotal for a given scope.
 // On success req() unwraps to { code, discount_amount, ... }; on a validation
 // failure it returns the { success:false, message } envelope.
-export const validateCoupon = (code: string, subtotal: number) =>
-  req('/coupons/validate', { method: 'POST', body: JSON.stringify({ code, subtotal }) });
+export const validateCoupon = (code: string, subtotal: number, scope: CouponScope = 'products') =>
+  req('/coupons/validate', { method: 'POST', body: JSON.stringify({ code, subtotal, scope }) });
 
 // Coupons the logged-in customer can currently apply (for the "available
-// coupons" list at checkout). Returns an array.
-export const getAvailableCoupons = () => req('/coupons');
+// coupons" list at checkout). Optionally filtered to one scope. Returns an array.
+export const getAvailableCoupons = (scope?: CouponScope) => req(`/coupons${scope ? `?scope=${scope}` : ''}`);
 export const getTaglines = () => req('/taglines', { auth: false });
 
 // ─── REVIEWS (public) ─────────────────────────────────────────────────────────

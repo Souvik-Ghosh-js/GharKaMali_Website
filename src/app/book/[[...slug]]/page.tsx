@@ -9,7 +9,7 @@ import Navbar from '@/components/Navbar';
 import StateSelect from '@/components/StateSelect';
 import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
-import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, submitContact } from '@/lib/api';
+import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, submitContact, validateCoupon, getAvailableCoupons, CouponScope } from '@/lib/api';
 import { cleanPlanDescription } from '@/lib/planHelpers';
 import { payWithRazorpay } from '@/lib/razorpay';
 import { v, firstError, sanitize } from '@/lib/validators';
@@ -109,6 +109,12 @@ function BookFlow() {
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
   const [leadSubmitting, setLeadSubmitting] = useState(false);
+  // Discount coupon (validated against the pre-GST subtotal for the plan scope)
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [couponMsg, setCouponMsg] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
 
   const { data: plansRaw } = useQuery({ queryKey: ['plans'], queryFn: getPlans });
   const { data: addonsRaw } = useQuery({ queryKey: ['addons'], queryFn: getAddons });
@@ -160,16 +166,21 @@ function BookFlow() {
     } finally { setLeadSubmitting(false); }
   };
 
-  const total = (() => {
+  // Pre-GST subtotal: plan base + additional plants + add-ons.
+  const subtotal = (() => {
     const planBase = Number(selectedPlan?.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : (selectedPlan?.price || 0));
     const plantCost = form.plant_count * ADDITIONAL_PLANT_RATE; // ₹25 per plant
     const addonsTotal = form.addons.reduce((sum, { addon_id }) => {
       const a = addons.find(x => x.id === addon_id);
       return sum + (Number(a?.price) || 0);
     }, 0);
-    const subtotal = planBase + plantCost + addonsTotal;
-    return Math.round(subtotal * (1 + GST_RATE) * 100) / 100; // + 18% GST
+    return planBase + plantCost + addonsTotal;
   })();
+  const gstAmount = Math.round(subtotal * GST_RATE * 100) / 100; // 18% GST
+  const grossTotal = Math.round(subtotal * (1 + GST_RATE) * 100) / 100; // subtotal + GST
+  // Coupon discount is subtracted from the GST-inclusive total (same as the shop).
+  const discount = appliedCoupon ? Math.min(appliedCoupon.discount, grossTotal) : 0;
+  const total = Math.max(0, Math.round((grossTotal - discount) * 100) / 100);
   const handleAddToCart = () => {
     if (!selectedPlan) return;
     addService({
@@ -188,13 +199,47 @@ function BookFlow() {
         service_address: form.address,
         plant_count: form.plant_count,
         addons: form.addons,
-        price: total
+        price: total,
+        ...(appliedCoupon ? { coupon_code: appliedCoupon.code } : {}),
       }
     });
     router.push('/plans'); // Or stay on page, addService already opens the cart
   };
 
   const isSubscriptionPlan = selectedPlan?.plan_type === 'subscription';
+  // Coupon scope follows the plan type: monthly plan -> 'subscription', one-time visit -> 'booking'.
+  const couponScope: CouponScope = isSubscriptionPlan ? 'subscription' : 'booking';
+
+  const applyCoupon = async (codeArg?: string) => {
+    const code = (codeArg ?? couponInput).trim();
+    if (!code) { setCouponMsg('Enter a coupon code'); return; }
+    if (subtotal <= 0) { setCouponMsg('Select a plan to use a coupon'); return; }
+    setCouponInput(code.toUpperCase());
+    setCouponLoading(true);
+    setCouponMsg('');
+    try {
+      const res: any = await validateCoupon(code, subtotal, couponScope);
+      if (res && res.code && res.success !== false) {
+        setAppliedCoupon({ code: res.code, discount: Number(res.discount_amount) || 0 });
+        setCouponMsg('');
+        toast.success(`Coupon ${res.code} applied`);
+      } else {
+        setAppliedCoupon(null);
+        setCouponMsg(res?.message || 'Invalid coupon code');
+      }
+    } catch (e: any) {
+      setAppliedCoupon(null);
+      setCouponMsg(e?.message || 'Could not validate coupon');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponMsg('');
+  };
 
   const handleFinish = async () => {
     if (customQuote) {
@@ -224,7 +269,8 @@ function BookFlow() {
         addons: form.addons,
         total_amount: total,
         preferred_gardener_id: form.preferred_gardener_id || null,
-        customer_notes: form.notes
+        customer_notes: form.notes,
+        ...(appliedCoupon ? { coupon_code: appliedCoupon.code } : {}),
       };
 
       let res: any;
@@ -277,6 +323,21 @@ function BookFlow() {
       setZone(globalZone);
     }
   }, [globalZone, zone]);
+
+  // Load coupons the customer can apply for this scope (shown on the review step).
+  useEffect(() => {
+    if (activeStep !== 5 || !isAuthenticated || !selectedPlan) return;
+    getAvailableCoupons(couponScope)
+      .then((res: any) => setAvailableCoupons(Array.isArray(res) ? res : []))
+      .catch(() => setAvailableCoupons([]));
+  }, [activeStep, isAuthenticated, selectedPlan, couponScope]);
+
+  // Drop any applied coupon when the subtotal, plan or scope changes, so a
+  // stale discount can't outlive the amount it was validated against.
+  useEffect(() => {
+    setAppliedCoupon(null);
+    setCouponMsg('');
+  }, [subtotal, form.plan_id, couponScope]);
 
   useEffect(() => {
     if (globalLat && globalLng && form.lat === 0 && form.lng === 0) {
@@ -764,21 +825,90 @@ function BookFlow() {
                         )}
                       </div>
 
-                      {/* Subtotal + 18% GST */}
+                      {/* ── Coupon entry / applied ── */}
+                      {subtotal > 0 && (
+                        <div style={{ borderTop: '1px dashed var(--border)', paddingTop: 16, marginTop: 4, marginBottom: 16 }}>
+                          <div style={{ color: 'var(--sage)', fontWeight: 800, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Have a coupon?</div>
+                          {appliedCoupon ? (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: 'rgba(22,163,74,0.08)', border: '1px dashed rgba(22,163,74,0.5)', borderRadius: 12 }}>
+                              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#16a34a' }}>🎟️ {appliedCoupon.code} applied — you save ₹{discount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+                              <button onClick={removeCoupon} aria-label="Remove coupon" style={{ background: 'none', border: 'none', color: 'var(--text-2)', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', lineHeight: 1 }}>✕</button>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', gap: 8 }}>
+                              <input
+                                value={couponInput}
+                                onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponMsg(''); }}
+                                onKeyDown={e => { if (e.key === 'Enter') applyCoupon(); }}
+                                placeholder="COUPON CODE"
+                                style={{ flex: 1, minWidth: 0, padding: '12px 14px', borderRadius: 12, border: '1.5px solid var(--border)', fontFamily: 'var(--font-body)', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', outline: 'none', color: 'var(--forest)', background: '#fff', boxSizing: 'border-box' }}
+                              />
+                              <button onClick={() => applyCoupon()} disabled={couponLoading || !couponInput.trim()}
+                                style={{ padding: '0 20px', borderRadius: 12, border: '1.5px solid var(--forest)', background: 'var(--forest)', color: '#fff', fontWeight: 800, fontSize: '0.82rem', cursor: couponLoading || !couponInput.trim() ? 'not-allowed' : 'pointer', opacity: couponLoading || !couponInput.trim() ? 0.6 : 1, whiteSpace: 'nowrap' }}>
+                                {couponLoading ? '…' : 'Apply'}
+                              </button>
+                            </div>
+                          )}
+                          {couponMsg && <div style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 600, marginTop: 6 }}>{couponMsg}</div>}
+
+                          {/* ── Available coupons for this scope ── */}
+                          {!appliedCoupon && availableCoupons.length > 0 && (
+                            <div style={{ marginTop: 14 }}>
+                              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Available Coupons</div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                {availableCoupons.map((c: any) => {
+                                  const min = Number(c.min_order_amount) || 0;
+                                  const eligible = subtotal >= min;
+                                  const label = c.discount_type === 'percentage'
+                                    ? `${Number(c.discount_value)}% OFF${c.max_discount ? ` up to ₹${Number(c.max_discount).toLocaleString('en-IN')}` : ''}`
+                                    : `₹${Number(c.discount_value).toLocaleString('en-IN')} OFF`;
+                                  const shortfall = Math.max(0, min - subtotal);
+                                  return (
+                                    <div key={c.code} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 13px', borderRadius: 12, border: '1px dashed var(--border)', background: eligible ? 'rgba(22,163,74,0.04)' : '#fff' }}>
+                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                          <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '0.82rem', color: 'var(--forest)', letterSpacing: '0.04em' }}>{c.code}</span>
+                                          <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#16a34a' }}>{label}</span>
+                                        </div>
+                                        {c.description && <div style={{ fontSize: '0.7rem', color: 'var(--text-2)', marginTop: 2 }}>{c.description}</div>}
+                                        {!eligible && <div style={{ fontSize: '0.68rem', color: 'var(--earth)', fontWeight: 600, marginTop: 2 }}>Minimum order ₹{min.toLocaleString('en-IN')} (₹{shortfall.toLocaleString('en-IN')} more)</div>}
+                                      </div>
+                                      <button
+                                        onClick={() => applyCoupon(c.code)}
+                                        disabled={!eligible || couponLoading}
+                                        style={{ flexShrink: 0, padding: '7px 16px', borderRadius: 8, border: 'none', background: eligible ? 'var(--forest)' : 'var(--border)', color: eligible ? '#fff' : 'var(--text-muted)', fontWeight: 800, fontSize: '0.72rem', cursor: eligible && !couponLoading ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
+                                        APPLY
+                                      </button>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Subtotal + 18% GST − discount */}
                       <div style={{ borderTop: '1px dashed var(--border)', paddingTop: 16, marginTop: 4, display: 'flex', flexDirection: 'column', gap: 8 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Subtotal (excl. GST)</span>
-                          <span style={{ fontWeight: 700, color: 'var(--forest)' }}>₹{(total / (1 + GST_RATE)).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                          <span style={{ fontWeight: 700, color: 'var(--forest)' }}>₹{subtotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>GST (18%)</span>
-                          <span style={{ fontWeight: 700, color: 'var(--forest)' }}>+₹{(total - total / (1 + GST_RATE)).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                          <span style={{ fontWeight: 700, color: 'var(--forest)' }}>+₹{gstAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                         </div>
+                        {appliedCoupon && discount > 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: '#16a34a', fontWeight: 700, fontSize: '0.9rem' }}>Discount ({appliedCoupon.code})</span>
+                            <span style={{ fontWeight: 700, color: '#16a34a' }}>−₹{discount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                          </div>
+                        )}
                       </div>
 
                       <div style={{ borderTop: '1.5px dashed var(--border)', paddingTop: 24, marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                         <span style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--forest)' }}>Total Amount</span>
-                        <span style={{ fontWeight: 700, color: 'var(--forest)', fontSize: '1.9rem', fontFamily: 'var(--font-display)' }}>₹{total.toLocaleString('en-IN')}</span>
+                        <span style={{ fontWeight: 700, color: 'var(--forest)', fontSize: '1.9rem', fontFamily: 'var(--font-display)' }}>₹{total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                       </div>
                     </div>
                     <button
@@ -794,7 +924,7 @@ function BookFlow() {
                       className="btn btn-primary"
                       style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontSize: '0.85rem', boxShadow: 'var(--sh-sm)', color: '#fff', fontWeight: 600 }}
                     >
-                      {submitting ? <><Spinner size={16} color="#fff" /> Initiating Payment...</> : 'Buy Now'}
+                      {submitting ? <><Spinner size={16} color="#fff" /> Initiating Payment...</> : `Buy Now · ₹${total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`}
                     </button>
                     <p style={{ textAlign: 'center', marginTop: 16, fontSize: '0.8rem', color: 'var(--sage)', fontWeight: 700 }}>100% Secure Checkout Guarantee</p>
                   </motion.div>

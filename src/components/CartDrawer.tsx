@@ -117,7 +117,7 @@ export default function CartDrawer() {
   // Load coupons the customer can apply (for the available-coupons list).
   useEffect(() => {
     if (isOpen && user) {
-      getAvailableCoupons()
+      getAvailableCoupons('products')
         .then((res: any) => setAvailableCoupons(Array.isArray(res) ? res : []))
         .catch(() => setAvailableCoupons([]));
     }
@@ -157,7 +157,7 @@ export default function CartDrawer() {
     try {
       // req() unwraps to the `data` object on success, or returns the
       // { success:false, message } envelope on a (200) validation failure.
-      const res: any = await validateCoupon(code, productSubtotal);
+      const res: any = await validateCoupon(code, productSubtotal, 'products');
       if (res && res.code && res.discount_amount != null) {
         setAppliedCoupon({ code: res.code, discount: Number(res.discount_amount) || 0 });
         setCouponMsg('');
@@ -283,6 +283,7 @@ export default function CartDrawer() {
               addons: svc.bookingDetails?.addons || [],
               total_amount: svc.bookingDetails?.price,
               payment_method: 'razorpay',
+              ...(svc.bookingDetails?.coupon_code ? { coupon_code: svc.bookingDetails.coupon_code } : {}),
             });
           } else {
             res = await createBooking({
@@ -298,7 +299,8 @@ export default function CartDrawer() {
               customer_notes: svc.bookingDetails?.notes || 'Booked via cart',
               addon_ids: svc.bookingDetails?.addons || [],
               addons: svc.bookingDetails?.addons || [],
-              total_amount: svc.bookingDetails?.price
+              total_amount: svc.bookingDetails?.price,
+              ...(svc.bookingDetails?.coupon_code ? { coupon_code: svc.bookingDetails.coupon_code } : {}),
             });
             // Add-ons are already handled by createBooking (addons in payload → total + rows).
             // Calling addBookingAddons here would duplicate them and double-charge.

@@ -29,6 +29,7 @@ export interface CartItem {
     price?: number;
     auto_renew?: boolean;
     preferred_gardener_id?: number;
+    coupon_code?: string;
   };
 }
 
