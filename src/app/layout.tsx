@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
 import SocialProofToast from '@/components/SocialProofToast';
 import NotificationListener from '@/components/NotificationListener';
+import OperationsBanner from '@/components/OperationsBanner';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://gharkamali.com';
 
@@ -141,6 +142,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </noscript>
       </head>
       <body>
+        <OperationsBanner />
         <Providers>{children}</Providers>
         <WhatsAppFloat />
         <SocialProofToast />

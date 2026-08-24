@@ -488,6 +488,11 @@ export const submitContact = (b: { name: string; email?: string; phone?: string;
 // ─── SYSTEM SETTINGS ──────────────────────────────────────────────────────────
 export const getSetting = (key: string) => req(`/settings/${key}`, { auth: false });
 
+// ─── OPERATIONS STATUS (kill-switch) ──────────────────────────────────────────
+// { paused: boolean, message: string } — while paused the backend 503s all new
+// bookings, subscriptions and shop orders.
+export const getOperationsStatus = () => req('/operations-status', { auth: false });
+
 // ─── TIP GARDENER ─────────────────────────────────────────────────────────────
 export const tipGardener = (bookingId: number, amount: number, geofence_id?: number) =>
   req(`/bookings/${bookingId}/tip`, { method: 'POST', body: JSON.stringify({ amount, geofence_id }) });
