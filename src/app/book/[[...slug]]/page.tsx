@@ -9,8 +9,9 @@ import Navbar from '@/components/Navbar';
 import StateSelect from '@/components/StateSelect';
 import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
-import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, submitContact, validateCoupon, getAvailableCoupons, CouponScope } from '@/lib/api';
+import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, submitContact, validateCoupon, getAvailableCoupons, getServiceDetails, CouponScope, ServiceDetail } from '@/lib/api';
 import CouponList, { AvailableCoupon } from '@/components/CouponList';
+import ServiceDetailContent from '@/components/ServiceDetailContent';
 import { cleanPlanDescription } from '@/lib/planHelpers';
 import { payWithRazorpay } from '@/lib/razorpay';
 import { v, firstError, sanitize } from '@/lib/validators';
@@ -210,6 +211,17 @@ function BookFlow() {
   const isSubscriptionPlan = selectedPlan?.plan_type === 'subscription';
   // Coupon scope follows the plan type: monthly plan -> 'subscription', one-time visit -> 'booking'.
   const couponScope: CouponScope = isSubscriptionPlan ? 'subscription' : 'booking';
+
+  // "What's included & FAQs" modal — shows the standard service details for the
+  // selected plan type (subscription -> monthly-plant-care, else one-time-plant-care).
+  const [svcInfoOpen, setSvcInfoOpen] = useState(false);
+  const svcInfoSlug = isSubscriptionPlan ? 'monthly-plant-care' : 'one-time-plant-care';
+  const { data: svcInfo, isLoading: svcInfoLoading } = useQuery<ServiceDetail>({
+    queryKey: ['service-detail', svcInfoSlug],
+    queryFn: () => getServiceDetails(svcInfoSlug),
+    enabled: svcInfoOpen,
+    staleTime: 60 * 60 * 1000,
+  });
 
   const applyCoupon = async (codeArg?: string) => {
     const code = (codeArg ?? couponInput).trim();
@@ -607,6 +619,13 @@ function BookFlow() {
                         </div>
                       ))}
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setSvcInfoOpen(true)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '-16px auto 20px', padding: '8px 14px', background: 'none', border: 'none', color: 'var(--forest-mid)', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 3, fontFamily: 'inherit' }}
+                    >
+                      ℹ️ What&apos;s included &amp; FAQs
+                    </button>
                     <button onClick={() => setActiveStep(2)} disabled={!form.plan_id} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>Confirm Plan Selection</button>
                   </motion.div>
                 )}
@@ -922,6 +941,56 @@ function BookFlow() {
           </div>
         </div>
       </main>
+
+      {/* "What's included & FAQs" modal — shared ServiceDetailContent renderer */}
+      <AnimatePresence>
+        {svcInfoOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setSvcInfoOpen(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(2,26,9,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          >
+            <motion.div
+              initial={{ y: 24, scale: 0.98 }} animate={{ y: 0, scale: 1 }} exit={{ y: 24, scale: 0.98 }}
+              onClick={e => e.stopPropagation()}
+              role="dialog" aria-modal="true" aria-label="Service details and FAQs"
+              style={{ background: '#fff', borderRadius: 24, maxWidth: 680, width: '100%', maxHeight: '85vh', overflowY: 'auto', boxShadow: 'var(--sh-lg)', position: 'relative' }}
+              className="custom-scroll"
+            >
+              <div style={{ position: 'sticky', top: 0, zIndex: 2, background: '#fff', borderBottom: '1px solid var(--border)', padding: '18px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderRadius: '24px 24px 0 0' }}>
+                <div>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 2 }}>Service details</div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--forest)' }}>
+                    {svcInfo?.name || (isSubscriptionPlan ? 'Monthly Plant Care Subscription' : 'One-Time Plant Care')}
+                  </h3>
+                </div>
+                <button onClick={() => setSvcInfoOpen(false)} aria-label="Close" style={{ background: 'var(--bg-elevated)', border: 'none', borderRadius: 12, width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--forest)', flexShrink: 0 }}>
+                  <IcX />
+                </button>
+              </div>
+              <div style={{ padding: '20px 24px 24px' }}>
+                {svcInfoLoading && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '24px 0', color: 'var(--sage)', fontWeight: 600, fontSize: '0.9rem' }}>
+                    <Spinner size={16} color="var(--sage)" /> Loading service details…
+                  </div>
+                )}
+                {!svcInfoLoading && svcInfo && <ServiceDetailContent service={svcInfo} />}
+                {!svcInfoLoading && !svcInfo && (
+                  <p style={{ color: 'var(--sage)', fontWeight: 600, fontSize: '0.9rem', padding: '16px 0' }}>
+                    Couldn&apos;t load the details right now. You can also view them on the{' '}
+                    <a href={`/services/${svcInfoSlug}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--forest)', fontWeight: 700 }}>service page</a>.
+                  </p>
+                )}
+                {!svcInfoLoading && svcInfo && (
+                  <a href={`/services/${svcInfoSlug}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 20, fontSize: '0.8rem', fontWeight: 700, color: 'var(--forest-mid)' }}>
+                    Open full service page →
+                  </a>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AddressPicker
         open={pickerOpen}

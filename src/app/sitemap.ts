@@ -11,6 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: base,                    lastModified: new Date(), changeFrequency: 'weekly',  priority: 1   },
     { url: `${base}/about`,         lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${base}/plans`,         lastModified: new Date(), changeFrequency: 'weekly',  priority: 0.9 },
+    { url: `${base}/services`,      lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${base}/book`,          lastModified: new Date(), changeFrequency: 'weekly',  priority: 0.9 },
     { url: `${base}/shop`,          lastModified: new Date(), changeFrequency: 'daily',   priority: 0.8 },
     { url: `${base}/blogs`,         lastModified: new Date(), changeFrequency: 'daily',   priority: 0.7 },
@@ -32,6 +33,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: 'monthly' as const,
     priority: 0.7,
   }));
+
+  // Dynamic: Service detail pages (/services/[slug])
+  let servicePages: MetadataRoute.Sitemap = [];
+  try {
+    const res = await fetch(`${API_BASE}/service-details`, { next: { revalidate: 3600 } });
+    const json = await res.json();
+    const services: any[] = json?.data || [];
+    servicePages = services.map((s: any) => ({
+      url: `${base}/services/${s.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }));
+  } catch {
+    // API down — skip service pages
+  }
 
   // Dynamic: Shop products
   let shopProductPages: MetadataRoute.Sitemap = [];
@@ -81,5 +98,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // API down — skip blog pages
   }
 
-  return [...staticPages, ...areaPages, ...shopProductPages, ...cityPages, ...blogPages];
+  return [...staticPages, ...areaPages, ...servicePages, ...shopProductPages, ...cityPages, ...blogPages];
 }

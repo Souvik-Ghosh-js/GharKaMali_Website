@@ -252,6 +252,22 @@ export const getBlogCategories = () => req('/blogs/categories', { auth: false })
 export const getCities = () => req('/cities', { auth: false });
 export const getCity = (slug: string) => req(`/cities/${slug}`, { auth: false });
 
+// ─── SERVICE DETAILS & FAQS ───────────────────────────────────────────────────
+// Standard "what's included / not included / how it's done / FAQs" content for
+// every service. Served by the backend (single source of truth shared with the
+// customer app). No slug -> all 15 services; with slug -> one service (404 if unknown).
+export type ServiceDetail = {
+  slug: string;
+  name: string;
+  overview: string;
+  includes: string[];
+  excludes: string[];
+  steps: string[];
+  faqs: { q: string; a: string }[];
+};
+export const getServiceDetails = (slug?: string) =>
+  req(`/service-details${slug ? `?slug=${slug}` : ''}`, { auth: false });
+
 // ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
 export const getNotifications = () => req('/notifications');
 export const markRead = (id: number) => req(`/notifications/${id}/read`, { method: 'PUT' });

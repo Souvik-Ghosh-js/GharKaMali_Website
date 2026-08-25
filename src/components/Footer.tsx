@@ -15,7 +15,7 @@ const NAV_COLS = [
   {
     title: 'Services',
     links: [
-      { href: '/services', label: 'Services FAQ' },
+      { href: '/services', label: 'Our Services & FAQs' },
       { href: '/plans', label: 'Subscription Plans' },
       { href: '/book', label: 'Book a Visit' },
       { href: '/shop', label: 'Marketplace' },

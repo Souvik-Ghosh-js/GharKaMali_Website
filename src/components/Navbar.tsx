@@ -34,6 +34,7 @@ const Ic = {
 const NAV_ITEMS = [
   { href: '/', label: 'Home', Icon: Ic.Home, color: '#16a34a' },
   { href: '/plans', label: 'Plans', Icon: Ic.Plans, color: '#0ea5e9' },
+  { href: '/services', label: 'Services', Icon: Ic.Book, color: '#84cc16' },
   { href: '/book', label: 'Book Visit', Icon: Ic.Cal, color: '#f59e0b' },
   // Plant Store disabled for now (see SHOP_ENABLED in lib/features).
   ...(SHOP_ENABLED ? [{ href: '/shop', label: 'Plant Store', Icon: Ic.Shop, color: '#8b5cf6' }] : []),
