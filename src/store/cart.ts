@@ -42,6 +42,7 @@ interface CartStore {
   removeItem: (id: number) => void;
   updateQty: (id: number, qty: number) => void;
   clearCart: () => void;
+  pruneExpiredServices: () => number;
   openCart: () => void;
   closeCart: () => void;
   setWantsMali: (v: boolean) => void;
@@ -76,8 +77,10 @@ export const useCart = create<CartStore>()(
             i.bookingDetails?.scheduled_time === service.bookingDetails?.scheduled_time
           );
           if (existing) {
+            // Still open the drawer — a silent no-op leaves the user stuck
+            // clicking "Add to Cart" with nothing visibly happening.
             toast('This visit is already in your cart', { icon: '🧑‍🌾' });
-            return state;
+            return { ...state, isOpen: true };
           }
           toast.success('Gardener visit added to cart!');
           return { 
@@ -106,6 +109,20 @@ export const useCart = create<CartStore>()(
       },
 
       clearCart: () => set({ items: [], wantsMali: false }),
+
+      // Persisted carts can carry service visits whose date has already passed —
+      // those can never check out (the server rejects past dates), which used to
+      // wedge the whole cart. Drop them and tell the caller how many went.
+      pruneExpiredServices: () => {
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const stale = get().items.filter(i =>
+          i.type === 'service' && i.bookingDetails?.scheduled_date && i.bookingDetails.scheduled_date < todayStr);
+        if (stale.length) {
+          set(state => ({ items: state.items.filter(i => !stale.includes(i)) }));
+        }
+        return stale.length;
+      },
 
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),

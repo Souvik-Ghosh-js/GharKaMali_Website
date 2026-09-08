@@ -36,7 +36,7 @@ function getProductIcon(icon: string, type?: string) {
 type CheckoutStep = 'cart' | 'address' | 'processing' | 'success';
 
 export default function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, updateQty, totalItems, totalPrice, clearCart, wantsMali } = useCart();
+  const { items, isOpen, closeCart, removeItem, updateQty, totalItems, totalPrice, clearCart, pruneExpiredServices, wantsMali } = useCart();
   const { user, updateUser } = useAuth();
   const { lat: storeLat, lng: storeLng, zone: userZone, setCoords } = useLocation();
   const [step, setStep] = useState<CheckoutStep>('cart');
@@ -75,6 +75,15 @@ export default function CartDrawer() {
   const [savedLocs, setSavedLocs] = useState<any[]>([]);
   const [selectedLocId, setSelectedLocId] = useState<number | null>(null);
   const [useSaved, setUseSaved] = useState(false);
+
+  // Drop expired service visits the moment the drawer opens, with an
+  // explanation — a past-dated visit can never check out.
+  useEffect(() => {
+    if (!isOpen) return;
+    const n = pruneExpiredServices();
+    if (n) toast('An expired visit date was removed from your cart — please pick a new date.', { icon: '🗓️', duration: 5000 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && user) {

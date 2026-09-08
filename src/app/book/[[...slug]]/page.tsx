@@ -205,7 +205,8 @@ function BookFlow() {
         ...(appliedCoupon ? { coupon_code: appliedCoupon.code } : {}),
       }
     });
-    router.push('/plans'); // Or stay on page, addService already opens the cart
+    // Stay on the page — addService opens the cart drawer, which is where the
+    // customer continues. Navigating away here dumped their booking context.
   };
 
   const isSubscriptionPlan = selectedPlan?.plan_type === 'subscription';
