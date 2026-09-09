@@ -1,10 +1,13 @@
 'use client';
 import { useState } from 'react';
+import { useLocation } from '@/store/location';
+import { maliVisitPrice } from '@/lib/pricing';
 
 const WA_NUMBER = '919643701701';
 
 const SERVICES = [
-  { id: 'visit',        label: 'Book Mali Visit @ ₹349',    msg: 'Hi GharKaMali! I want to book a Mali Visit @ ₹349. Please share details.' },
+  // label/msg for 'visit' are overridden with the customer's zone price at render time.
+  { id: 'visit',        label: 'Book Mali Visit',           msg: 'Hi GharKaMali! I want to book a Mali Visit. Please share details.' },
   { id: 'subscription', label: 'Monthly Subscription Plan', msg: 'Hi GharKaMali! I want to know about Monthly Subscription Plans. Please help.' },
   { id: 'plants',       label: 'Buy Plants / Pots',         msg: 'Hi GharKaMali! I want to buy plants or pots. Please guide me.' },
   { id: 'makeover',     label: 'Garden / Balcony Makeover', msg: 'Hi GharKaMali! I am interested in a Garden or Balcony Makeover. Please share details.' },
@@ -25,6 +28,12 @@ const IcChevron = () => (
 );
 
 export default function WhatsAppFloat() {
+  const { zone } = useLocation();
+  const zonePrice = maliVisitPrice(zone);
+  // Zone-aware label/msg for the visit quick-action; plain when area unknown.
+  const services = SERVICES.map((s) => s.id === 'visit' && zonePrice
+    ? { ...s, label: `Book Mali Visit @ ₹${zonePrice}`, msg: `Hi GharKaMali! I want to book a Mali Visit @ ₹${zonePrice}. Please share details.` }
+    : s);
   const [open, setOpen] = useState(false);
 
   const handleSelect = (msg: string) => {
@@ -85,7 +94,7 @@ export default function WhatsAppFloat() {
 
           {/* Service list */}
           <div style={{ padding: '6px 0 8px' }}>
-            {SERVICES.map((s, i) => (
+            {services.map((s, i) => (
               <button
                 key={s.id}
                 onClick={() => handleSelect(s.msg)}

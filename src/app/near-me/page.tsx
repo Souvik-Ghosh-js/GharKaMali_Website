@@ -173,11 +173,11 @@ export default function NearMePage() {
             Ready to Book a Gardener Near You?
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1rem', marginBottom: 36, lineHeight: 1.8 }}>
-            Get a professional mali at your home starting ₹349 — Noida, Greater Noida &amp; Ghaziabad.
+            Get a professional mali at your home — Noida, Greater Noida &amp; Ghaziabad.
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/book" className="btn btn-primary btn-lg" style={{ background: '#C9A84C', color: '#fff', border: 'none' }}>
-              Book Mali Visit @ ₹349
+              Book Mali Visit
             </Link>
             <Link href="/services" className="btn btn-outline btn-lg" style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.4)' }}>
               View All Services

@@ -1,4 +1,6 @@
 'use client';
+import { useLocation } from '@/store/location';
+import { maliVisitLabel } from '@/lib/pricing';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
@@ -630,6 +632,7 @@ const CityMarquee = () => {
 /* BASlider removed — images now change via GSAP scroll */
 
 export default function HomePage() {
+  const { zone: userZone } = useLocation();
   useGSAPAnimations();
   const { data: plansRaw } = useQuery({ queryKey: ['plans'], queryFn: getPlans });
   const { data: blogsRaw } = useQuery({ queryKey: ['blogs-home'], queryFn: () => getBlogs({ limit: 4 }) });
@@ -768,7 +771,7 @@ export default function HomePage() {
 
               <div className="hero-cta-row" style={{ display: 'flex', gap: 14, justifyContent: 'flex-start', flexWrap: 'wrap', position: 'relative' }}>
                 <Link href="/book" className="btn btn-primary btn-md btn-3d-plant" style={{ position: 'relative', overflow: 'visible', padding: '11px 24px' }}>
-                  Book Mali Visit @ ₹349 <IcArrow />
+                  {maliVisitLabel(userZone)} <IcArrow />
                 </Link>
                 <a
                   href="#subscription-experience"
