@@ -785,7 +785,7 @@ function BookFlow() {
                         )}
                         {!loadingSlots && slotsLoaded && noGardenersInZone && (
                           <div style={{ padding: '16px', borderRadius: 14, background: '#fff8e1', border: '1.5px solid #f5c842', color: '#7a5c00', fontWeight: 700, fontSize: '0.85rem', marginBottom: 12 }}>
-                            No gardeners available in your area for this date. Please try a different date.
+                            We don't have gardeners serving this area yet — so no dates are bookable right now. We're expanding fast; please check back soon or WhatsApp us and we'll notify you when your area goes live.
                           </div>
                         )}
                         {!noGardenersInZone && (
