@@ -43,12 +43,12 @@ const AREAS = [
 ];
 
 const SERVICES = [
-  { emoji: '🌿', title: 'Mali Visit @ ₹349',         desc: 'Expert gardener visits your home for watering, pruning, and plant health check.' },
-  { emoji: '📅', title: 'Monthly Subscription',       desc: 'Regular scheduled visits — weekly or bi-weekly. Best value for plant lovers.' },
-  { emoji: '🏡', title: 'Garden / Balcony Makeover',  desc: 'Complete transformation of your balcony, terrace, or outdoor garden space.' },
-  { emoji: '🪴', title: 'Plant Supply & Pots',        desc: 'Get fresh plants, pots, soil, and fertilizers delivered to your home.' },
-  { emoji: '🐛', title: 'Pest & Disease Control',     desc: 'Identify and treat infections, pests, and plant diseases on-site.' },
-  { emoji: '🏢', title: 'Corporate Landscaping',      desc: 'Office, society, and commercial green space design and maintenance.' },
+  { emoji: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" /><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" /></svg>, title: 'Mali Visit @ ₹349',         desc: 'Expert gardener visits your home for watering, pruning, and plant health check.' },
+  { emoji: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="3" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>, title: 'Monthly Subscription',       desc: 'Regular scheduled visits — weekly or bi-weekly. Best value for plant lovers.' },
+  { emoji: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10l9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>, title: 'Garden / Balcony Makeover',  desc: 'Complete transformation of your balcony, terrace, or outdoor garden space.' },
+  { emoji: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M7 14h10l-1.5 7h-7z" /><path d="M12 14V8" /><path d="M12 9c0-3 2-5 5-5 0 3-2 5-5 5z" /><path d="M12 11c0-2.5-1.7-4-4-4 0 2.3 1.5 4 4 4z" /></svg>, title: 'Plant Supply & Pots',        desc: 'Get fresh plants, pots, soil, and fertilizers delivered to your home.' },
+  { emoji: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" /></svg>, title: 'Pest & Disease Control',     desc: 'Identify and treat infections, pests, and plant diseases on-site.' },
+  { emoji: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" /><path d="M9 22v-4h6v4" /><path d="M8 6h.01M16 6h.01M12 6h.01M8 10h.01M16 10h.01M12 10h.01M8 14h.01M16 14h.01M12 14h.01" /></svg>, title: 'Corporate Landscaping',      desc: 'Office, society, and commercial green space design and maintenance.' },
 ];
 
 const WHY = [
@@ -63,10 +63,10 @@ const WHY = [
 export default function NearMePage() {
   return (
     <SmoothScrollProvider>
-      <Navbar />
+      <Navbar transparent />
 
       {/* Hero */}
-      <section style={{ background: 'linear-gradient(135deg, var(--forest) 0%, #065e28 100%)', padding: 'clamp(90px,13vw,150px) 0 clamp(60px,8vw,90px)', position: 'relative', overflow: 'hidden' }}>
+      <section className="v-pod" style={{ padding: 'clamp(90px,13vw,150px) 0 clamp(60px,8vw,90px)', position: 'relative', overflow: 'hidden', borderRadius: '0 0 clamp(28px,4vw,56px) clamp(28px,4vw,56px)' }}>
         <div style={{ position: 'absolute', top: -100, right: -100, width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div className="container" style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 99, padding: '6px 20px', marginBottom: 20 }}>
@@ -76,7 +76,7 @@ export default function NearMePage() {
 
           <h1 style={{ color: '#fff', fontSize: 'clamp(2rem,5.5vw,3.8rem)', fontWeight: 900, letterSpacing: '-0.02em', marginBottom: 20, lineHeight: 1.1 }}>
             Gardener Near Me?<br />
-            <span style={{ color: '#C9A84C' }}>GharKaMali hai na!</span>
+            <span style={{ color: 'var(--lime)' }}>GharKaMali hai na!</span>
           </h1>
 
           <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 'clamp(1rem,1.5vw,1.15rem)', maxWidth: 560, margin: '0 auto 36px', lineHeight: 1.8 }}>
@@ -84,7 +84,7 @@ export default function NearMePage() {
           </p>
 
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/book" className="btn btn-primary btn-lg" style={{ background: '#C9A84C', color: '#fff', border: 'none' }}>
+            <Link href="/book" className="btn btn-gold btn-lg">
               Book Mali Now @ ₹349 →
             </Link>
             <a href="https://wa.me/919643701701?text=Hi%20GharKaMali!%20I%20need%20a%20gardener%20near%20me." target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-lg" style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.4)' }}>
@@ -97,7 +97,7 @@ export default function NearMePage() {
       </section>
 
       {/* Services */}
-      <section style={{ padding: 'clamp(60px,8vw,100px) 0', background: 'var(--bg)' }}>
+      <section style={{ padding: 'clamp(60px,8vw,100px) 0', background: 'transparent' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 52 }}>
             <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>What We Offer</span>
@@ -110,8 +110,8 @@ export default function NearMePage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px,1fr))', gap: 24 }}>
             {SERVICES.map(s => (
-              <div key={s.title} style={{ background: '#fff', border: '1.5px solid var(--border)', borderRadius: 20, padding: '28px 24px', transition: 'box-shadow 0.2s' }}>
-                <div style={{ fontSize: '2rem', marginBottom: 14 }}>{s.emoji}</div>
+              <div key={s.title} className="v-glass" style={{ borderRadius: 24, padding: '28px 24px', transition: 'box-shadow 0.2s' }}>
+                <div className="v-orb" style={{ marginBottom: 14 }}>{s.emoji}</div>
                 <h3 style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '1.05rem', marginBottom: 10 }}>{s.title}</h3>
                 <p style={{ color: 'var(--text-2)', fontSize: '0.9rem', lineHeight: 1.75 }}>{s.desc}</p>
               </div>
@@ -132,7 +132,7 @@ export default function NearMePage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px,1fr))', gap: 20 }}>
             {AREAS.map(a => (
               <div key={a.name} style={{ background: 'linear-gradient(135deg, #f0faf2, #e8f5ea)', border: '1.5px solid var(--border-gold)', borderRadius: 18, padding: '24px 20px' }}>
-                <div style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '1.1rem', marginBottom: 8 }}>📍 {a.name}</div>
+                <div style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '1.1rem', marginBottom: 8 }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6, verticalAlign: -2, color: 'var(--leaf)' }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>{a.name}</div>
                 <div style={{ color: 'var(--text-2)', fontSize: '0.82rem', lineHeight: 1.7 }}>{a.sectors}</div>
               </div>
             ))}
@@ -144,7 +144,7 @@ export default function NearMePage() {
       </section>
 
       {/* Why GharKaMali */}
-      <section style={{ padding: 'clamp(60px,8vw,100px) 0', background: 'var(--bg)' }}>
+      <section style={{ padding: 'clamp(60px,8vw,100px) 0', background: 'transparent' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 52 }}>
             <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Why Choose Us</span>
@@ -167,7 +167,7 @@ export default function NearMePage() {
       </section>
 
       {/* CTA */}
-      <section style={{ padding: 'clamp(60px,8vw,90px) 0', background: 'linear-gradient(135deg, var(--forest) 0%, #065e28 100%)', textAlign: 'center' }}>
+      <section className="v-pod" style={{ padding: 'clamp(60px,8vw,90px) 0', textAlign: 'center' }}>
         <div className="container">
           <h2 style={{ color: '#fff', fontSize: 'clamp(1.6rem,3vw,2.4rem)', fontWeight: 900, marginBottom: 16 }}>
             Ready to Book a Gardener Near You?
@@ -176,7 +176,7 @@ export default function NearMePage() {
             Get a professional mali at your home — Noida, Greater Noida &amp; Ghaziabad.
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/book" className="btn btn-primary btn-lg" style={{ background: '#C9A84C', color: '#fff', border: 'none' }}>
+            <Link href="/book" className="btn btn-gold btn-lg">
               Book Mali Visit
             </Link>
             <Link href="/services" className="btn btn-outline btn-lg" style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.4)' }}>

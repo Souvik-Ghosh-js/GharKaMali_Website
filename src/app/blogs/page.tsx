@@ -78,12 +78,12 @@ export default function BlogsPage() {
   return (
     <>
       <Navbar/>
-      <div style={{ background: 'var(--bg)', paddingTop: 'var(--nav-h)', minHeight: '100svh', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: 'transparent', paddingTop: 'var(--nav-h)', minHeight: '100svh', position: 'relative', overflow: 'hidden' }}>
         {/* Bg orbs */}
         <div style={{ position: 'fixed', top: '5%', right: '-5%', width: '40vw', height: '40vw', borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.06) 0%, transparent 70%)', filter: 'blur(40px)', pointerEvents: 'none', zIndex: 0 }}/>
 
         {/* Hero */}
-        <div style={{ padding: '80px 0 60px', textAlign: 'center', position: 'relative', zIndex: 1, background: 'linear-gradient(160deg, rgba(3,65,26,0.04) 0%, var(--bg) 60%)' }}>
+        <div style={{ padding: '80px 0 60px', textAlign: 'center', position: 'relative', zIndex: 1, background: 'linear-gradient(180deg, rgba(228,241,232,0.6) 0%, transparent 100%)' }}>
           <div className="container">
             <div className="blogs-hero-content">
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid var(--border-gold)', borderRadius: 99, padding: '8px 22px', marginBottom: 28, boxShadow: 'var(--sh-sm)' }}>

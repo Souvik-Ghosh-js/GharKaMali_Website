@@ -41,7 +41,7 @@ export default function MyOrdersPage() {
   return (
     <>
       <Navbar />
-      <div style={{ minHeight: '100svh', background: 'var(--bg)', paddingTop: 'calc(var(--nav-h) + 40px)', paddingBottom: 80 }}>
+      <div style={{ minHeight: '100svh', background: 'transparent', paddingTop: 'calc(var(--nav-h) + 40px)', paddingBottom: 80 }}>
         <div className="container">
           
           {/* Header */}

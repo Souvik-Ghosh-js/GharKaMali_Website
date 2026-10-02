@@ -396,10 +396,6 @@ export default function GreenMakeoverPage() {
 
       <Footer />
 
-      <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="whatsapp-float" aria-label="Chat on WhatsApp">
-        <Ic.WA />
-        <div className="whatsapp-tooltip">Book Green Makeover</div>
-      </a>
 
       <style jsx>{`
         /* ── BASE ── */
@@ -1037,7 +1033,7 @@ export default function GreenMakeoverPage() {
 
         .gmr-cta-col {
           flex: 0 0 42%;
-          background: linear-gradient(135deg, var(--forest) 0%, var(--forest-mid) 100%);
+          background: url('/fx/contours-light.svg') center / cover no-repeat, linear-gradient(135deg, #102a1c 0%, #153a26 55%, #1d4a31 100%);
           display: flex;
           flex-direction: column;
           justify-content: center;

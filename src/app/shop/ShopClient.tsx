@@ -424,7 +424,7 @@ export function ShopClient({ categorySlug }: { categorySlug?: string }) {
 
   return (
     <SmoothScrollProvider>
-      <Navbar />
+      <Navbar transparent />
       <div
         style={{
           background: "var(--bg)",

@@ -117,7 +117,7 @@ export default async function ServiceDetailPage({ params }: { params: { slug: st
       </section>
 
       {/* Detail body */}
-      <section style={{ background: 'var(--bg)', padding: 'clamp(32px, 5vw, 64px) 0' }}>
+      <section style={{ background: 'transparent', padding: 'clamp(32px, 5vw, 64px) 0' }}>
         <div className="container" style={{ maxWidth: 860 }}>
           <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--r-lg)', border: '1px solid var(--border)', boxShadow: 'var(--sh-xs)', padding: 'clamp(20px, 3vw, 36px)' }}>
             <ServiceDetailContent service={svc} showOverview={false} />

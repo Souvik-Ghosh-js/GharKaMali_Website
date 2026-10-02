@@ -58,7 +58,7 @@ export default function DashboardPage() {
   return (
     <>
       <Navbar />
-      <div style={{ minHeight:'calc(100svh - var(--nav-h))', background:'var(--bg)', paddingTop:'var(--nav-h)', position: 'relative' }}>
+      <div style={{ minHeight:'calc(100svh - var(--nav-h))', background: 'transparent', paddingTop:'var(--nav-h)', position: 'relative' }}>
         <div className="hero-bg-grid" style={{ opacity: 0.15 }} />
 
         {/* Hero */}
@@ -207,7 +207,7 @@ export default function DashboardPage() {
                   <div style={{ position:'absolute', top:-40, right:-40, width:200, height:200, borderRadius:'50%', background:'rgba(201,168,76,0.3)', filter: 'blur(50px)' }} />
                   <p style={{ fontSize:'0.8rem', fontWeight:900, color:'var(--gold-light)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:12, fontFamily: 'var(--font-mono)' }}>Active Plan</p>
                   <h3 style={{ fontFamily:'var(--font-display)', fontWeight:900, color:'#fff', fontSize:'1.8rem', marginBottom:8, lineHeight: 1.1 }}>{activeSub.plan?.name}</h3>
-                  <p style={{ fontSize:'0.9rem', color:'var(--cream)', opacity: 0.9, marginBottom:32, fontWeight: 500 }}>{activeSub.plan?.visits_per_month} visits/mo · {activeSub.plant_count} plants</p>
+                  <p style={{ fontSize:'0.9rem', color:'rgba(255,255,255,0.9)', opacity: 0.9, marginBottom:32, fontWeight: 500 }}>{activeSub.plan?.visits_per_month} visits/mo · {activeSub.plant_count} plants</p>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap: 12, flexWrap: 'wrap' }}>
                     <span style={{ fontFamily:'var(--font-display)', fontSize:'clamp(1.5rem, 4vw, 2.2rem)', fontWeight:900, color:'var(--gold)' }}>₹{activeSub.plan?.price?.toLocaleString('en-IN')}<span style={{ fontSize:'0.9rem', color:'rgba(255,255,255,0.7)', fontWeight:600 }}>/mo</span></span>
                     <Link href="/subscriptions" style={{ background:'#fff', color:'var(--forest)', padding:'10px 24px', borderRadius:99, fontSize:'0.9rem', fontWeight:800, textDecoration:'none', boxShadow: 'var(--sh-sm)', whiteSpace: 'nowrap' }}>Manage</Link>

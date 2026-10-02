@@ -68,7 +68,7 @@ export default function TicketDetailPage() {
   return (
     <>
       <Navbar />
-      <div style={{ background: 'var(--bg)', paddingTop: 'var(--nav-h)', minHeight: '100svh' }}>
+      <div style={{ background: 'transparent', paddingTop: 'var(--nav-h)', minHeight: '100svh' }}>
         <div className="container" style={{ padding: '32px 0 80px', maxWidth: 900 }}>
           <Link href="/complaints" style={{ fontSize: '0.85rem', color: 'var(--sage)', textDecoration: 'none', fontWeight: 600 }}>← All Tickets</Link>
 

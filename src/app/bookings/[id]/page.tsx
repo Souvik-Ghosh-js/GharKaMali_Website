@@ -162,7 +162,7 @@ export default function BookingDetailPage() {
   if (isLoading || bLoading) return (
     <>
       <Navbar />
-      <div style={{ paddingTop: 'var(--nav-h)', background: 'var(--bg)', minHeight: '100svh' }}>
+      <div style={{ paddingTop: 'var(--nav-h)', background: 'transparent', minHeight: '100svh' }}>
         <div className="container" style={{ paddingTop: 40 }}>
           {Array(4).fill(null).map((_, i) => (
             <div key={i} className="skeleton" style={{ height: 80, borderRadius: 18, marginBottom: 12 }} />
@@ -175,7 +175,7 @@ export default function BookingDetailPage() {
   if (!booking) return (
     <>
       <Navbar />
-      <div style={{ paddingTop: 'var(--nav-h)', background: 'var(--bg)', minHeight: '100svh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ paddingTop: 'var(--nav-h)', background: 'transparent', minHeight: '100svh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '4rem', marginBottom: 16, color: 'var(--text-muted)', opacity: 0.3 }}><svg width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round'><circle cx='11' cy='11' r='8' /><line x1='21' y1='21' x2='16.65' y2='16.65' /></svg></div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 700 }}>Booking not found</h2>
@@ -192,7 +192,7 @@ export default function BookingDetailPage() {
   return (
     <>
       <Navbar transparent />
-      <div style={{ background: 'var(--bg)', minHeight: '100svh', position: 'relative' }}>
+      <div style={{ background: 'transparent', minHeight: '100svh', position: 'relative' }}>
         {/* Header */}
         <div style={{ background: 'linear-gradient(135deg, var(--forest), var(--forest-mid))', padding: '140px 0 80px', position: 'relative', overflow: 'hidden' }}>
           {/* Subtle dark tint at top for navbar contrast */}

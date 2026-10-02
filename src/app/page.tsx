@@ -6,6 +6,11 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '@/components/Navbar';
 import { useGSAPAnimations } from '@/hooks/useGSAPAnimations';
+import { useStoryScroll } from '@/hooks/useStoryScroll';
+import { useInView } from '@/hooks/useInView';
+import Words from '@/components/Words';
+import { APP_STORE_URL, PLAY_STORE_URL } from '@/lib/appLinks';
+import GrowthVine from '@/components/GrowthVine';
 import Footer from '@/components/Footer';
 import PageLoader from '@/components/PageLoader';
 import ImageFadeSlider from '@/components/ImageFadeSlider';
@@ -24,10 +29,23 @@ const TypeWriter = ({ words, style, className }: { words: string[]; style?: Reac
   const [isDeleting, setIsDeleting] = useState(false);
   const [loopNum, setLoopNum] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const contentRef = useRef<HTMLSpanElement>(null);
-  const [height, setHeight] = useState<number | 'auto'>('auto');
+  const boxRef = useRef<HTMLDivElement>(null);
+  // Only type while on screen and the tab is visible — no idle re-renders.
+  const [active, setActive] = useState(true);
 
   useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    let onScreen = true;
+    const sync = () => setActive(onScreen && document.visibilityState === 'visible');
+    const io = new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; sync(); });
+    io.observe(el);
+    document.addEventListener('visibilitychange', sync);
+    return () => { io.disconnect(); document.removeEventListener('visibilitychange', sync); };
+  }, []);
+
+  useEffect(() => {
+    if (!active) return;
     const speed = isDeleting ? 35 : 100;
     timerRef.current = setTimeout(() => {
       const i = loopNum % words.length;
@@ -46,16 +64,11 @@ const TypeWriter = ({ words, style, className }: { words: string[]; style?: Reac
       }
     }, speed);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [text, isDeleting, loopNum, words]);
-
-  useEffect(() => {
-    if (contentRef.current) {
-      setHeight(contentRef.current.offsetHeight);
-    }
-  }, [text]);
+  }, [text, isDeleting, loopNum, words, active]);
 
   return (
     <div
+      ref={boxRef}
       className={`typewriter-container ${className || ''}`}
       style={{
         display: 'inline-flex',
@@ -66,7 +79,7 @@ const TypeWriter = ({ words, style, className }: { words: string[]; style?: Reac
         ...style,
       }}
     >
-      <span ref={contentRef} style={{
+      <span style={{
         fontSize: 'clamp(0.82rem, 2.5vw, 1.2rem)',
         color: 'var(--gold)',
         fontWeight: 700,
@@ -77,7 +90,7 @@ const TypeWriter = ({ words, style, className }: { words: string[]; style?: Reac
         {text}
       </span>
       <span style={{
-        animation: 'blink 0.9s step-end infinite',
+        animation: active ? 'blink 0.9s step-end infinite' : 'none',
         opacity: 0.8,
         fontWeight: 300,
         color: 'var(--gold)',
@@ -178,12 +191,21 @@ const AppDownloadPopup = () => {
       <div className="app-popup-box" onClick={e => e.stopPropagation()}>
         <button className="close" onClick={() => setShow(false)}>×</button>
         <img src="/logo.png" alt="GharKaMali" style={{ width: 140, height: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto 8px' }} />
-        <h3 style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--forest)', marginBottom: 12 }}>Join the Green Club</h3>
+        <h3 style={{ fontSize: '1.8rem', fontWeight: 600, color: 'var(--ink)', marginBottom: 12 }}>Join the Green Club</h3>
         <p style={{ color: 'var(--text-2)', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: 32, fontWeight: 500 }}>
           Download the GharKaMali app to track your plant growth, get digital health reports, and manage bookings instantly.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <button className="btn btn-primary btn-lg" style={{ width: '100%' }}>Download App Now</button>
+          <div className="app-popup-stores">
+            <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" className="app-store-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-3-.79-1.54.02-2.97.9-3.76 2.28-1.6 2.78-.41 6.89 1.15 9.15.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.4-.92-2.42-3.65zM14.1 5.86c.63-.77 1.06-1.83.94-2.9-.91.04-2.02.61-2.67 1.37-.58.67-1.1 1.76-.96 2.8 1.02.08 2.06-.52 2.69-1.27z"/></svg>
+              <span><small>Download on the</small>App Store</span>
+            </a>
+            <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" className="app-store-btn play">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M4.2 2.3c-.25.27-.4.68-.4 1.2v17c0 .52.15.93.4 1.2l.07.06L13.8 12.2v-.22L4.27 2.24l-.07.06zM16.98 15.4l-3.18-3.18v-.22l3.18-3.18.07.04 3.77 2.14c1.08.61 1.08 1.61 0 2.22l-3.77 2.14-.07.04zM17.05 15.36L13.8 12.1 4.2 21.7c.36.38.94.42 1.6.05l11.25-6.39M17.05 8.84L5.8 2.45c-.66-.37-1.24-.33-1.6.05l9.6 9.6 3.25-3.26z"/></svg>
+              <span><small>Get it on</small>Play Store</span>
+            </a>
+          </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--sage)', fontWeight: 600 }}>Available on Play Store & App Store</div>
         </div>
       </div>
@@ -223,16 +245,28 @@ function ScrollMarquee({ id, speed = 0.55, gap = 24, children }: {
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+    // Only run while on screen — no wasted frames while the page scrolls elsewhere.
+    let visible = false;
+    let acc = 0;
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      cancelAnimationFrame(rafRef.current);
+      if (visible) rafRef.current = requestAnimationFrame(tick);
+    }, { rootMargin: '100px' });
     const tick = () => {
+      if (!visible) return;
       if (!pausedRef.current) {
-        el.scrollLeft += speed;
+        acc += speed;
+        const step = Math.floor(acc);
+        acc -= step;
+        if (step) el.scrollLeft += step;
         const half = el.scrollWidth / 2;
         if (el.scrollLeft >= half) el.scrollLeft -= half;
       }
       rafRef.current = requestAnimationFrame(tick);
     };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
+    io.observe(el);
+    return () => { cancelAnimationFrame(rafRef.current); io.disconnect(); };
   }, [speed]);
 
   const skip = (dir: number) => {
@@ -284,7 +318,7 @@ function ScrollMarquee({ id, speed = 0.55, gap = 24, children }: {
 
 function TestimonialsSection({ reviews }: { reviews: any[] }) {
   return (
-    <section className="section section-overflow trust-section s-reveal" id="testimonials">
+    <section className="section section-overflow trust-section" id="testimonials">
       <div className="container">
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 32 }}>
           <div className="section-divider-line" />
@@ -335,16 +369,19 @@ const MAKEOVER_SLIDES = [
 /* ── GREEN MAKEOVER AUTO SLIDER ── */
 const GreenMakeoverSlider = () => {
   const [activeSlide, setActiveSlide] = useState(0);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(boxRef);
 
   useEffect(() => {
+    if (!inView) return;
     const t = setInterval(() => {
       setActiveSlide(p => (p + 1) % MAKEOVER_SLIDES.length);
     }, 4000);
     return () => clearInterval(t);
-  }, []);
+  }, [inView]);
 
   return (
-    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
+    <div ref={boxRef} style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
       {/* Main image area */}
       <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }}>
         {MAKEOVER_SLIDES.map((slide, i) => (
@@ -525,15 +562,18 @@ const WA_URL = 'https://wa.me/919643701701?text=Hi%20GharKaMali!%20I%20want%20to
 const HeroSlideshow = () => {
   const images = ['/bg-1.jpg', '/bg-2.jpg', '/bg-3.webp'];
   const [idx, setIdx] = useState(0);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(boxRef);
 
   useEffect(() => {
+    if (!inView) return;
     const it = setInterval(() => setIdx(i => (i + 1) % images.length), 5000);
     return () => clearInterval(it);
-  }, [images.length]);
+  }, [images.length, inView]);
 
   return (
     <>
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', background: '#000' }}>
+      <div ref={boxRef} data-story="hero-media" style={{ position: 'absolute', inset: '-6% 0 -12%', zIndex: 0, overflow: 'hidden', background: '#000' }}>
         {images.map((img, i) => (
           <div
             key={i}
@@ -551,17 +591,11 @@ const HeroSlideshow = () => {
         ))}
       </div>
 
-      <div style={{
-        position: 'absolute', inset: 0, zIndex: 1,
-        background: 'radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.75) 100%)',
-        pointerEvents: 'none',
-      }} />
-
-      <div style={{
-        position: 'absolute', inset: 0, zIndex: 2,
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 40%, rgba(0,0,0,0.6) 100%)',
-        pointerEvents: 'none',
-      }} />
+      {/* Verdant tint + futuristic depth layers */}
+      <div className="fx-hero-tint" />
+      <div className="fx-grid-floor" aria-hidden />
+      <div className="fx-orbit" data-story="hero-orbit" aria-hidden><i /><i /></div>
+      <div className="fx-spores" aria-hidden><i /><i /><i /><i /><i /><i /><i /><i /></div>
     </>
   );
 };
@@ -579,12 +613,12 @@ const Marquee = () => {
     ...cityItems,
   ];
   return (
-    <div style={{ background: 'var(--forest)', padding: '20px 0', overflow: 'hidden', borderTop: '1px solid rgba(255,255,255,0.1)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+    <div className="v-pod" style={{ padding: '18px 0', overflow: 'hidden', borderRadius: 0, border: 'none', boxShadow: 'none' }}>
       <div className="marquee-container" style={{ maskImage: 'none', gap: '40px' }}>
         <div className="marquee-scroller" style={{ gap: '60px', animationDuration: '30s' }}>
           {[...items, ...items, ...items].map((item, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#fff', whiteSpace: 'nowrap' }}>
-              <span style={{ color: 'var(--gold)' }}><item.Icon /></span>
+              <span style={{ color: 'var(--lime)', display: 'inline-flex' }}><item.Icon /></span>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{item.text}</span>
             </div>
           ))}
@@ -607,14 +641,14 @@ const SERVICEABLE_CITIES = [
 const CityMarquee = () => {
   const services = SERVICE_ITEMS.map((item) => ({ title: item.title, Icon: item.Icon }));
   return (
-    <div style={{ background: 'var(--bg-elevated)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '14px 0', overflow: 'hidden' }}>
+    <div style={{ background: 'var(--mint)', borderBottom: '1px solid var(--border)', padding: '14px 0', overflow: 'hidden' }}>
       <div className="marquee-container" style={{ gap: '60px' }}>
         <div className="marquee-scroller" style={{ animationDuration: '30s', gap: '80px' }}>
           {[...Array(4)].map((_, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '80px' }}>
               {services.map((service, zi) => (
                 <div key={zi} style={{ display: 'flex', alignItems: 'center', gap: '12px', whiteSpace: 'nowrap' }}>
-                  <span style={{ color: 'var(--earth)' }}><service.Icon /></span>
+                  <span style={{ color: 'var(--leaf)', display: 'inline-flex' }}><service.Icon /></span>
                   <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                     {service.title}
                   </span>
@@ -647,6 +681,7 @@ export default function HomePage() {
   const zones: any[] = (zonesRaw as any[]) ?? [];
   const publicReviews: any[] = reviewsRaw?.reviews || (Array.isArray(reviewsRaw) ? reviewsRaw : []);
   const activeReviews = publicReviews.length > 0 ? publicReviews : REVIEWS;
+  useStoryScroll([plans.length, blogs.length]);
 
   const taglineItems = (taglinesRaw as any[]) ?? [];
   const dynamicWords = taglineItems.length > 0
@@ -700,19 +735,6 @@ export default function HomePage() {
     return () => obs.disconnect();
   }, []);
 
-  // ── Global section scroll-reveal ──
-  useEffect(() => {
-    const els = document.querySelectorAll<HTMLElement>('.s-reveal');
-    const show = (el: Element) => el.classList.add('in-view');
-    const obs = new IntersectionObserver(
-      entries => entries.forEach(e => { if (e.isIntersecting) { show(e.target); obs.unobserve(e.target); } }),
-      { threshold: 0.05, rootMargin: '0px 0px -4% 0px' }
-    );
-    els.forEach(el => obs.observe(el));
-    // Fallback: show anything still hidden after 1.6s
-    const t = setTimeout(() => els.forEach(show), 1600);
-    return () => { obs.disconnect(); clearTimeout(t); };
-  }, []);
 
   return (
     <SmoothScrollProvider>
@@ -720,15 +742,15 @@ export default function HomePage() {
       <Navbar transparent />
 
       {/* ═══ HERO ═══ */}
-      <section className="section hero s-reveal" id="hero" style={{ position: 'relative', overflow: 'hidden', background: '#000' }}>
+      <section className="section hero fx-hero" id="hero" data-story="hero" style={{ position: 'relative', overflow: 'hidden', background: 'var(--ink)' }}>
         <HeroSlideshow />
 
         <div className="container" style={{ position: 'relative', zIndex: 5 }}>
           <div className="hero-split-layout">
 
-            <div className="hero-left-col">
-              <div className="hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderRadius: 99, padding: '8px 20px', marginBottom: 32, fontSize: '0.78rem', fontWeight: 700, color: '#fff' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80', animation: 'pulse 2s ease infinite', display: 'inline-block' }} />
+            <div className="hero-left-col" data-story="hero-copy">
+              <div className="hero-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(16,42,28,0.55)', backdropFilter: 'blur(10px)', border: '1px solid rgba(143,217,174,0.3)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderRadius: 99, padding: '8px 20px', marginBottom: 32, fontSize: '0.78rem', fontWeight: 700, color: '#fff', letterSpacing: '0.04em' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--lime)', boxShadow: '0 0 10px var(--lime)', animation: 'pulse 2s ease infinite', display: 'inline-block' }} />
                 <span>Professional gardening made simple</span>
               </div>
 
@@ -741,9 +763,10 @@ export default function HomePage() {
 
                 {/* Row 2: Brand + Tag — inline so "hai na!" never wraps alone */}
                 <div style={{ display: 'block', lineHeight: 1.05 }}>
-                  <span className="typewriter-gradient" style={{
-                    fontSize: 'clamp(2.8rem, 8.5vw, 5.2rem)',
-                    fontWeight: 900,
+                  <span className="fx-glow-text fx-serif" style={{
+                    fontFamily: 'var(--font-serif)',
+                    fontSize: 'clamp(3rem, 9vw, 6rem)',
+                    fontWeight: 700,
                     letterSpacing: '-0.04em',
                     color: '#fff',
                     textShadow: '0 8px 32px rgba(0,0,0,0.45)',
@@ -787,14 +810,14 @@ export default function HomePage() {
               <div style={{ display: 'flex', gap: 20, marginTop: 24, flexWrap: 'wrap' }}>
                 {['Up to 10 plants serviced', 'Consultation included', '40-50 minutes visit'].map((item, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.9)', fontSize: '0.88rem', fontWeight: 600 }}>
-                    <span style={{ color: '#4ade80', fontWeight: 900 }}>✔</span>
+                    <span style={{ width: 20, height: 20, borderRadius: 6, background: 'var(--lime)', color: 'var(--ink)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 900 }}>✓</span>
                     {item}
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="hero-right-col" style={{
+            <div className="hero-right-col" data-story="hero-stats" style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
               gap: '12px',
@@ -869,8 +892,9 @@ export default function HomePage() {
 
                   {/* Number */}
                   <div style={{
-                    fontSize: 'clamp(1.4rem, 2.2vw, 2rem)',
-                    fontWeight: 900,
+                    fontFamily: 'var(--font-serif)',
+                    fontSize: 'clamp(1.5rem, 2.4vw, 2.2rem)',
+                    fontWeight: 600,
                     color: '#fff',
                     lineHeight: 1,
                     marginBottom: 6,
@@ -897,7 +921,7 @@ export default function HomePage() {
 
             <style jsx>{`
               .hero-stat-3d {
-                animation: stat3dIn 0.6s cubic-bezier(0.22,1,0.36,1) both;
+                animation: stat3dIn 0.6s cubic-bezier(0.22,1,0.36,1) backwards;
               }
               .hero-stat-3d:nth-child(1) { animation-delay: 0.1s; }
               .hero-stat-3d:nth-child(2) { animation-delay: 0.2s; }
@@ -912,21 +936,24 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div style={{ padding: '0', width: '100%', position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 10 }}>
-          <Marquee />
-          <CityMarquee />
-        </div>
+        <div className="fx-scroll-cue" aria-hidden />
       </section>
+
+      {/* Trust + services bands — outside the hero so its scroll animation never clips them */}
+      <div className="hero-marquees">
+        <Marquee />
+        <CityMarquee />
+      </div>
 
 
 
       {/* ═══ SERVICE AREA ═══ */}
-      <section className="section section-half s-reveal" style={{ background: 'var(--bg-sage)' }}>
+      <section className="section section-half fx-contours-dark" data-no-reveal style={{ background: 'transparent', overflow: 'hidden' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            <div className="section-divider-line" />
+            <div className="section-divider-line" data-story-rule />
             <span className="overline overline-dot">Coverage</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Serving Across NCR</h2>
+            <h2 className="display-2" data-story="title" style={{ color: 'var(--ink)', marginTop: 12 }}><Words text="Serving Across NCR" /></h2>
             <p style={{ color: 'var(--text-2)', fontSize: '0.88rem', maxWidth: 520, margin: '14px auto 0', lineHeight: 1.7, fontWeight: 500 }}>
               We are currently providing expert gardening services in:
             </p>
@@ -934,12 +961,12 @@ export default function HomePage() {
 
           <div className="city-pills-grid" style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
             {['Noida', 'Greater Noida West', 'Greater Noida', 'Ghaziabad', 'Gurgaon', 'Delhi'].map((city, i) => (
-              <div key={i} className="city-pill" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: '1.5px solid var(--border-gold)', borderRadius: 99, padding: '9px 20px', fontWeight: 600, color: 'var(--forest)', fontSize: '0.88rem', boxShadow: 'var(--sh-sm)' }}>
-                <span style={{ color: 'var(--earth)' }}><IcMap /></span>
+              <div key={i} className="city-pill v-chip" data-story="city">
+                <span className="v-orb v-orb-sm"><IcMap /></span>
                 {city}
               </div>
             ))}
-            <div className="city-pill" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--forest)', border: '1.5px solid var(--forest)', borderRadius: 99, padding: '9px 20px', fontWeight: 600, color: '#fff', fontSize: '0.88rem', boxShadow: 'var(--sh-sm)' }}>
+            <div className="city-pill v-chip v-chip-dark" data-story="city">
               🚀 Faridabad — Coming Soon
             </div>
           </div>
@@ -948,12 +975,12 @@ export default function HomePage() {
       </section>
 
       {/* ═══ PROFESSIONAL GARDENING MADE SIMPLE ═══ */}
-      <section className="section section-overflow s-reveal" style={{ background: '#fff', paddingBottom: 60 }}>
+      <section className="section section-overflow" data-no-reveal style={{ background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.7) 30%, rgba(255,255,255,0.7) 70%, transparent)', paddingBottom: 60 }}>
         <div className="container">
           <div className="prof-gardening-grid">
-            <div className="prof-gardening-content s-reveal s-reveal-d1">
+            <div className="prof-gardening-content">
               <span className="overline" style={{ color: 'var(--earth)' }}>Service Excellence</span>
-              <h2 className="display-1 heading-two-tone" style={{ marginTop: 12, textAlign: 'left', width: 'auto', lineHeight: 1.15 }}>Why Choose <span>GharKaMali?</span></h2>
+              <h2 className="display-1 heading-two-tone" data-story="title" style={{ marginTop: 12, textAlign: 'left', width: 'auto', lineHeight: 1.15 }}><Words text="Why Choose" /> <span><Words text="GharKaMali?" /></span></h2>
               <p style={{ color: 'var(--text-2)', fontSize: '0.9rem', marginTop: 24, lineHeight: 1.8, maxWidth: 500, fontWeight: 500 }}>
                 We solve all of this with expert home gardening services at your doorstep.
               </p>
@@ -964,8 +991,8 @@ export default function HomePage() {
                   'Plants drying or turning yellow?',
                   'Not sure what your plants need?'
                 ].map((item, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, color: 'var(--forest)', fontWeight: 600, fontSize: '0.92rem' }}>
-                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', boxShadow: 'var(--sh-sm)', flexShrink: 0 }}>✓</div>
+                  <div key={i} data-story="problem" className="v-glass-row">
+                    <div className="v-orb v-orb-sm v-orb-lime">✓</div>
                     {item}
                   </div>
                 ))}
@@ -976,7 +1003,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="prof-gardening-visual s-reveal s-reveal-d2" style={{ position: 'relative' }}>
+            <div className="prof-gardening-visual" style={{ position: 'relative' }}>
+              <div data-story="photo" style={{ position: 'relative' }}>
               <div style={{ position: 'relative', maxWidth: 380, margin: '0 auto', borderRadius: 32, overflow: 'hidden', boxShadow: 'var(--sh-xl)', border: '8px solid #fff', transform: 'rotate(1.5deg)' }}>
                 <ImageFadeSlider
                   images={['/marketting-1.jpeg', '/marketting-2.jpeg', '/marketting-3.jpeg', '/marketting-4.jpeg', '/marketting-5.jpeg']}
@@ -987,9 +1015,10 @@ export default function HomePage() {
               </div>
 
               {/* Floating Badge */}
-              <div style={{ position: 'absolute', bottom: -30, right: -10, background: 'var(--forest)', color: '#fff', padding: '24px', borderRadius: '40px 40px 0 40px', boxShadow: 'var(--sh-lg)', textAlign: 'center', width: 150, height: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, transform: 'rotate(-4deg)' }}>
-                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--gold)' }}>4.9/5</div>
+              <div className="v-pod" style={{ position: 'absolute', bottom: -30, right: -10, color: '#fff', padding: '24px', borderRadius: '40px 40px 0 40px', boxShadow: 'var(--sh-lg)', textAlign: 'center', width: 150, height: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 10, transform: 'rotate(-4deg)' }}>
+                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', fontWeight: 600, color: 'var(--lime)' }}>4.9/5</div>
                 <div style={{ fontSize: '0.7rem', fontWeight: 700, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 }}>User Satisfaction</div>
+              </div>
               </div>
             </div>
           </div>
@@ -997,17 +1026,17 @@ export default function HomePage() {
       </section>
 
       {/* Certification Ticker — Seamless Bridge */}
-      <div className="s-reveal s-reveal-d3" style={{ background: 'var(--bg-elevated)', padding: '24px 0', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', position: 'relative', zIndex: 12 }}>
-        <div className="marquee-container" style={{ maskImage: 'none' }}>
+      <div className="v-pod" style={{ padding: '22px 0', position: 'relative', zIndex: 12, overflow: 'hidden' }}>
+        <div className="marquee-container" data-story="ticker" style={{ maskImage: 'none' }}>
           <div className="marquee-scroller" style={{ animationDuration: '25s', gap: '80px' }}>
             {[...Array(6)].map((_, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>2 Days Intensive Training</span>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>Background Verified Experts</span>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--forest)', textTransform: 'uppercase', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>Eco-friendly Solutions</span>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.22em', whiteSpace: 'nowrap' }}>2 Days Intensive Training</span>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--lime)', boxShadow: '0 0 10px var(--lime)' }} />
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.22em', whiteSpace: 'nowrap' }}>Background Verified Experts</span>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--lime)', boxShadow: '0 0 10px var(--lime)' }} />
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.22em', whiteSpace: 'nowrap' }}>Eco-friendly Solutions</span>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--lime)', boxShadow: '0 0 10px var(--lime)' }} />
               </div>
             ))}
           </div>
@@ -1016,12 +1045,12 @@ export default function HomePage() {
 
 
       {/* ═══ PLANT UTILITIES ═══ */}
-      <section className="section section-half s-reveal" style={{ background: 'var(--bg-sage)', paddingBottom: 60 }}>
+      <section className="section section-half" data-no-reveal style={{ background: 'transparent', paddingBottom: 60 }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 34 }}>
-            <div className="section-divider-line" />
+            <div className="section-divider-line" data-story-rule />
             <span className="overline overline-dot">Included in Every Visit</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 18 }}>What You Get in ₹349 Visit</h2>
+            <h2 className="display-2" data-story="title" style={{ color: 'var(--ink)', marginTop: 18 }}><Words text="What You Get in ₹349 Visit" /></h2>
             <p style={{ color: 'var(--text-2)', fontSize: '0.88rem', maxWidth: 480, margin: '8px auto 0', lineHeight: 1.6, fontWeight: 500 }}>
               Everything your plants need, covered in a single expert visit.
             </p>
@@ -1043,36 +1072,31 @@ export default function HomePage() {
             ].map((item, i) => (
               <div
                 key={i}
-                className="utility-card"
+                className="utility-card v-glass"
+                data-story="utility"
                 style={{
                   gridColumn: 'auto',
-                  background: '#fff',
-                  padding: '20px 20px',
-                  border: '1px solid var(--border)',
+                  padding: '24px 20px',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   textAlign: 'center',
-                  borderRadius: 16,
-                  boxShadow: 'var(--sh-sm)',
-                  transition: 'all 0.3s ease-out',
+                  borderRadius: 26,
                   cursor: 'pointer',
                 }}
               >
-                <div style={{ color: 'var(--forest)', width: 40, height: 40, borderRadius: '12px', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, border: '1px solid var(--border-gold)', flexShrink: 0 }}>
+                <div className="v-orb" style={{ marginBottom: 14 }}>
                   <item.Icon />
                 </div>
-                <h3 style={{ fontSize: '0.88rem', color: 'var(--forest)', fontWeight: 800, marginBottom: 6, lineHeight: 1.3 }}>{item.title}</h3>
-                <p style={{ color: 'var(--sage)', fontSize: '0.78rem', lineHeight: 1.5, fontWeight: 500, margin: 0 }}>{item.desc}</p>
+                <h3 style={{ fontSize: '0.92rem', color: 'var(--ink)', fontWeight: 600, marginBottom: 6, lineHeight: 1.3 }}>{item.title}</h3>
+                <p style={{ color: 'var(--fog)', fontSize: '0.78rem', lineHeight: 1.5, fontWeight: 500, margin: 0 }}>{item.desc}</p>
               </div>
             ))}
           </div>
 
           <style jsx>{`
           .utility-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 16px 32px rgba(3, 65, 26, 0.1) !important;
-            border-color: var(--gold) !important;
+            box-shadow: 0 24px 50px -12px rgba(18, 56, 36, 0.22), 0 0 0 1px rgba(143, 217, 174, 0.5) !important;
           }
           @media (min-width: 1025px) {
             div { grid-template-columns: repeat(5, 1fr) !important; }
@@ -1091,48 +1115,41 @@ export default function HomePage() {
 
 
       {/* ═══ HOW IT WORKS — horizontal GSAP-style stack-expand ═══ */}
-      <section className="section section-overflow s-reveal" style={{ position: 'relative', zIndex: 11, paddingTop: 0 }}>
+      <section className="section section-overflow steps-story" data-no-reveal style={{ position: 'relative', zIndex: 11, paddingTop: 0 }}>
         {/* Subtle radial blob decorations */}
         <div style={{ position: 'absolute', top: -80, right: -80, width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -60, left: -60, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div className="container">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 'clamp(40px,6vw,80px)' }}>
-            <div className="section-divider-line" />
+            <div className="section-divider-line" data-story-rule />
             <span className="overline overline-dot">Streamlined System</span>
-            <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Book in 3 Simple Steps</h2>
+            <h2 className="display-2" data-story="title" style={{ color: 'var(--ink)', marginTop: 12 }}><Words text="Book in 3 Simple Steps" /></h2>
           </div>
 
           {/* Desktop: horizontal row with GSAP-style expand from stack */}
           <div
             ref={stepsRef}
             className="steps-row desktop-only"
+            data-story="steps"
             style={{ position: 'relative', justifyContent: 'center' }}
           >
-            {/* Connector line behind cards */}
-            <div style={{ position: 'absolute', top: '50%', left: '8%', right: '8%', height: 2, background: 'linear-gradient(90deg, var(--forest), var(--gold), var(--forest))', opacity: 0.15, zIndex: 0, transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+            {/* Connector line behind cards — draws itself on scroll */}
+            <div data-story="step-line" style={{ position: 'absolute', top: '50%', left: '8%', right: '8%', height: 2, background: 'linear-gradient(90deg, var(--leaf), var(--lime), var(--leaf))', boxShadow: '0 0 12px rgba(217,242,122,0.6)', opacity: 0.8, zIndex: 0, marginTop: -1, transformOrigin: '0 50%', pointerEvents: 'none' }} />
 
             {HOW_STEPS.map((s, i) => (
               <div
                 key={i}
                 className="step-card-wrap"
+                data-story="step"
                 style={{
                   flex: '1 1 0',
                   padding: '0 clamp(8px,1.5vw,20px)',
                   position: 'relative',
                   zIndex: 1,
-                  opacity: stepsVisible ? 1 : 0,
-                  transform: stepsVisible
-                    ? 'translateX(0) scale(1)'
-                    : `translateX(${i === 0 ? '80px' : i === 2 ? '-80px' : '0'}) scale(0.82)`,
-                  transition: `opacity 0.75s cubic-bezier(0.22,1,0.36,1) ${i * 0.18}s, transform 0.75s cubic-bezier(0.22,1,0.36,1) ${i * 0.18}s`,
                 }}
               >
-                <div style={{
-                  background: i === 1 ? 'var(--forest)' : 'rgba(255,255,255,0.82)',
-                  backdropFilter: i === 1 ? 'none' : 'blur(12px)',
-                  WebkitBackdropFilter: i === 1 ? 'none' : 'blur(12px)',
+                <div className={i === 1 ? 'v-pod' : 'v-glass'} style={{
                   borderRadius: 'clamp(24px,3vw,40px)',
-                  border: i === 1 ? '1px solid rgba(201,168,76,0.25)' : '1px solid rgba(3,65,26,0.07)',
                   padding: 'clamp(28px,3.5vw,52px) clamp(20px,2.5vw,36px)',
                   textAlign: 'center',
                   boxShadow: i === 1 ? '0 24px 80px rgba(3,65,26,0.35), 0 8px 32px rgba(3,65,26,0.2)' : '0 4px 24px rgba(3,65,26,0.06), 0 1px 4px rgba(3,65,26,0.04)',
@@ -1144,14 +1161,14 @@ export default function HomePage() {
                 }}>
                   {/* Subtle glow for center card */}
                   {i === 1 && <div style={{ position: 'absolute', top: -30, right: -30, width: 150, height: 150, borderRadius: '50%', background: 'rgba(201,168,76,0.15)', filter: 'blur(40px)', pointerEvents: 'none' }} />}
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: i === 1 ? 'rgba(255,255,255,0.12)' : 'var(--forest)', color: '#fff', borderRadius: 99, padding: '5px 16px', fontSize: '0.62rem', fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 28, position: 'relative', zIndex: 1 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--gold)', flexShrink: 0 }} />
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: i === 1 ? 'var(--lime)' : 'var(--ink)', color: i === 1 ? 'var(--ink)' : '#fff', borderRadius: 99, padding: '5px 16px', fontSize: '0.62rem', fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 28, position: 'relative', zIndex: 1 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: i === 1 ? 'var(--ink)' : 'var(--lime)', flexShrink: 0 }} />
                     Step {s.step}
                   </div>
-                  <div style={{ width: 76, height: 76, borderRadius: '30%', background: i === 1 ? 'rgba(255,255,255,0.15)' : 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: '#fff', boxShadow: i === 1 ? 'none' : '0 10px 30px rgba(3,65,26,0.25)', position: 'relative', zIndex: 1 }}>
+                  <div className={`v-orb v-orb-lg ${i === 1 ? 'v-orb-dark' : ''}`} style={{ margin: '0 auto 24px', position: 'relative', zIndex: 1 }}>
                     <s.Icon />
                   </div>
-                  <h3 style={{ color: i === 1 ? '#fff' : 'var(--forest)', fontSize: 'clamp(1.1rem,2vw,1.5rem)', fontWeight: 900, marginBottom: 14, position: 'relative', zIndex: 1 }}>{s.title}</h3>
+                  <h3 style={{ color: i === 1 ? '#fff' : 'var(--ink)', fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.2rem,2vw,1.6rem)', fontWeight: 600, marginBottom: 14, position: 'relative', zIndex: 1 }}>{s.title}</h3>
                   <p style={{ color: i === 1 ? 'rgba(255,255,255,0.78)' : 'var(--text-2)', lineHeight: 1.8, fontSize: 'clamp(0.85rem,1.1vw,0.98rem)', fontWeight: 500, margin: 0, position: 'relative', zIndex: 1 }}>{s.desc}</p>
                 </div>
               </div>
@@ -1161,8 +1178,8 @@ export default function HomePage() {
           {/* Mobile: vertical stack */}
           <div className="mobile-only mobile-steps-flex" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {HOW_STEPS.map((s, i) => (
-              <div key={i} style={{ background: i === 1 ? 'var(--forest)' : '#fff', borderRadius: 22, border: i === 1 ? 'none' : '1.5px solid var(--border-gold)', padding: '22px 18px', display: 'flex', gap: 16, alignItems: 'flex-start', boxShadow: i === 1 ? 'var(--sh-xl)' : 'var(--sh-sm)' }}>
-                <div style={{ width: 52, height: 52, flexShrink: 0, borderRadius: '22%', background: i === 1 ? 'rgba(255,255,255,0.15)' : 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+              <div key={i} data-reveal className={i === 1 ? 'v-pod' : 'v-glass'} style={{ borderRadius: 22, padding: '22px 18px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                <div className={`v-orb ${i === 1 ? 'v-orb-dark' : ''}`} style={{ flexShrink: 0 }}>
                   <s.Icon />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -1177,7 +1194,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══ GREEN MAKEOVER TEASER ═══ */}
-      <section className="section s-reveal gm-home-section" id="green-makeover" style={{ background: 'var(--forest)', overflow: 'hidden', padding: 0 }}>
+      <section className="section gm-home-section v-pod" id="green-makeover" data-story="makeover" data-no-reveal style={{ overflow: 'hidden', padding: 0 }}>
         <div className="gm-home-inner">
           {/* LEFT: Transformation Slider */}
           <div className="gm-home-left">
@@ -1212,7 +1229,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══ BRAND STORY ═══ */}
-      <section className="section section-overflow brand-story-section s-reveal" id="brand-story" style={{ background: 'linear-gradient(180deg, #fff 0%, #eef7ee 60%, #e2f0e2 100%)' }}>
+      <section className="section section-overflow brand-story-section fx-contours-dark" id="brand-story" data-no-reveal style={{ background: 'linear-gradient(180deg, transparent 0%, rgba(228,241,232,0.7) 60%, rgba(228,241,232,0.9) 100%)' }}>
         {/* Decorative blobs */}
         <div style={{ position: 'absolute', top: -40, left: '10%', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -40, right: '8%', width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -1220,16 +1237,16 @@ export default function HomePage() {
           <div className="brand-story-inner">
             {/* Left side: Vision Content */}
             <div style={{ textAlign: 'left' }}>
-              <div className="section-divider-line" style={{ margin: '0 0 16px' }} />
+              <div className="section-divider-line" data-story-rule style={{ margin: '0 0 16px', transformOrigin: '0 50%' }} />
               <span className="overline overline-dot" style={{ justifyContent: 'flex-start' }}>Our Brand Story</span>
-              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, textAlign: 'left', width: 'auto' }}>Professional gardening made simple</h2>
+              <h2 className="display-2" data-story="fill" style={{ color: 'var(--ink)', marginTop: 12, textAlign: 'left', width: 'auto' }}><Words text="Professional gardening made simple" /></h2>
 
               <div style={{ marginTop: 40 }}>
                 <h3 style={{ color: 'var(--forest)', fontSize: '1.5rem', fontWeight: 700, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ color: 'var(--earth)' }}><IcSun /></span> Our Vision
+                  <span className="v-orb v-orb-sm"><IcSun /></span> Our Vision
                 </h3>
-                <p style={{ color: 'var(--text-2)', lineHeight: 1.9, fontSize: '0.88rem', fontWeight: 500 }}>
-                  At GharKaMali, our vision is to make plant care simple, reliable, and accessible for every home. In today&apos;s busy lifestyle, many people love plants but struggle to maintain them due to lack of time or proper guidance. We aim to become a trusted platform for professional plant care services that help homes and communities keep their plants healthy, green, and thriving.
+                <p data-story="fill" style={{ color: 'var(--text-2)', lineHeight: 1.9, fontSize: 'clamp(0.95rem, 1.3vw, 1.08rem)', fontWeight: 500 }}>
+                  <Words text="At GharKaMali, our vision is to make plant care simple, reliable, and accessible for every home. In today's busy lifestyle, many people love plants but struggle to maintain them due to lack of time or proper guidance. We aim to become a trusted platform for professional plant care services that help homes and communities keep their plants healthy, green, and thriving." />
                 </p>
               </div>
             </div>
@@ -1242,23 +1259,19 @@ export default function HomePage() {
                 { title: 'Quality', desc: 'Delivering professional gardening solutions that actually work.', Icon: IcStar },
                 { title: 'Sustainability', desc: 'Encouraging greener homes and healthier living spaces.', Icon: IcSun }
               ].map((v, i) => (
-                <div key={i} className="value-card card" style={{
+                <div key={i} className="value-card v-glass" data-story="value" style={{
                   textAlign: 'left',
                   padding: '32px 24px',
-                  background: '#fff',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 16,
-                  border: '1.5px solid var(--border-gold)',
-                  borderRadius: 24,
-                  boxShadow: 'var(--sh-md)',
-                  transition: 'all 0.4s var(--ease)'
+                  borderRadius: 26,
                 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--bg-sage)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--forest)', fontSize: '1.2rem' }}>
+                  <div className="v-orb">
                     <v.Icon />
                   </div>
                   <div>
-                    <div style={{ fontWeight: 900, color: 'var(--forest)', marginBottom: 8, fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{v.title}</div>
+                    <div style={{ fontFamily: 'var(--font-serif)', fontWeight: 600, color: 'var(--ink)', marginBottom: 8, fontSize: '1.25rem' }}>{v.title}</div>
                     <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>{v.desc}</p>
                   </div>
                 </div>
@@ -1270,7 +1283,7 @@ export default function HomePage() {
 
       {/* ═══ SHOP PREVIEW ═══ (disabled while SHOP_ENABLED is false) */}
       {SHOP_ENABLED && shopProducts?.length > 0 && (
-        <section className="section marketplace-section s-reveal" style={{ background: 'var(--bg)' }}>
+        <section className="section marketplace-section" style={{ background: 'transparent' }}>
           <div className="container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 32, flexWrap: 'wrap', gap: 20 }}>
               <div style={{ maxWidth: 540, textAlign: 'left' }}>
@@ -1297,14 +1310,14 @@ export default function HomePage() {
         </section>
       )}
       {/* ═══ FINAL CTA ═══ */}
-      <section className="section final-cta s-reveal" id="cta">
+      <section className="section final-cta" id="cta" data-no-reveal>
         {/* Light gardening video background */}
-        <video autoPlay loop muted playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.18 }}>
+        <video autoPlay loop muted playsInline data-parallax="0.25" style={{ position: 'absolute', inset: '-15% 0', width: '100%', height: '130%', objectFit: 'cover', zIndex: 0, opacity: 0.22 }}>
           <source src="/bg.mp4" type="video/mp4" />
         </video>
-        <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(145deg, rgba(255,252,234,0.94) 0%, rgba(240,252,244,0.92) 50%, rgba(255,252,234,0.94) 100%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(145deg, rgba(245,249,244,0.92) 0%, rgba(228,241,232,0.88) 50%, rgba(245,249,244,0.92) 100%)', pointerEvents: 'none' }} />
         <div className="container" style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
-          <div className="final-cta-box" style={{ background: 'rgba(255,255,255,0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: 'clamp(36px,6vw,80px) clamp(20px,5vw,60px)', borderRadius: 'clamp(28px,5vw,52px)', border: '1.5px solid rgba(201,168,76,0.35)', boxShadow: '0 20px 80px rgba(3,65,26,0.10), 0 4px 20px rgba(3,65,26,0.07)', position: 'relative', overflow: 'hidden' }}>
+          <div className="final-cta-box v-glass" data-story="cta" style={{ padding: 'clamp(36px,6vw,80px) clamp(20px,5vw,60px)', borderRadius: 'clamp(28px,5vw,52px)', boxShadow: '0 20px 80px rgba(3,65,26,0.10), 0 4px 20px rgba(3,65,26,0.07)', position: 'relative', overflow: 'hidden' }}>
             {/* Soft radial glows */}
             <div style={{ position: 'absolute', right: -60, top: -60, width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle, rgba(237,207,135,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', left: -40, bottom: -40, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -1320,7 +1333,7 @@ export default function HomePage() {
               <Link href="/book" className="btn btn-primary btn-xl btn-3d-plant" style={{ position: 'relative', overflow: 'visible' }}>
                 Book Now @ ₹349 <IcArrow />
               </Link>
-              <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-xl btn-3d-plant" style={{ background: '#fff', border: '2px solid var(--forest)', color: 'var(--forest)', position: 'relative', overflow: 'visible' }}>
+              <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-xl btn-3d-plant" style={{ position: 'relative', overflow: 'visible' }}>
                 <IcWhatsApp /> Chat with Us
               </a>
             </div>
@@ -1331,21 +1344,22 @@ export default function HomePage() {
       <TestimonialsSection reviews={activeReviews} />
 
       {/* ═══ SERVICES CTA BANNER ═══ */}
-      <section className="section s-reveal" style={{ padding: 'clamp(40px,6vw,80px) 0', position: 'relative', zIndex: 11 }}>
+      <section className="section" style={{ padding: 'clamp(40px,6vw,80px) 0', position: 'relative', zIndex: 11 }}>
         <div className="container">
           <div
+            className="v-pod"
+            data-story="rise"
             style={{
               position: 'relative',
               borderRadius: 'clamp(24px, 4vw, 36px)',
-              background: 'linear-gradient(135deg, rgba(3, 65, 26, 0.96) 0%, rgba(2, 26, 9, 0.98) 100%)',
-              border: '1.5px solid rgba(74, 222, 128, 0.22)',
+              border: '1px solid rgba(143, 217, 174, 0.22)',
               boxShadow: '0 24px 80px rgba(2, 26, 9, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1)',
               overflow: 'hidden',
               padding: 'clamp(32px, 5vw, 64px) clamp(24px, 4vw, 56px)',
             }}
           >
             {/* Background Glow Orbs */}
-            <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: 450, height: 450, borderRadius: '50%', background: 'radial-gradient(circle, rgba(74, 222, 128, 0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: 450, height: 450, borderRadius: '50%', background: 'radial-gradient(circle, rgba(217, 242, 122, 0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', bottom: '-20%', left: '-5%', width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201, 168, 76, 0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'clamp(24px, 4vw, 48px)', alignItems: 'center', position: 'relative', zIndex: 2 }}>
@@ -1353,9 +1367,9 @@ export default function HomePage() {
               {/* Left Column: Heading & Info */}
               <div style={{ textAlign: 'left' }}>
 
-                <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', fontWeight: 900, color: '#ffffff', margin: '0 0 16px', letterSpacing: '-0.025em', lineHeight: 1.18 }}>
+                <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', fontWeight: 600, color: '#ffffff', margin: '0 0 16px', letterSpacing: '-0.02em', lineHeight: 1.18 }}>
                   Not sure which service <br className="hidden-mobile" />
-                  <span style={{ color: '#4ade80' }}>is right for your space?</span>
+                  <span style={{ color: 'var(--lime)' }}>is right for your space?</span>
                 </h2>
 
                 <p style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: 'clamp(0.92rem, 1.4vw, 1.05rem)', lineHeight: 1.7, margin: 0, maxWidth: 500, fontWeight: 400 }}>
@@ -1388,13 +1402,13 @@ export default function HomePage() {
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ade80', flexShrink: 0, boxShadow: '0 0 6px #4ade80' }} />
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--lime)', flexShrink: 0, boxShadow: '0 0 8px var(--lime)' }} />
                         <div>
                           <div style={{ color: '#ffffff', fontSize: '0.92rem', fontWeight: 700, lineHeight: 1.2 }}>{item.title}</div>
                           <div style={{ color: 'rgba(255, 255, 255, 0.55)', fontSize: '0.76rem', marginTop: 2 }}>{item.sub}</div>
                         </div>
                       </div>
-                      <span style={{ fontSize: '0.65rem', fontWeight: 800, background: 'rgba(74, 222, 128, 0.15)', color: '#4ade80', borderRadius: 99, padding: '3px 10px', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>
+                      <span style={{ fontSize: '0.65rem', fontWeight: 800, background: 'rgba(217, 242, 122, 0.15)', color: 'var(--lime)', borderRadius: 99, padding: '3px 10px', textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>
                         {item.tag}
                       </span>
                     </div>
@@ -1411,14 +1425,14 @@ export default function HomePage() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 8,
-                      background: '#4ade80',
-                      color: '#03411a',
+                      background: 'var(--lime)',
+                      color: 'var(--ink)',
                       padding: '14px 24px',
-                      borderRadius: 14,
-                      fontWeight: 800,
+                      borderRadius: 99,
+                      fontWeight: 700,
                       textDecoration: 'none',
                       fontSize: '0.92rem',
-                      boxShadow: '0 6px 20px rgba(74, 222, 128, 0.3)',
+                      boxShadow: '0 6px 20px rgba(217, 242, 122, 0.3)',
                       transition: 'all 0.25s ease',
                     }}
                   >
@@ -1435,7 +1449,7 @@ export default function HomePage() {
                       background: 'rgba(255, 255, 255, 0.08)',
                       color: '#ffffff',
                       padding: '14px 20px',
-                      borderRadius: 14,
+                      borderRadius: 99,
                       fontWeight: 700,
                       textDecoration: 'none',
                       fontSize: '0.92rem',
@@ -1456,22 +1470,22 @@ export default function HomePage() {
 
       {/* ═══ BLOG JOURNAL ═══ */}
       {blogs?.length > 0 && (
-        <section className="section s-reveal" style={{ position: 'relative', zIndex: 11 }}>
+        <section className="section" data-no-reveal style={{ position: 'relative', zIndex: 11 }}>
           <div className="container">
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
-              <div className="section-divider-line" />
+              <div className="section-divider-line" data-story-rule />
               <span className="overline overline-dot">Botanical Journal</span>
-              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12 }}>Learn Realistic Plant Care</h2>
+              <h2 className="display-2" data-story="title" style={{ color: 'var(--ink)', marginTop: 12 }}><Words text="Learn Realistic Plant Care" /></h2>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 32 }}>
               {blogs?.length > 0 ? blogs.slice(0, 3).map((b: any, bi: number) => (
-                <Link key={b._id} href={`/blogs/${b.slug}`} className={`s-reveal s-reveal-d${bi + 1}`} style={{ display: 'flex', flexDirection: 'column', gap: 18, textDecoration: 'none' }}>
-                  <div className="blog-img-zoom" style={{ position: 'relative', aspectRatio: '16/10' }}>
+                <Link key={b._id} href={`/blogs/${b.slug}`} className={`-d${bi + 1}`} style={{ display: 'flex', flexDirection: 'column', gap: 18, textDecoration: 'none' }}>
+                  <div className="blog-img-zoom" data-story="wipe" style={{ position: 'relative', aspectRatio: '16/10' }}>
                     <img src={b.thumbnail || '/img-2.jpeg'} alt={b.title || 'GharKaMali plant care blog'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <div style={{ position: 'absolute', top: 16, left: 16, background: 'rgba(255,255,255,0.92)', padding: '6px 16px', borderRadius: 99, fontSize: '0.72rem', fontWeight: 800, color: 'var(--forest)', backdropFilter: 'blur(8px)' }}>{b.category?.name || 'Expert Tips'}</div>
                   </div>
                   <div style={{ padding: '0 8px' }}>
-                    <h3 style={{ fontSize: '1.15rem', color: 'var(--forest)', fontWeight: 800, marginBottom: 8, lineHeight: 1.3 }}>{b.title}</h3>
+                    <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', color: 'var(--ink)', fontWeight: 600, marginBottom: 8, lineHeight: 1.3 }}>{b.title}</h3>
                     <p style={{ color: 'var(--text-2)', fontSize: '0.95rem', lineHeight: 1.7, opacity: 0.8 }}>Expert insights on modern plant care and garden health...</p>
                   </div>
                 </Link>
@@ -1486,28 +1500,24 @@ export default function HomePage() {
 
       {/* ═══ PLANS PREVIEW ═══ */}
       {plans.length > 0 && (
-        <section id="subscription-experience" className="section s-reveal" style={{ zIndex: 11 }}>
+        <section id="subscription-experience" className="section" data-no-reveal style={{ zIndex: 11 }}>
           <div className="container">
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
-              <div className="section-divider-line" />
+              <div className="section-divider-line" data-story-rule />
               <span className="overline overline-dot">Subscription Experience</span>
-              <h2 className="display-2" style={{ color: 'var(--forest)', marginTop: 12, letterSpacing: '-0.02em' }}>Choose a <span style={{ color: 'var(--earth)', fontStyle: 'normal' }}>Monthly Plant Care Plan</span></h2>
+              <h2 className="display-2" data-story="title" style={{ color: 'var(--ink)', marginTop: 12, letterSpacing: '-0.02em' }}><Words text="Choose a" /> <span style={{ color: 'var(--leaf)', fontStyle: 'normal' }}><Words text="Monthly Plant Care Plan" /></span></h2>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center', marginBottom: 32 }}>
+            <div data-story="rise" style={{ display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'center', marginBottom: 32 }}>
               {(plans.filter((p: any) => p.is_featured === 1).length > 0
                 ? plans.filter((p: any) => p.is_featured === 1)
                 : plans.slice(0, 3)
               ).map((plan: any, i: number) => {
                 const isDark = i === 1;
                 return (
-                  <div key={plan._id || i} className="plan-home-card" style={{
+                  <div key={plan._id || i} className={`plan-home-card ${isDark ? 'v-pod' : 'v-glass'}`} data-tilt style={{
                     flex: '1 1 min(360px, calc(100vw - 40px))',
                     maxWidth: 420,
-                    background: isDark ? 'var(--forest)' : 'rgba(255,255,255,0.85)',
-                    backdropFilter: isDark ? 'none' : 'blur(12px)',
-                    WebkitBackdropFilter: isDark ? 'none' : 'blur(12px)',
-                    border: `1.5px solid ${isDark ? 'rgba(201,168,76,0.2)' : 'rgba(201,168,76,0.35)'}`,
                     borderRadius: 'clamp(24px,4vw,32px)',
                     padding: '32px 28px',
                     position: 'relative',
@@ -1517,18 +1527,18 @@ export default function HomePage() {
                     {plan.is_best_value === 1 && <div style={{ position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)', background: 'var(--gold)', color: 'var(--forest)', padding: '4px 16px', borderRadius: 99, fontSize: '0.65rem', fontWeight: 900, whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(201,168,76,0.3)', zIndex: 5 }}>BEST VALUE</div>}
 
                     <div style={{ fontSize: '0.7rem', fontWeight: 800, color: isDark ? 'rgba(255,255,255,0.6)' : 'var(--sage)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>{plan.plan_type}</div>
-                    <h3 style={{ fontSize: '1.5rem', fontWeight: 900, color: isDark ? '#fff' : 'var(--forest)', marginBottom: 10, letterSpacing: '-0.02em' }}>{plan.name}</h3>
+                    <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.7rem', fontWeight: 600, color: isDark ? '#fff' : 'var(--ink)', marginBottom: 10, letterSpacing: '-0.02em' }}>{plan.name}</h3>
                     <p style={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'var(--text-2)', fontSize: '0.92rem', marginBottom: planCoverageText(plan) ? 12 : 32, lineHeight: 1.6 }}>{plan.tagline || cleanPlanDescription(plan.description) || 'Elevate your living space with our premium botanical maintenance plans.'}</p>
                     {plan.plan_type === 'subscription' && planCoverageText(plan) && (
                       <div style={{ fontSize: '0.82rem', fontWeight: 800, color: isDark ? 'var(--gold)' : 'var(--forest)', marginBottom: 32 }}>🌿 {planCoverageText(plan)}</div>
                     )}
 
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 36, flexWrap: 'wrap', maxWidth: '100%', overflow: 'hidden' }}>
-                      <span style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)', fontWeight: 900, color: isDark ? 'var(--gold)' : 'var(--forest)', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>₹{getPlanPrice(plan)}</span>
+                      <span style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 600, color: isDark ? 'var(--lime)' : 'var(--ink)', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>₹{getPlanPrice(plan)}</span>
                       <span style={{ fontSize: '0.88rem', color: isDark ? 'rgba(255,255,255,0.4)' : 'var(--sage)', fontWeight: 600, flexShrink: 0 }}>{priceSuffix(plan)}</span>
                     </div>
 
-                    <Link href={`/book/${planSlug(plan)}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'} btn-lg`} style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '0.88rem' }}>
+                    <Link href={`/book/${planSlug(plan)}`} className={`btn ${isDark ? 'btn-gold' : 'btn-forest'} btn-lg`} style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '0.88rem' }}>
                       {plan.plan_type === 'subscription' ? 'Subscribe Now →' : 'Book a Visit →'}
                     </Link>
                   </div>
@@ -1538,7 +1548,7 @@ export default function HomePage() {
 
             <div style={{ textAlign: 'center' }}>
               <div style={{ height: 1.5, background: 'linear-gradient(90deg, transparent, var(--border-gold), transparent)', marginBottom: 28, maxWidth: 400, margin: '0 auto 48px' }} />
-              <Link href="/plans" className="btn btn-outline btn-lg" style={{ borderColor: 'var(--forest)', color: 'var(--forest)', padding: '16px 52px', fontSize: '0.88rem', fontWeight: 800 }}>
+              <Link href="/plans" className="btn btn-outline btn-lg" style={{ padding: '16px 52px', fontSize: '0.88rem', fontWeight: 700 }}>
                 Start Monthly Care
               </Link>
             </div>
@@ -1546,13 +1556,9 @@ export default function HomePage() {
         </section>
       )}
 
+      <GrowthVine />
       <Footer />
 
-      {/* ═══ FLOATING WHATSAPP ═══ */}
-      <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="whatsapp-float" aria-label="Chat on WhatsApp">
-        <IcWhatsApp />
-        <div className="whatsapp-tooltip">Need Help? Chat with Us</div>
-      </a>
       <AppDownloadPopup />
     </SmoothScrollProvider>
   );

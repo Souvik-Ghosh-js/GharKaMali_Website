@@ -62,7 +62,7 @@ export default async function AreaPage({ params }: { params: { area: string } })
   return (
     <>
       <Navbar />
-      <div style={{ background: 'var(--bg)', paddingTop: 'var(--nav-h)', minHeight: '100svh' }}>
+      <div style={{ background: 'transparent', paddingTop: 'var(--nav-h)', minHeight: '100svh' }}>
 
         {/* ── Hero ── */}
         <section style={{ paddingTop: 'clamp(28px, 4vw, 48px)', paddingBottom: 'clamp(36px, 5vw, 56px)', background: 'var(--forest)', position: 'relative', overflow: 'hidden' }}>

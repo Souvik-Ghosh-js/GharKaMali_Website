@@ -16,7 +16,7 @@ export default function BlogDetailPage() {
   if (isLoading) return (
     <>
       <Navbar />
-      <div style={{ paddingTop:'var(--nav-h)', background:'var(--bg)', minHeight:'100svh' }}>
+      <div style={{ paddingTop:'var(--nav-h)', background: 'transparent', minHeight:'100svh' }}>
         <div className="container-sm" style={{ paddingTop:48, paddingBottom:80 }}>
           <div className="skeleton" style={{ height:48, borderRadius:12, marginBottom:16, width:'70%' }} />
           <div className="skeleton" style={{ height:24, borderRadius:8, marginBottom:32, width:'40%' }} />
@@ -30,7 +30,7 @@ export default function BlogDetailPage() {
   if (!b) return (
     <>
       <Navbar />
-      <div style={{ paddingTop:'var(--nav-h)', background:'var(--bg)', minHeight:'100svh', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ paddingTop:'var(--nav-h)', background: 'transparent', minHeight:'100svh', display:'flex', alignItems:'center', justifyContent:'center' }}>
         <div style={{ textAlign:'center' }}>
           <div style={{ color:'var(--forest)', opacity:0.15, marginBottom:24, display:'flex', justifyContent:'center' }}>
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
@@ -45,7 +45,7 @@ export default function BlogDetailPage() {
   return (
     <>
       <Navbar />
-      <div style={{ background:'var(--bg)', paddingTop:'var(--nav-h)', minHeight:'100svh' }}>
+      <div style={{ background: 'transparent', paddingTop:'var(--nav-h)', minHeight:'100svh' }}>
         {/* Cover */}
         <div style={{ height:'clamp(300px,45vw,500px)', overflow:'hidden', position:'relative' }}>
           {b.cover_image

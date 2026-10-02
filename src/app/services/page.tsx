@@ -75,20 +75,20 @@ export default async function ServicesPage() {
         <div className="container" style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
           <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 3.2rem)', fontWeight: 900, color: '#fff', margin: '0 0 16px', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
             Everything your garden<br />
-            <span style={{ color: '#4ade80' }}>needs, done right</span>
+            <span style={{ color: 'var(--lime)' }}>needs, done right</span>
           </h1>
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 'clamp(0.9rem, 1.5vw, 1.05rem)', lineHeight: 1.75, maxWidth: 520, margin: '0 auto 28px' }}>
             {services.length || 15} professional services — from a one-time care visit to full landscape design.
             See what&apos;s included, what&apos;s not, and get answers instantly.
           </p>
-          <Link href="/book" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#4ade80', color: '#03411a', padding: '13px 28px', borderRadius: 12, fontWeight: 800, textDecoration: 'none', fontSize: '0.92rem' }}>
+          <Link href="/book" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--lime)', color: 'var(--ink)', padding: '13px 28px', borderRadius: 12, fontWeight: 800, textDecoration: 'none', fontSize: '0.92rem' }}>
             Book a Service <IcArrow />
           </Link>
         </div>
       </section>
 
       {/* Services grid */}
-      <section style={{ background: 'var(--bg)', padding: 'clamp(32px, 5vw, 64px) 0' }}>
+      <section style={{ background: 'transparent', padding: 'clamp(32px, 5vw, 64px) 0' }}>
         <div className="container">
           {services.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-card)', borderRadius: 'var(--r-lg)', border: '1px solid var(--border)' }}>

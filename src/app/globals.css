@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
 
 :root {
   /* ── BRAND PALETTE ── */
@@ -7,33 +7,44 @@
   --forest-light: #096b2f;
   --forest-xlight: #1a7a3c;
   --sage: #808285;
-  --cream: #fff9e1;
-  --cream-dark: #f5edd4;
+  --cream: #f1f7f2;
+  --cream-dark: #e4f1e8;
   --gold: #edcf87;
   --gold-light: #f5dea0;
-  --gold-pale: #fdf5da;
+  --gold-pale: #f4f1df;
   --gold-deep: #c9a84c;
   --earth: #96794f;
   --earth-light: #b8956a;
   --moss: #4A7C59;
 
-  /* ── LIGHT THEME SURFACES ── */
-  --bg: #fff9e1;
+  /* ── VERDANT (mobile app design language) ── */
+  --ink: #0b1f14;
+  --deep: #123824;
+  --leaf: #2f6b47;
+  --neon: #8fd9ae;
+  --lime: #d9f27a;
+  --mint: #e4f1e8;
+  --fog: #6b7f73;
+
+  /* ── LIGHT THEME SURFACES (frosted mint, matches app) ── */
+  --bg: #f5f9f4;
   --bg-card: #ffffff;
-  --bg-elevated: #f5edd4;
-  --bg-section: #f0e8cc;
+  --bg-elevated: #ecf2e9;
+  --bg-section: #e4f1e8;
+  --glass: rgba(255, 255, 255, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.85);
 
   /* ── BORDERS ── */
-  --border: rgba(3, 65, 26, 0.10);
-  --border-mid: rgba(3, 65, 26, 0.18);
-  --border-strong: rgba(3, 65, 26, 0.30);
-  --border-gold: rgba(237, 207, 135, 0.40);
+  --border: #dde8d9;
+  --border-mid: rgba(18, 56, 36, 0.16);
+  --border-strong: rgba(18, 56, 36, 0.28);
+  --border-gold: rgba(143, 217, 174, 0.45);
 
   /* ── TEXT ── */
-  --text: #03411a;
-  --text-2: #1a3d1f;
-  --text-muted: #808285;
-  --text-faint: #b0b0b0;
+  --text: #0d160b;
+  --text-2: #2e3d2a;
+  --text-muted: #617a5a;
+  --text-faint: #9aaa94;
   --text-on-dark: #fff9e1;
 
   /* ── STATUS ── */
@@ -44,24 +55,25 @@
 
   /* ── RADII ── */
   --r-sm: 6px;
-  --r: 12px;
+  --r: 14px;
   --r-lg: 20px;
-  --r-xl: 28px;
+  --r-xl: 26px;
   --r-2xl: 36px;
   --r-pill: 999px;
 
-  /* ── SHADOWS (Stronger for visibility on light theme) ── */
-  --sh-xs: 0 1px 3px rgba(3, 65, 26, 0.12);
-  --sh-sm: 0 4px 14px rgba(3, 65, 26, 0.14);
-  --sh: 0 10px 30px rgba(3, 65, 26, 0.18), 0 2px 10px rgba(3, 65, 26, 0.1);
-  --sh-md: 0 20px 50px rgba(3, 65, 26, 0.22), 0 4px 15px rgba(3, 65, 26, 0.12);
-  --sh-lg: 0 30px 80px rgba(3, 65, 26, 0.25), 0 8px 30px rgba(3, 65, 26, 0.15);
-  --sh-xl: 0 50px 120px rgba(3, 65, 26, 0.30), 0 12px 40px rgba(3, 65, 26, 0.2);
-  --sh-glow: 0 0 60px rgba(237, 207, 135, 0.50);
-  --sh-gold: 0 8px 30px rgba(201, 168, 76, 0.40);
-  --sh-green: 0 8px 32px rgba(3, 65, 26, 0.25);
+  /* ── SHADOWS (soft, green-tinted — matches app) ── */
+  --sh-xs: 0 2px 8px rgba(3, 65, 26, 0.06);
+  --sh-sm: 0 6px 14px rgba(18, 56, 36, 0.05);
+  --sh: 0 12px 26px rgba(18, 56, 36, 0.08);
+  --sh-md: 0 10px 24px rgba(3, 65, 26, 0.10), 0 2px 8px rgba(3, 65, 26, 0.05);
+  --sh-lg: 0 12px 40px rgba(3, 65, 26, 0.16);
+  --sh-xl: 0 20px 60px rgba(11, 31, 20, 0.20);
+  --sh-glow: 0 0 40px rgba(237, 207, 135, 0.40);
+  --sh-gold: 0 4px 18px rgba(237, 207, 135, 0.45);
+  --sh-green: 0 8px 18px -4px rgba(11, 31, 20, 0.22);
 
   /* ── FONTS ── */
+  --font-serif: 'Fraunces', Georgia, serif;
   --font-display: 'Poppins', sans-serif;
   --font-body: 'Poppins', sans-serif;
   --font-mono: 'Poppins', monospace;
@@ -83,7 +95,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  scroll-snap-type: y mandatory;
+  scroll-snap-type: none;
   scroll-behavior: smooth;
   scroll-padding-top: var(--nav-h);
 }
@@ -91,11 +103,28 @@ html {
 body {
   font-family: var(--font-body);
   background: var(--bg);
-  color: var(--text);
+  color: var(--text-2);
   line-height: 1.65;
   min-height: 100vh;
   overflow-x: clip;
   -webkit-font-smoothing: antialiased;
+}
+
+/* App-wide frosted backdrop (mirrors the app's GGlassBg): soft colour washes
+   under a white frost so translucent glass cards have something to refract. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.38)),
+    radial-gradient(55vmax 55vmax at 0% 0%, rgba(168, 230, 191, 0.55), transparent 70%),
+    radial-gradient(60vmax 60vmax at 100% 45%, rgba(93, 187, 132, 0.28), transparent 70%),
+    radial-gradient(55vmax 55vmax at 10% 100%, rgba(237, 207, 135, 0.30), transparent 70%),
+    radial-gradient(40vmax 40vmax at 95% 85%, rgba(191, 233, 210, 0.40), transparent 70%),
+    #f5f9f4;
 }
 
 /* Scrollbar for light theme */
@@ -192,7 +221,7 @@ h6 {
   overflow-wrap: break-word;
   word-break: normal;
   hyphens: none;
-  color: var(--forest);
+  color: var(--ink);
   margin: 0;
 }
 
@@ -376,8 +405,6 @@ p {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
   position: relative;
   padding: clamp(80px, 10vh, 120px) 0;
   box-sizing: border-box;
@@ -1192,31 +1219,40 @@ html.snap {
   pointer-events: none;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-  color: var(--forest);
-  box-shadow: 0 4px 24px rgba(201, 168, 76, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+.btn {
+  font-weight: 600;
 }
 
-.btn-primary:hover {
-  box-shadow: 0 8px 40px rgba(201, 168, 76, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  transform: translateY(-3px);
+/* Ink capsule — the app's primary GBtn */
+.btn-primary,
+.btn-forest {
+  background: linear-gradient(90deg, var(--ink) 0%, var(--deep) 55%, #145c36 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: var(--sh-green);
 }
 
-.btn-primary:active {
+.btn-primary:hover,
+.btn-forest:hover {
+  box-shadow: 0 12px 26px -6px rgba(11, 31, 20, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active,
+.btn-forest:active,
+.btn-gold:active {
   transform: scale(0.97);
 }
 
-.btn-forest {
-  background: var(--forest-mid);
-  color: #fff;
-  box-shadow: 0 4px 24px rgba(11, 61, 46, 0.5);
-  border: 1px solid rgba(30, 122, 88, 0.3);
+/* Gold capsule — for CTAs sitting on dark green panels */
+.btn-gold {
+  background: linear-gradient(90deg, var(--gold) 0%, #e0be6e 100%);
+  color: var(--ink);
+  box-shadow: var(--sh-gold);
 }
 
-.btn-forest:hover {
-  background: var(--forest-light);
-  box-shadow: 0 8px 36px rgba(11, 61, 46, 0.6);
+.btn-gold:hover {
+  box-shadow: 0 8px 26px rgba(237, 207, 135, 0.6);
   transform: translateY(-2px);
 }
 
@@ -1255,14 +1291,14 @@ html.snap {
 }
 
 .btn-outline {
-  background: transparent;
-  color: var(--gold);
-  border: 1.5px solid var(--border-mid);
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--deep);
+  border: 1.4px solid rgba(47, 107, 71, 0.6);
 }
 
 .btn-outline:hover {
-  border-color: var(--gold);
-  background: rgba(201, 168, 76, 0.06);
+  border-color: var(--leaf);
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .btn-sm {
@@ -1293,11 +1329,12 @@ html.snap {
 /* ═══════════════════════════════════════════════════════
    CARDS & GLASS
 ═══════════════════════════════════════════════════════ */
+/* Frosted glass card with a mint sheen — the app's GCard */
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.78) 0%, rgba(228, 241, 232, 0.28) 100%);
+  border: 1.2px solid rgba(255, 255, 255, 0.9);
   border-radius: var(--r-xl);
-  box-shadow: var(--sh-xs);
+  box-shadow: var(--sh);
   transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
 }
 
@@ -1312,16 +1349,18 @@ html.snap {
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--glass);
   backdrop-filter: blur(24px) saturate(160%);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border: 1px solid var(--border);
+  border: 1.2px solid var(--glass-border);
 }
 
+/* Deep-green glass pod — the app's vPodDecoration */
 .glass-dark {
-  background: rgba(3, 65, 26, 0.85);
+  background: linear-gradient(135deg, rgba(16, 42, 28, 0.96) 0%, rgba(21, 58, 38, 0.94) 55%, rgba(29, 74, 49, 0.92) 100%);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(237, 207, 135, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 24px rgba(11, 31, 20, 0.16);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1597,14 +1636,14 @@ html.snap {
 .ba-split-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-items: start;
+  align-items: flex-start;
   min-height: 100vh;
 }
 
 .ba-split-left {
   display: flex;
   flex-direction: column;
-  align-items: start;
+  align-items: flex-start;
   justify-content: flex-start;
   padding: 0 40px;
   will-change: transform;
@@ -1903,9 +1942,9 @@ html.snap {
 
 .form-input {
   width: 100%;
-  padding: 13px 16px;
-  background: var(--bg-card);
-  border: 1.5px solid var(--border-mid);
+  padding: 14px 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
   border-radius: var(--r);
   font-family: var(--font-body);
   font-size: 0.9rem;
@@ -1915,9 +1954,9 @@ html.snap {
 }
 
 .form-input:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.12);
-  background: var(--bg-elevated);
+  border-color: var(--leaf);
+  box-shadow: 0 0 0 3px rgba(3, 65, 26, 0.10);
+  background: #fff;
 }
 
 .form-input::placeholder {
@@ -1952,80 +1991,23 @@ html.snap {
   font-family: var(--font-mono);
 }
 
-.badge-forest {
-  background: rgba(30, 122, 88, 0.12);
-  color: var(--forest-light);
-}
+/* Status pills use a white base so they read on any surface (matches app) */
+.badge-forest { background: #fff; color: var(--forest); box-shadow: inset 0 0 0 1px rgba(3, 65, 26, 0.18); }
+.badge-gold   { background: #fff; color: #92400e; box-shadow: inset 0 0 0 1px rgba(201, 168, 76, 0.45); }
+.badge-red    { background: #fff; color: #dc2626; box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.3); }
+.badge-gray   { background: #fff; color: #6b7280; box-shadow: inset 0 0 0 1px rgba(107, 114, 128, 0.3); }
+.badge-green  { background: #fff; color: #16a34a; box-shadow: inset 0 0 0 1px rgba(22, 163, 74, 0.3); }
+.badge-blue   { background: #fff; color: #1d4ed8; box-shadow: inset 0 0 0 1px rgba(29, 78, 216, 0.3); }
+.badge-orange { background: #fff; color: #d97706; box-shadow: inset 0 0 0 1px rgba(217, 119, 6, 0.3); }
 
-.badge-gold {
-  background: rgba(201, 168, 76, 0.14);
-  color: var(--gold-light);
-}
-
-.badge-red {
-  background: rgba(220, 38, 38, 0.12);
-  color: #FCA5A5;
-}
-
-.badge-gray {
-  background: rgba(106, 137, 122, 0.12);
-  color: var(--text-muted);
-}
-
-.badge-green {
-  background: rgba(22, 163, 74, 0.12);
-  color: #4ADE80;
-}
-
-.badge-blue {
-  background: rgba(37, 99, 235, 0.12);
-  color: #93C5FD;
-}
-
-.badge-orange {
-  background: rgba(217, 119, 6, 0.12);
-  color: #FCD34D;
-}
-
-.status-pending {
-  background: rgba(201, 168, 76, 0.14);
-  color: var(--gold-light);
-}
-
-.status-assigned {
-  background: rgba(37, 99, 235, 0.12);
-  color: #93C5FD;
-}
-
-.status-en_route {
-  background: rgba(37, 99, 235, 0.12);
-  color: #93C5FD;
-}
-
-.status-arrived {
-  background: rgba(217, 119, 6, 0.12);
-  color: #FCD34D;
-}
-
-.status-in_progress {
-  background: rgba(217, 119, 6, 0.12);
-  color: #FCD34D;
-}
-
-.status-completed {
-  background: rgba(22, 163, 74, 0.12);
-  color: #4ADE80;
-}
-
-.status-cancelled {
-  background: rgba(106, 137, 122, 0.12);
-  color: var(--text-muted);
-}
-
-.status-failed {
-  background: rgba(220, 38, 38, 0.12);
-  color: #FCA5A5;
-}
+.status-pending     { background: #fff; color: #b45309; }
+.status-assigned,
+.status-en_route    { background: #fff; color: #1d4ed8; }
+.status-arrived,
+.status-in_progress { background: #fff; color: #d97706; }
+.status-completed   { background: #fff; color: #16a34a; }
+.status-cancelled   { background: #fff; color: #6b7280; }
+.status-failed      { background: #fff; color: #dc2626; }
 
 /* ═══════════════════════════════════════════════════════
    SECTIONS
@@ -2835,11 +2817,12 @@ h3,
 .font-display,
 [style*="font-display"],
 [style*="Playfair"] {
-  font-family: var(--font-display) !important;
+  font-family: var(--font-serif) !important;
+  letter-spacing: -0.01em;
 }
 
 .stat-value {
-  font-family: var(--font-display) !important;
+  font-family: var(--font-serif) !important;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -3763,7 +3746,7 @@ h3,
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 48px;
-  align-items: start;
+  align-items: flex-start;
 }
 
 @media (max-width: 900px) {
@@ -6238,9 +6221,11 @@ section:has(.marquee-container) {
   }
 }
 
-/* ── Prevent horizontal scroll site-wide ── */
-html,
-body {
+/* ── Prevent horizontal scroll site-wide ──
+   Only html (→ viewport). overflow-x:hidden on body would make it a scroll
+   container and silently break every position:sticky on the site. body keeps
+   overflow-x:clip from the base rules. */
+html {
   overflow-x: hidden;
 }
 
@@ -7014,7 +6999,7 @@ body {
 }
 
 .sec-cream {
-  background: linear-gradient(160deg, #fffdf5 0%, #fff9e6 50%, #fffcf0 100%) !important;
+  background: linear-gradient(160deg, #f5f9f4 0%, #ecf2e9 50%, #f3f7f1 100%) !important;
 }
 
 .sec-white {

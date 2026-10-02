@@ -49,7 +49,7 @@ export default function OrderDetailPage() {
   const order = (allOrders as any[])?.find(o => o.id.toString() === id);
 
   if (authLoading || bLoading) return (
-    <div style={{ minHeight: '100svh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100svh', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div className="skeleton" style={{ width: 400, height: 400, borderRadius: 32 }} />
     </div>
   );
@@ -57,7 +57,7 @@ export default function OrderDetailPage() {
   if (!order) return (
     <>
       <Navbar />
-      <div style={{ minHeight: '100svh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100svh', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: 16 }}>Order not found</h2>
           <Link href="/shop/orders" className="btn btn-forest">Back to Orders</Link>
@@ -70,7 +70,7 @@ export default function OrderDetailPage() {
   return (
     <>
       <Navbar />
-      <div className="order-details-main" style={{ minHeight: '100svh', background: 'var(--bg)', paddingTop: 'calc(var(--nav-h) + 60px)', paddingBottom: 100, overflowX: 'clip' }}>
+      <div className="order-details-main" style={{ minHeight: '100svh', background: 'transparent', paddingTop: 'calc(var(--nav-h) + 60px)', paddingBottom: 100, overflowX: 'clip' }}>
         <div className="container">
 
           {/* Header row */}

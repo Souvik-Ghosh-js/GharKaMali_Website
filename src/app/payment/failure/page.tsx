@@ -10,7 +10,7 @@ function FailureContent() {
   const reason = searchParams.get('reason');
 
   return (
-    <div style={{ background: 'var(--bg)', paddingTop: 'var(--nav-h)', minHeight: '100svh', display: 'flex', alignItems: 'center', justifyContent: 'center', position:'relative' }}>
+    <div style={{ background: 'transparent', paddingTop: 'var(--nav-h)', minHeight: '100svh', display: 'flex', alignItems: 'center', justifyContent: 'center', position:'relative' }}>
       <div className="hero-bg-grid" />
       <div className="hero-orb hero-orb-1" style={{ opacity: 0.1, background: 'radial-gradient(circle, rgba(220,38,38,0.2) 0%, transparent 60%)' }} />
       <div className="container" style={{ maxWidth: 600, textAlign: 'center', padding: '60px 20px', position: 'relative', zIndex: 1 }}>
@@ -48,7 +48,7 @@ export default function PaymentFailurePage() {
   return (
     <>
       <Navbar />
-      <Suspense fallback={<div style={{ minHeight: '100svh', background: 'var(--bg)' }} />}>
+      <Suspense fallback={<div style={{ minHeight: '100svh', background: 'transparent' }} />}>
         <FailureContent />
       </Suspense>
       <Footer />

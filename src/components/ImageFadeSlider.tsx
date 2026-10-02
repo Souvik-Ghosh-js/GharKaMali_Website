@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useInView } from '@/hooks/useInView';
 
 interface ImageFadeSliderProps {
   images: string[];
@@ -12,15 +13,17 @@ interface ImageFadeSliderProps {
 
 export default function ImageFadeSlider({ images, alt, intervalMs = 3200, height = 440, objectFit = 'cover', background }: ImageFadeSliderProps) {
   const [active, setActive] = useState(0);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(boxRef);
 
   useEffect(() => {
-    if (images.length <= 1) return;
+    if (images.length <= 1 || !inView) return;
     const id = setInterval(() => setActive(i => (i + 1) % images.length), intervalMs);
     return () => clearInterval(id);
-  }, [images.length, intervalMs]);
+  }, [images.length, intervalMs, inView]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height, overflow: 'hidden', background }}>
+    <div ref={boxRef} style={{ position: 'relative', width: '100%', height, overflow: 'hidden', background }}>
       {images.map((src, i) => (
         <img
           key={src}

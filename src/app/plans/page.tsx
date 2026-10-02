@@ -109,7 +109,7 @@ function PlanCarousel({ items }: { items: any[] }) {
                     </div>
                   ))}
                 </div>
-                <Link href={`/book/${planSlug(plan)}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'}`} style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '0.9rem', fontWeight: 800, borderRadius: 18 }}>
+                <Link href={`/book/${planSlug(plan)}`} className={`btn ${isDark ? 'btn-gold' : 'btn-forest'}`} style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '0.9rem', fontWeight: 800, borderRadius: 18 }}>
                   {plan.plan_type === 'subscription' ? 'Subscribe Now' : 'Book Now'}
                 </Link>
               </div>
@@ -128,7 +128,7 @@ function PlanCarousel({ items }: { items: any[] }) {
   const step = cardWidth + gap;
 
   return (
-    <section style={{ overflowX: 'hidden', overflowY: 'visible', padding: '100px 0', position: 'relative', background: 'var(--bg)' }}>
+    <section style={{ overflowX: 'hidden', overflowY: 'visible', padding: '100px 0', position: 'relative', background: 'transparent' }}>
       <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '100vw', height: '800px', background: 'radial-gradient(circle at center, rgba(3,65,26,0.02) 0%, transparent 60%)', pointerEvents: 'none' }} />
 
       {/* Nav Controls */}
@@ -216,7 +216,7 @@ function PlanCarousel({ items }: { items: any[] }) {
                       </div>
                     ))}
                   </div>
-                  <Link href={`/book/${planSlug(plan)}`} className={`btn ${isDark ? 'btn-primary' : 'btn-forest'}`} style={{ width: '100%', justifyContent: 'center', padding: '20px', fontSize: '1rem', fontWeight: 600, borderRadius: 24, marginTop: 'auto' }}>
+                  <Link href={`/book/${planSlug(plan)}`} className={`btn ${isDark ? 'btn-gold' : 'btn-forest'}`} style={{ width: '100%', justifyContent: 'center', padding: '20px', fontSize: '1rem', fontWeight: 600, borderRadius: 24, marginTop: 'auto' }}>
                     {plan.plan_type === 'subscription' ? 'Subscribe Now' : 'Book Now'}
                   </Link>
                 </div>
@@ -303,14 +303,14 @@ export default function PlansPage() {
     <SmoothScrollProvider>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Navbar />
-      <div style={{ background:'var(--bg)', paddingTop:'var(--nav-h)', minHeight:'100svh' }}>
+      <div style={{ background: 'transparent', paddingTop:'var(--nav-h)', minHeight:'100svh' }}>
         
         {/* HERO — high-impact, value-led, matches brand reference */}
         <div className="plans-hero" style={{
           position:'relative',
           padding:'clamp(40px, 6vw, 72px) 0 clamp(72px, 10vw, 120px)',
           overflow:'hidden', textAlign:'center',
-          background:'linear-gradient(180deg, #FFF8EC 0%, rgba(255,248,236,0.6) 40%, var(--bg) 100%)',
+          background:'linear-gradient(180deg, #E4F1E8 0%, rgba(228,241,232,0.6) 40%, var(--bg) 100%)',
         }}>
           {/* Decorative orbs that draw the eye */}
           <div style={{ position:'absolute', top:'-10%', left:'-8%', width:'380px', height:'380px', borderRadius:'50%', background:'radial-gradient(circle, rgba(201,168,76,0.18) 0%, transparent 70%)', filter:'blur(40px)', pointerEvents:'none' }} />

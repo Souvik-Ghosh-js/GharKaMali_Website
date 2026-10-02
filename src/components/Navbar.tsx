@@ -6,6 +6,7 @@ import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
 import { useQuery } from '@tanstack/react-query';
 import { getNotifications, getShopProducts } from '@/lib/api';
+import { APP_STORE_URL, PLAY_STORE_URL } from '@/lib/appLinks';
 import { SHOP_ENABLED } from '@/lib/features';
 
 const Ic = {
@@ -32,14 +33,14 @@ const Ic = {
 };
 
 const NAV_ITEMS = [
-  { href: '/', label: 'Home', Icon: Ic.Home, color: '#16a34a' },
-  { href: '/plans', label: 'Plans', Icon: Ic.Plans, color: '#0ea5e9' },
-  { href: '/services', label: 'Services', Icon: Ic.Book, color: '#84cc16' },
-  { href: '/book', label: 'Book Visit', Icon: Ic.Cal, color: '#f59e0b' },
+  { href: '/', label: 'Home', Icon: Ic.Home, color: '#2f6b47' },
+  { href: '/plans', label: 'Plans', Icon: Ic.Plans, color: '#123824' },
+  { href: '/services', label: 'Services', Icon: Ic.Book, color: '#5a8f3c' },
+  { href: '/book', label: 'Book Visit', Icon: Ic.Cal, color: '#96794f' },
   // Plant Store disabled for now (see SHOP_ENABLED in lib/features).
-  ...(SHOP_ENABLED ? [{ href: '/shop', label: 'Plant Store', Icon: Ic.Shop, color: '#8b5cf6' }] : []),
-  { href: '/plantopedia', label: 'AI Care', Icon: Ic.Leaf, color: '#10b981' },
-  { href: '/about', label: 'About Us', Icon: Ic.Help, color: '#06b6d4' },
+  ...(SHOP_ENABLED ? [{ href: '/shop', label: 'Plant Store', Icon: Ic.Shop, color: '#2f6b47' }] : []),
+  { href: '/plantopedia', label: 'AI Care', Icon: Ic.Leaf, color: '#1d4a31' },
+  { href: '/about', label: 'About Us', Icon: Ic.Help, color: '#123824' },
 ];
 
 const ACCOUNT_ITEMS = [
@@ -67,7 +68,6 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
   const [searchLoading, setSearchLoading] = useState(false);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchWrapRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (!hubOpen) setMenuScrolled(false);
@@ -108,7 +108,6 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
     }
     return () => { document.body.style.overflow = ''; };
   }, [hubOpen]);
-  const animRef = useRef<number>(0);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -146,62 +145,6 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
 
   useEffect(() => { setHubOpen(false); }, [pathname]);
 
-  // Particle canvas for menu background
-  useEffect(() => {
-    if (!hubOpen || !canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d')!;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    type Leaf = { x: number; y: number; vx: number; vy: number; size: number; opacity: number; rotation: number; rotSpeed: number; hue: number; wave: number; waveSpeed: number; waveAmp: number };
-    const particles: Leaf[] = [];
-    // 50 leaves for a lush effect
-    const leafHues = [120, 100, 140, 80, 150, 45, 60, 30]; // greens + gold tones
-    for (let i = 0; i < 50; i++) {
-      particles.push({
-        x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 1.2, vy: Math.random() * 1.8 + 0.4,
-        size: Math.random() * 18 + 10, opacity: Math.random() * 0.55 + 0.3,
-        rotation: Math.random() * Math.PI * 2, rotSpeed: (Math.random() - 0.5) * 0.12,
-        hue: leafHues[Math.floor(Math.random() * leafHues.length)],
-        wave: Math.random() * Math.PI * 2, waveSpeed: Math.random() * 0.04 + 0.02, waveAmp: Math.random() * 1.5 + 0.5,
-      });
-    }
-
-    const leafPath = new Path2D('M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10zM2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12');
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(p => {
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rotation);
-        ctx.scale(p.size / 24, p.size / 24);
-        const sat = p.hue < 80 ? '70%' : '55%';
-        const light = p.hue < 80 ? '45%' : '35%';
-        ctx.fillStyle = `hsla(${p.hue}, ${sat}, ${light}, ${p.opacity})`;
-        ctx.fill(leafPath);
-        ctx.restore();
-
-        // Natural swaying drift
-        p.wave += p.waveSpeed;
-        p.x += p.vx + Math.sin(p.wave) * p.waveAmp;
-        p.y += p.vy;
-        p.rotation += p.rotSpeed;
-
-        if (p.y > canvas.height + 30) {
-          p.y = -30;
-          p.x = Math.random() * canvas.width;
-        }
-        if (p.x < -30) p.x = canvas.width + 30;
-        if (p.x > canvas.width + 30) p.x = -30;
-      });
-      animRef.current = requestAnimationFrame(draw);
-    };
-    draw();
-    return () => cancelAnimationFrame(animRef.current);
-  }, [hubOpen]);
 
   const { data: notifs } = useQuery({ queryKey: ['notifs-nav'], queryFn: getNotifications, enabled: isAuthenticated, refetchInterval: 60_000 });
   const unread = ((notifs as any[]) ?? []).filter((n: any) => !n.is_read).length;
@@ -212,51 +155,22 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
   return (
     <>
       {/* ═══ TOPBAR ═══ */}
-      <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 2000,
-        height: 'var(--nav-h)', display: 'flex', alignItems: 'center',
-        background: hubOpen ? (menuScrolled ? 'rgba(255,255,255,0.98)' : 'transparent') : showBg ? 'rgba(255,249,225,0.95)' : 'transparent',
-        backdropFilter: (showBg || (hubOpen && menuScrolled)) ? 'blur(24px) saturate(200%)' : 'none',
-        borderBottom: (showBg || (hubOpen && menuScrolled)) ? '1px solid rgba(3,65,26,0.08)' : '1px solid transparent',
-        transition: 'background 0.4s, border-color 0.4s, backdrop-filter 0.4s',
-      }}>
-        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-            <img src="/logo-dark.png" alt="GharKaMali" style={{ width: 90, height: 90, objectFit: 'contain', filter: isLight ? 'brightness(0) invert(1)' : 'none', transition: 'filter 0.4s' }} />
+      <nav className={`gk-nav${isLight ? ' on-dark' : ''}${showBg ? ' is-scrolled' : ''}${hubOpen ? ' hub-open' : ''}${hubOpen && menuScrolled ? ' hub-scrolled' : ''}`}>
+        <div className="container">
+         <div className="gk-nav-bar">
+          <Link href="/" className="gk-nav-logo" aria-label="GharKaMali home">
+            <img src="/logo-dark.png" alt="GharKaMali" style={{ filter: isLight ? 'brightness(0) invert(1)' : 'none' }} />
           </Link>
 
           {/* Desktop nav */}
           <div className="nav-desktop-links" style={{ display: hubOpen ? 'none' : 'flex', alignItems: 'center', gap: 2, flex: 1, justifyContent: 'center', minWidth: 0, overflow: 'hidden' }}>
             {NAV_ITEMS.map(item => (
-              <Link key={item.href} href={item.href} className={`nav-link ${isLight ? 'is-light' : ''} ${pathname === item.href ? 'active' : ''}`} style={{
-                padding: '7px 8px', borderRadius: 10, fontWeight: 700,
-                fontSize: '0.75rem', letterSpacing: '0.04em', textTransform: 'uppercase',
-                transition: 'all 0.2s', whiteSpace: 'nowrap', flexShrink: 0,
-              }}>{item.label}</Link>
+              <Link key={item.href} href={item.href} className={`nav-link ${isLight ? 'is-light' : ''} ${pathname === item.href ? 'active' : ''}`}>{item.label}</Link>
             ))}
             {/* Green Makeover CTA pill */}
             <Link
               href="/green-makeover"
-              className="nav-gm-pill"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '7px 11px', borderRadius: 10,
-                background: pathname === '/green-makeover'
-                  ? 'var(--forest)'
-                  : isLight
-                    ? 'rgba(255,255,255,0.18)'
-                    : 'linear-gradient(135deg, var(--forest) 0%, var(--forest-mid) 100%)',
-                border: isLight ? '1px solid rgba(255,255,255,0.3)' : 'none',
-                color: '#fff',
-                fontSize: '0.75rem', fontWeight: 800,
-                letterSpacing: '0.04em', textTransform: 'uppercase',
-                textDecoration: 'none',
-                whiteSpace: 'nowrap',
-                boxShadow: isLight ? 'none' : '0 4px 14px rgba(3,65,26,0.3)',
-                transition: 'all 0.25s',
-                backdropFilter: isLight ? 'blur(10px)' : 'none',
-                flexShrink: 0,
-              }}
+              className={`nav-gm-pill${pathname === '/green-makeover' ? ' active' : ''}`}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/>
@@ -335,26 +249,27 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             {!hubOpen && (
               <div className="nav-app-badges" style={{ display: 'flex', gap: 6 }}>
-                <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', background: 'var(--forest)', color: '#fff', borderRadius: 9, fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.4)' : 'none' }}><Ic.Apple /> App Store</a>
-                <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px', background: isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.07)', color: isLight ? '#fff' : 'var(--forest)', borderRadius: 9, fontSize: '0.7rem', fontWeight: 700, textDecoration: 'none', border: `1px solid ${isLight ? 'rgba(255,255,255,0.3)' : 'var(--border)'}`, whiteSpace: 'nowrap', backdropFilter: isLight ? 'blur(8px)' : 'none', textShadow: isLight ? '0 1px 4px rgba(0,0,0,0.5)' : 'none' }}><Ic.Android /> Play Store</a>
+                <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" className="gk-nav-badge" title="Download on the App Store" aria-label="Download on the App Store"><Ic.Apple /> App Store</a>
+                <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" className="gk-nav-badge" title="Get it on Google Play" aria-label="Get it on Google Play"><Ic.Android /> Play Store</a>
               </div>
             )}
             {!hubOpen && SHOP_ENABLED && (
-              <button onClick={openCart} aria-label="Cart" style={{ position: 'relative', width: 40, height: 40, borderRadius: 11, background: isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)', color: isLight ? '#fff' : 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${isLight ? 'rgba(255,255,255,0.2)' : 'transparent'}`, cursor: 'pointer', flexShrink: 0, backdropFilter: isLight ? 'blur(8px)' : 'none' }}>
+              <button onClick={openCart} aria-label="Cart" className="gk-nav-icon">
                 <Ic.Cart />
-                {cartCount > 0 && <span style={{ position: 'absolute', top: -4, right: -4, background: 'var(--earth)', color: '#fff', width: 17, height: 17, borderRadius: '50%', fontSize: '0.62rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.3)' }}>{cartCount}</span>}
+                {cartCount > 0 && <span style={{ position: 'absolute', top: -4, right: -4, background: 'var(--lime)', color: 'var(--ink)', width: 17, height: 17, borderRadius: '50%', fontSize: '0.62rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.3)' }}>{cartCount}</span>}
               </button>
             )}
             {!hubOpen && isAuthenticated && (
-              <Link href="/notifications" className="nav-bell-desktop" style={{ position: 'relative', width: 40, height: 40, borderRadius: 11, background: isLight ? 'rgba(255,255,255,0.15)' : 'rgba(3,65,26,0.06)', color: isLight ? '#fff' : 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: `1px solid ${isLight ? 'rgba(255,255,255,0.2)' : 'transparent'}`, backdropFilter: isLight ? 'blur(8px)' : 'none' }}>
+              <Link href="/notifications" className="nav-bell-desktop gk-nav-icon">
                 <Ic.Bell />
                 {unread > 0 && <span style={{ position: 'absolute', top: 9, right: 9, width: 7, height: 7, background: '#ef4444', borderRadius: '50%', border: '2px solid #fff' }} />}
               </Link>
             )}
-            <button onClick={() => setHubOpen(!hubOpen)} aria-label={hubOpen ? 'Close' : 'Menu'} style={{ width: 42, height: 42, borderRadius: 13, background: hubOpen ? '#fff' : 'var(--forest)', color: hubOpen ? 'var(--forest)' : '#fff', border: hubOpen ? '2px solid var(--forest)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, transition: 'all 0.3s', boxShadow: hubOpen ? 'var(--sh-sm)' : '0 4px 14px rgba(3,65,26,0.3)' }}>
+            <button onClick={() => setHubOpen(!hubOpen)} aria-label={hubOpen ? 'Close' : 'Menu'} aria-expanded={hubOpen} className={`gk-nav-menu${hubOpen ? ' open' : ''}`}>
               {hubOpen ? <Ic.Close /> : <Ic.Menu />}
             </button>
           </div>
+         </div>
         </div>
       </nav>
 
@@ -364,21 +279,13 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
         height: '100dvh',
         opacity: hubOpen ? 1 : 0, visibility: hubOpen ? 'visible' : 'hidden',
         transition: 'opacity 0.45s cubic-bezier(0.22,1,0.36,1), visibility 0.45s',
-        background: '#fff',
-        backdropFilter: 'blur(40px)',
+        background: "url('/fx/contours-dark.svg') center / cover no-repeat, linear-gradient(160deg, #f5f9f4 0%, #e4f1e8 100%)",
         overflowY: 'auto',
         overflowX: 'hidden',
         WebkitOverflowScrolling: 'touch' as any,
       }}
       onScroll={(e) => setMenuScrolled(e.currentTarget.scrollTop > 20)}
       >
-        {/* Animated particle canvas */}
-        <canvas ref={canvasRef} style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }} />
-
-        {/* Glowing orbs */}
-        <div style={{ position: 'fixed', top: '10%', left: '5%', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(3,65,26,0.3) 0%, transparent 70%)', filter: 'blur(60px)', pointerEvents: 'none', zIndex: 0, animation: 'menuOrb1 8s ease-in-out infinite' }} />
-        <div style={{ position: 'fixed', bottom: '10%', right: '5%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0, animation: 'menuOrb2 10s ease-in-out infinite' }} />
-
         <div className="container nav-hub-container" style={{ position: 'relative', zIndex: 10, paddingTop: 'calc(var(--nav-h) + 32px)', paddingBottom: 60 }}>
           {/* Auth pill */}
           <div style={{ marginBottom: 36, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -480,8 +387,8 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
             onClick={() => setHubOpen(false)}
             style={{
               display: 'flex', alignItems: 'center', gap: 20,
-              background: 'linear-gradient(135deg, var(--forest) 0%, var(--forest-mid) 100%)',
-              borderRadius: 20, padding: '20px 24px',
+              background: "url('/fx/contours-light.svg') center / cover no-repeat, linear-gradient(135deg, #102a1c 0%, #153a26 55%, #1d4a31 100%)",
+              borderRadius: 24, padding: '20px 24px',
               textDecoration: 'none', marginBottom: 28,
               position: 'relative', overflow: 'hidden',
               boxShadow: '0 12px 40px rgba(3,65,26,0.25)',
@@ -502,18 +409,18 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
             {/* Text */}
             <div style={{ flex: 1, position: 'relative', zIndex: 1 }}>
               <div style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '0.18em', marginBottom: 4 }}>New Service</div>
-              <div style={{ fontWeight: 900, fontSize: '1.15rem', color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.2 }}>Green Makeover</div>
+              <div style={{ fontFamily: 'var(--font-serif)', fontWeight: 600, fontSize: '1.3rem', color: '#fff', letterSpacing: '-0.01em', lineHeight: 1.2 }}>Green Makeover</div>
               <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)', fontWeight: 500, marginTop: 4 }}>Plant setups from ₹20,000</div>
             </div>
             {/* Arrow + badge */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, flexShrink: 0, position: 'relative', zIndex: 1 }}>
-              <div style={{ background: 'var(--gold)', color: 'var(--forest)', fontSize: '0.58rem', fontWeight: 900, padding: '4px 10px', borderRadius: 99, whiteSpace: 'nowrap', letterSpacing: '0.06em' }}>₹399 Visit</div>
+              <div style={{ background: 'var(--lime)', color: 'var(--ink)', fontSize: '0.6rem', fontWeight: 800, padding: '4px 10px', borderRadius: 99, whiteSpace: 'nowrap', letterSpacing: '0.06em' }}>₹399 Visit</div>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </div>
           </Link>
 
           {/* Section label */}
-          <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.35em', marginBottom: 20 }}>Navigate</div>
+          <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--leaf)', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 20 }}>Navigate</div>
 
           {/* ── EXPLORE TILES (2-col grid of large tiles) ── */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 32 }}>
@@ -524,21 +431,21 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
                   style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
                     gap: 10, padding: '18px 20px',
-                    background: isActive ? `rgba(${item.color === '#16a34a' ? '22,163,74' : item.color === '#0ea5e9' ? '14,165,233' : item.color === '#f59e0b' ? '245,158,11' : item.color === '#8b5cf6' ? '139,92,246' : item.color === '#10b981' ? '16,185,129' : '249,115,22'},0.18)` : 'rgba(3,65,26,0.04)',
-                    border: `1px solid ${isActive ? item.color + '50' : 'rgba(3,65,26,0.08)'}`,
-                    borderRadius: 18, textDecoration: 'none', transition: 'all 0.25s',
-                    backdropFilter: 'blur(8px)',
+                    background: isActive ? 'linear-gradient(135deg, #102a1c, #1d4a31)' : 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(228,241,232,0.5))',
+                    border: `1.2px solid ${isActive ? 'rgba(143,217,174,0.35)' : 'rgba(255,255,255,0.9)'}`,
+                    boxShadow: '0 8px 20px rgba(18,56,36,0.06)',
+                    borderRadius: 22, textDecoration: 'none', transition: 'transform 0.25s, background 0.25s',
                     minHeight: 90,
                   }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.08)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isActive ? `rgba(22,163,74,0.18)` : 'rgba(3,65,26,0.04)'; (e.currentTarget as HTMLElement).style.transform = 'none'; }}
+                  onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = '#fff'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = isActive ? 'linear-gradient(135deg, #102a1c, #1d4a31)' : 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(228,241,232,0.5))'; (e.currentTarget as HTMLElement).style.transform = 'none'; }}
                 >
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: `${item.color}22`, border: `1px solid ${item.color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color }}>
+                  <div className={`v-orb ${isActive ? 'v-orb-lime' : ''}`} style={{ ['--s' as any]: '40px' }}>
                     <item.Icon />
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--forest)', lineHeight: 1.2 }}>{item.label}</div>
-                    {isActive && <div style={{ fontSize: '0.65rem', color: item.color, fontWeight: 700, marginTop: 2 }}>● Active</div>}
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: isActive ? '#fff' : 'var(--ink)', lineHeight: 1.2 }}>{item.label}</div>
+                    {isActive && <div style={{ fontSize: '0.65rem', color: 'var(--lime)', fontWeight: 700, marginTop: 2 }}>● Active</div>}
                   </div>
                 </Link>
               );
@@ -546,15 +453,15 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
           </div>
 
           {/* ── ACCOUNT TILES ── */}
-          <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--earth)', textTransform: 'uppercase', letterSpacing: '0.35em', marginBottom: 16 }}>My Account</div>
+          <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--leaf)', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 16 }}>My Account</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8, marginBottom: 32 }}>
             {ACCOUNT_ITEMS.map(item => (
               <Link key={item.href} href={item.href} onClick={() => setHubOpen(false)}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'rgba(3,65,26,0.03)', border: '1px solid rgba(3,65,26,0.08)', borderRadius: 14, textDecoration: 'none', transition: 'all 0.2s', backdropFilter: 'blur(8px)' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.06)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(3,65,26,0.03)'; }}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px 10px 10px', background: 'rgba(255,255,255,0.7)', border: '1.2px solid rgba(255,255,255,0.9)', borderRadius: 18, textDecoration: 'none', transition: 'background 0.2s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#fff'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.7)'; }}
               >
-                <div style={{ color: 'var(--earth)', flexShrink: 0 }}><item.Icon /></div>
+                <div className="v-orb" style={{ ['--s' as any]: '34px' }}><item.Icon /></div>
                 <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--forest)', flex: 1 }}>{item.label}</span>
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>→</span>
               </Link>
@@ -565,8 +472,8 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingTop: 20, paddingBottom: 20, borderTop: '1px solid rgba(3,65,26,0.08)', alignItems: 'center' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginRight: 5 }}>Apps:</span>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'var(--forest)', color: '#fff', borderRadius: 10, fontSize: '0.68rem', fontWeight: 700, textDecoration: 'none' }}><Ic.Apple /> iOS</a>
-              <a href="#" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'var(--forest)', color: '#fff', borderRadius: 10, fontSize: '0.68rem', fontWeight: 700, textDecoration: 'none' }}><Ic.Android /> Android</a>
+              <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'var(--forest)', color: '#fff', borderRadius: 10, fontSize: '0.68rem', fontWeight: 700, textDecoration: 'none' }}><Ic.Apple /> iOS</a>
+              <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'var(--forest)', color: '#fff', borderRadius: 10, fontSize: '0.68rem', fontWeight: 700, textDecoration: 'none' }}><Ic.Android /> Android</a>
               <a href="https://wa.me/919643701701" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'rgba(37,211,102,0.12)', color: '#25D366', borderRadius: 10, fontSize: '0.68rem', fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(37,211,102,0.2)' }}><Ic.WA /> WhatsApp</a>
             </div>
           </div>
@@ -574,21 +481,12 @@ export default function Navbar({ transparent: _transparent = false }: { transpar
       </div>
 
       <style jsx global>{`
-        .nav-link { color: var(--text-2); background: transparent; }
-        .nav-link.active { color: var(--forest); background: rgba(3,65,26,0.08); }
-        .nav-link:hover { background: rgba(3,65,26,0.05); color: var(--forest); }
-        .nav-link.is-light { color: rgba(255,255,255,0.75) !important; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
-        .nav-link.is-light.active { color: #fff !important; background: rgba(255,255,255,0.2) !important; }
-        .nav-link.is-light:hover { color: #fff !important; background: rgba(255,255,255,0.15) !important; }
-        
         @media(max-width:860px){.nav-desktop-links{display:none!important}}
-        @media(max-width:820px){.nav-app-badges{display:none!important}}
+        @media(max-width:359px){.nav-app-badges{display:none!important}}
         @media(max-width:640px){.nav-bell-desktop{display:none!important}}
         @media(max-width:640px){
           .nav-hub-container { padding-top: calc(var(--nav-h) + 16px) !important; }
         }
-        @keyframes menuOrb1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,-30px) scale(1.1)}}
-        @keyframes menuOrb2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-30px,25px) scale(1.08)}}
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
       `}</style>
     </>

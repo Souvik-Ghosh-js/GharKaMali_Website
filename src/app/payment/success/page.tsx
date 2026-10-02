@@ -11,7 +11,7 @@ function SuccessContent() {
   const amount = searchParams.get('amount');
 
   return (
-    <div style={{ background: 'var(--bg)', paddingTop: 'var(--nav-h)', minHeight: '100svh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+    <div style={{ background: 'transparent', paddingTop: 'var(--nav-h)', minHeight: '100svh', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
       <div className="hero-bg-grid" />
       <div className="hero-orb hero-orb-1" style={{ opacity: 0.15 }} />
       <div className="container" style={{ maxWidth: 600, textAlign: 'center', padding: '60px 20px', position: 'relative', zIndex: 1 }}>
@@ -58,7 +58,7 @@ export default function PaymentSuccessPage() {
   return (
     <>
       <Navbar />
-      <Suspense fallback={<div style={{ minHeight: '100svh', background: 'var(--bg)' }} />}>
+      <Suspense fallback={<div style={{ minHeight: '100svh', background: 'transparent' }} />}>
         <SuccessContent />
       </Suspense>
       <Footer />

@@ -18,7 +18,7 @@ export default function PlantopediaPage() {
   return (
     <>
       <Navbar />
-      <div style={{ background: 'var(--bg)', paddingTop: 'var(--nav-h)', minHeight: '100svh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: 'transparent', paddingTop: 'var(--nav-h)', minHeight: '100svh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="container" style={{ textAlign: 'center', padding: 'clamp(56px,12vw,120px) 0' }}>
           <div style={{ maxWidth: 600, margin: '0 auto' }}>
             <div style={{ width: 88, height: 88, borderRadius: 28, background: 'var(--bg-elevated)', border: '1.5px solid var(--border-gold)', color: 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 28px' }}>

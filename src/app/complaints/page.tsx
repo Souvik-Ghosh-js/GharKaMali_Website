@@ -78,7 +78,7 @@ export default function ComplaintsPage() {
   return (
     <>
       <Navbar />
-      <div style={{ background: 'var(--bg)', paddingTop: 'var(--nav-h)', minHeight: '100svh', position: 'relative' }}>
+      <div style={{ background: 'transparent', paddingTop: 'var(--nav-h)', minHeight: '100svh', position: 'relative' }}>
         <div className="hero-bg-grid" />
         <div className="hero-orb hero-orb-1" style={{ opacity: 0.1 }} />
         <div style={{ padding: '48px 0 80px', position: 'relative', borderBottom: '1px solid var(--border)' }}>

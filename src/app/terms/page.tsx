@@ -37,7 +37,7 @@ export default function TermsPage() {
 
   return (
     <SmoothScrollProvider>
-      <Navbar />
+      <Navbar transparent />
 
       {/* Hero */}
       <section style={{ background: 'linear-gradient(135deg, var(--forest) 0%, #065e28 100%)', padding: 'clamp(80px,12vw,140px) 0 clamp(48px,7vw,80px)', position: 'relative', overflow: 'hidden' }}>
@@ -83,7 +83,7 @@ export default function TermsPage() {
       </div>
 
       {/* Content */}
-      <section style={{ background: 'var(--bg)', padding: 'clamp(40px,6vw,80px) 0 clamp(60px,8vw,100px)' }}>
+      <section style={{ background: 'transparent', padding: 'clamp(40px,6vw,80px) 0 clamp(60px,8vw,100px)' }}>
         <div className="container" style={{ maxWidth: 860 }}>
 
           {/* ── TERMS & CONDITIONS ── */}

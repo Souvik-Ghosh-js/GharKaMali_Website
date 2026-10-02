@@ -127,7 +127,7 @@ export default function ProductClient({ slug, initialProduct }: Props) {
   if (loading) return (
     <>
       <Navbar />
-      <div style={{ paddingTop: 'var(--nav-h)', minHeight: '100svh', background: 'var(--bg)' }}>
+      <div style={{ paddingTop: 'var(--nav-h)', minHeight: '100svh', background: 'transparent' }}>
         <div className="container" style={{ paddingTop: 40, paddingBottom: 80 }}>
           <div className="pdp-grid" style={{ display: 'grid', gridTemplateColumns: '0.85fr 1fr', gap: 48, alignItems: 'start' }}>
             <div className="skeleton" style={{ height: 480, borderRadius: 20 }} />
@@ -146,7 +146,7 @@ export default function ProductClient({ slug, initialProduct }: Props) {
   if (!product) return (
     <>
       <Navbar />
-      <div style={{ paddingTop: 'var(--nav-h)', minHeight: '80svh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', textAlign: 'center', gap: 16, padding: '40px 20px' }}>
+      <div style={{ paddingTop: 'var(--nav-h)', minHeight: '80svh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'transparent', textAlign: 'center', gap: 16, padding: '40px 20px' }}>
         <div style={{ color: 'var(--forest)', opacity: 0.25, marginBottom: 8 }}><IcLeaf /></div>
         <h1 style={{ color: 'var(--forest)', fontFamily: 'var(--font-display)', fontSize: 'clamp(1.4rem,4vw,1.8rem)', fontWeight: 800 }}>Product Not Found</h1>
         <p style={{ color: 'var(--text-2)', maxWidth: 380, lineHeight: 1.7, fontSize: '0.9rem' }}>This product may have been removed or the link is incorrect.</p>

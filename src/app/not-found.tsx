@@ -13,7 +13,7 @@ export default function NotFound() {
   return (
     <>
       <Navbar />
-      <div style={{ background: 'var(--bg)', paddingTop: 'var(--nav-h)', minHeight: '100svh', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: 'transparent', paddingTop: 'var(--nav-h)', minHeight: '100svh', position: 'relative', overflow: 'hidden' }}>
         <div className="hero-bg-grid" />
         <div className="hero-orb hero-orb-1" style={{ opacity: 0.12 }} />
         <div className="hero-orb hero-orb-2" style={{ opacity: 0.08 }} />

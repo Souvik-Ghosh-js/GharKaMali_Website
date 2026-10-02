@@ -106,30 +106,32 @@ function LoginForm() {
   };
 
   return (
-    <div style={{ minHeight: '100svh', background: 'var(--forest)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', position: 'relative', overflow: 'hidden' }}>
-      {/* BG */}
-      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-      <div style={{ position: 'absolute', top: '10%', right: '-10%', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,168,76,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', bottom: '-5%', left: '-5%', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(30,122,88,0.3) 0%, transparent 70%)', pointerEvents: 'none' }} />
-
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 460, animation: 'fade-up 0.5s var(--ease) both' }}>
-        {/* Logo */}
-        <Link href="/" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginBottom: 36, textDecoration: 'none' }}>
-          <img src="/logo.png" alt="GharKaMali" style={{ height: 64, width: 'auto', objectFit: 'contain' }} />
+    <div className="gk-login">
+      {/* Brand side — deep-green pod with contour orbit (visual only) */}
+      <aside className="gk-login-art" data-anim>
+        <div className="gk-login-orbit" aria-hidden><i /><i /><i /></div>
+        <div className="fx-spores" aria-hidden><i /><i /><i /><i /><i /><i /></div>
+        <Link href="/" className="gk-login-logo" aria-label="GharKaMali home">
+          <img src="/logo.png" alt="GharKaMali" />
         </Link>
+      </aside>
 
+      <main className="gk-login-panel">
         {/* Card */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 28, padding: 'clamp(28px,5vw,40px)', boxShadow: 'var(--sh-xl)' }}>
+        <div className="gk-login-card">
+          <div className="gk-login-steps" aria-hidden>
+            {[0, 1, 2].map(i => <span key={i} className={i <= (step === 'phone' ? 0 : step === 'otp' ? 1 : 2) ? 'on' : ''} />)}
+          </div>
           {step === 'phone' ? (
             <>
-              <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem', marginBottom: 6, letterSpacing: '-0.02em' }}>Sign In</h1>
+              <h1 style={{ fontWeight: 600, fontSize: 'clamp(1.8rem, 3vw, 2.2rem)', marginBottom: 6, letterSpacing: '-0.02em', color: 'var(--ink)' }}>Sign In</h1>
               <p style={{ color: 'var(--text-muted)', marginBottom: 28, fontSize: '0.9rem' }}>Enter your phone number to continue</p>
               <div className="form-group">
                 <label className="form-label">Phone Number</label>
-                <div style={{ display: 'flex', border: '1.5px solid var(--border-mid)', borderRadius: 'var(--r)', overflow: 'hidden', background: 'var(--bg)', transition: 'all 0.2s' }}
-                  onFocusCapture={e => { (e.currentTarget as any).style.borderColor = 'var(--forest)'; (e.currentTarget as any).style.boxShadow = '0 0 0 4px rgba(11,61,46,0.10)'; }}
-                  onBlurCapture={e => { (e.currentTarget as any).style.borderColor = 'var(--border-mid)'; (e.currentTarget as any).style.boxShadow = 'none'; }}>
-                  <div style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-2)', borderRight: '1.5px solid var(--border-mid)', background: 'var(--cream)', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>🇮🇳 +91</div>
+                <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden', background: 'var(--bg-elevated)', transition: 'border-color 0.2s, box-shadow 0.2s' }}
+                  onFocusCapture={e => { (e.currentTarget as any).style.borderColor = 'var(--leaf)'; (e.currentTarget as any).style.boxShadow = '0 0 0 4px rgba(47,107,71,0.12)'; }}
+                  onBlurCapture={e => { (e.currentTarget as any).style.borderColor = 'var(--border)'; (e.currentTarget as any).style.boxShadow = 'none'; }}>
+                  <div style={{ padding: '12px 14px', fontWeight: 700, borderRight: '1px solid var(--border)', background: 'var(--mint)', color: 'var(--deep)', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>🇮🇳 +91</div>
                   <input ref={inputRef} type="tel" inputMode="numeric" maxLength={10} value={phone}
                     onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
                     onKeyDown={e => e.key === 'Enter' && handleSendOtp()}
@@ -144,7 +146,7 @@ function LoginForm() {
             </>
           ) : step === 'otp' ? (
             <>
-              <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem', marginBottom: 6, letterSpacing: '-0.02em' }}>Verify OTP</h1>
+              <h1 style={{ fontWeight: 600, fontSize: 'clamp(1.8rem, 3vw, 2.2rem)', marginBottom: 6, letterSpacing: '-0.02em', color: 'var(--ink)' }}>Verify OTP</h1>
               <p style={{ color: 'var(--text-muted)', marginBottom: 28, fontSize: '0.9rem' }}>
                 Enter the code sent to <strong style={{ color: 'var(--text)' }}>+91 {phone}</strong>{' '}
                 <button onClick={() => { setStep('phone'); setOtp(''); }} style={{ background: 'none', border: 'none', color: 'var(--forest)', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', padding: 0 }}>Change</button>
@@ -155,7 +157,7 @@ function LoginForm() {
                   onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
                   onKeyDown={e => e.key === 'Enter' && handleVerifyOtp()}
                   placeholder="••••••" autoFocus
-                  style={{ width: '100%', padding: '14px', border: '1.5px solid var(--border-mid)', borderRadius: 'var(--r)', background: 'var(--bg)', outline: 'none', fontFamily: 'var(--font-body)', fontSize: '1.4rem', letterSpacing: '0.5em', textAlign: 'center', color: 'var(--text)', fontWeight: 700 }} />
+                  style={{ width: '100%', padding: '14px', border: '1px solid var(--border)', borderRadius: 16, background: 'var(--bg-elevated)', outline: 'none', fontFamily: 'var(--font-body)', fontSize: '1.4rem', letterSpacing: '0.5em', textAlign: 'center', color: 'var(--text)', fontWeight: 700 }} />
               </div>
               <button onClick={handleVerifyOtp} disabled={loading || otp.replace(/\D/g, '').length < 4}
                 className="btn btn-forest w-full" style={{ justifyContent: 'center', padding: '14px' }}>
@@ -168,7 +170,7 @@ function LoginForm() {
             </>
           ) : (
             <>
-              <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem', marginBottom: 6, letterSpacing: '-0.02em' }}>Complete your profile</h1>
+              <h1 style={{ fontWeight: 600, fontSize: 'clamp(1.8rem, 3vw, 2.2rem)', marginBottom: 6, letterSpacing: '-0.02em', color: 'var(--ink)' }}>Complete your profile</h1>
               <p style={{ color: 'var(--text-muted)', marginBottom: 28, fontSize: '0.9rem' }}>Enter your name to finish signing in.</p>
               <div className="form-group">
                 <label className="form-label">Full Name</label>
@@ -176,7 +178,7 @@ function LoginForm() {
                   onChange={e => setName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSubmitName()}
                   placeholder="John Doe" autoFocus
-                  style={{ width: '100%', padding: '14px', border: '1.5px solid var(--border-mid)', borderRadius: 'var(--r)', background: 'var(--bg)', outline: 'none', fontFamily: 'var(--font-body)', fontSize: '1rem', color: 'var(--text)' }} />
+                  style={{ width: '100%', padding: '14px', border: '1px solid var(--border)', borderRadius: 16, background: 'var(--bg-elevated)', outline: 'none', fontFamily: 'var(--font-body)', fontSize: '1rem', color: 'var(--text)' }} />
               </div>
               <button onClick={handleSubmitName} disabled={loading || name.trim().length === 0}
                 className="btn btn-forest w-full" style={{ justifyContent: 'center', padding: '14px' }}>
@@ -192,11 +194,11 @@ function LoginForm() {
             By continuing you agree to our <Link href="/terms" style={{ color: 'var(--forest)', fontWeight: 600 }}>Terms</Link> &amp; <Link href="/privacy" style={{ color: 'var(--forest)', fontWeight: 600 }}>Privacy</Link>
           </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
 export default function LoginPage() {
-  return <Suspense fallback={<div style={{ minHeight: '100svh', background: 'var(--forest)' }} />}><LoginForm /></Suspense>;
+  return <Suspense fallback={<div className="gk-login" />}><LoginForm /></Suspense>;
 }

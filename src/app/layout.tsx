@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './fx.css';
 import Providers from '@/components/Providers';
 import { Toaster } from 'react-hot-toast';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
@@ -58,7 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap"
           rel="stylesheet"
         />
         {/* Google Analytics */}

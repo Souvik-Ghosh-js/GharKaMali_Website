@@ -70,7 +70,7 @@ function FooterLink({ href, label }: { href: string; label: string }) {
 export default function Footer() {
   return (
     <footer style={{
-      background: '#fff',
+      background: 'linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(228,241,232,0.85) 100%)',
       borderTop: '1px solid var(--border)',
       position: 'relative',
       overflow: 'hidden',

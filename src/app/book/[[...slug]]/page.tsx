@@ -439,7 +439,7 @@ function BookFlow() {
     return (
       <>
         <Navbar />
-        <div style={{ minHeight: '100vh', background: 'linear-gradient(165deg, #eef6ee 0%, #fffdf5 55%, #f5f0e8 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div style={{ minHeight: '100vh', background: 'linear-gradient(165deg, #eef6ee 0%, #f5f9f4 55%, #ecf2e9 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ maxWidth: 440, width: '100%', background: '#fff', borderRadius: 28, padding: '48px 36px', boxShadow: 'var(--sh-lg)', border: '1.5px solid var(--border-gold)', textAlign: 'center' }}>
             <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(3,65,26,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: 'var(--forest)' }}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -466,7 +466,7 @@ function BookFlow() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(bookFaqSchema) }} />
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(165deg, #eef6ee 0%, #fffdf5 55%, #f5f0e8 100%)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(165deg, #eef6ee 0%, #f5f9f4 55%, #ecf2e9 100%)', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <Navbar />
 
       <main style={{ flex: 1, padding: 'calc(var(--nav-h) + 24px) 16px 100px', zIndex: 10 }}>
