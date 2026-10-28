@@ -9,7 +9,7 @@ import Navbar from '@/components/Navbar';
 import StateSelect from '@/components/StateSelect';
 import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
-import { checkServiceability, getPlans, getAddons, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, submitContact, validateCoupon, getAvailableCoupons, getServiceDetails, CouponScope, ServiceDetail } from '@/lib/api';
+import { checkServiceability, getPlans, getAddons, getPlantSlabs, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, submitContact, validateCoupon, getAvailableCoupons, getServiceDetails, CouponScope, ServiceDetail } from '@/lib/api';
 import CouponList, { AvailableCoupon } from '@/components/CouponList';
 import ServiceDetailContent from '@/components/ServiceDetailContent';
 import { cleanPlanDescription } from '@/lib/planHelpers';
@@ -22,9 +22,21 @@ const AddressPicker = dynamic(() => import('@/components/AddressPicker'), { ssr:
 
 type ModalType = 'location' | 'plan' | 'addons' | 'schedule';
 const TIMES = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
-// "Additional Plants Requiring Care" — flat ₹25 per plant. 100+ is a custom quote.
-const ADDITIONAL_PLANT_RATE = 25;
-const PLANT_OPTIONS = [5, 10, 25, 30, 40, 50, 60, 70, 80, 100];
+// Plant-count pricing: the base price covers up to 10 plants; the matching
+// SLAB surcharge is added on top (exact slab price — never per-plant math).
+// Beyond the last slab there is no auto price: custom quote only. The live
+// table is admin-configurable and fetched from the API; these defaults match
+// the server's and apply only until that fetch lands.
+type PlantSlab = { min: number; max: number; extra: number };
+const DEFAULT_PLANT_SLABS: PlantSlab[] = [
+  { min: 11, max: 15, extra: 100 }, { min: 16, max: 20, extra: 200 },
+  { min: 21, max: 30, extra: 350 }, { min: 31, max: 40, extra: 400 },
+  { min: 41, max: 50, extra: 600 }, { min: 51, max: 60, extra: 800 },
+  { min: 61, max: 70, extra: 1000 }, { min: 71, max: 80, extra: 1200 },
+  { min: 81, max: 100, extra: 1300 }, { min: 101, max: 150, extra: 1800 },
+  { min: 151, max: 200, extra: 2000 },
+];
+const PLANT_BASE_COVERS = 10;
 const GST_RATE = 0.18; // 18% GST added on top of every booking/plan
 
 const IcArrow = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>;
@@ -108,6 +120,19 @@ function BookFlow() {
   // const [checkingInstant, setCheckingInstant] = useState(false);
   // "Additional Plants Requiring Care" — chip selection + 100+ custom-quote lead.
   const [customQuote, setCustomQuote] = useState(false);
+  const [plantSlabs, setPlantSlabs] = useState<PlantSlab[]>(DEFAULT_PLANT_SLABS);
+  useEffect(() => {
+    getPlantSlabs()
+      .then((r: any) => { const s = r?.slabs || r?.data?.slabs; if (Array.isArray(s) && s.length) setPlantSlabs(s); })
+      .catch(() => { /* keep the built-in defaults */ });
+  }, []);
+  const maxAutoPlants = plantSlabs[plantSlabs.length - 1]?.max ?? 200;
+  // Slab surcharge for a plant count; null = beyond the table (custom quote).
+  const plantSurcharge = (n: number): number | null => {
+    if (n <= PLANT_BASE_COVERS) return 0;
+    const slab = plantSlabs.find((s) => n >= s.min && n <= s.max);
+    return slab ? Number(slab.extra) || 0 : null;
+  };
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
   const [leadSubmitting, setLeadSubmitting] = useState(false);
@@ -171,7 +196,7 @@ function BookFlow() {
   // Pre-GST subtotal: plan base + additional plants + add-ons.
   const subtotal = (() => {
     const planBase = Number(selectedPlan?.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : (selectedPlan?.price || 0));
-    const plantCost = form.plant_count * ADDITIONAL_PLANT_RATE; // ₹25 per plant
+    const plantCost = plantSurcharge(form.plant_count) ?? 0; // slab surcharge (base covers 10)
     const addonsTotal = form.addons.reduce((sum, { addon_id }) => {
       const a = addons.find(x => x.id === addon_id);
       return sum + (Number(a?.price) || 0);
@@ -640,31 +665,31 @@ function BookFlow() {
                 {activeStep === 2 && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ paddingBottom: 40, borderTop: '1px solid var(--border-gold)', paddingTop: 32 }}>
                     <p style={{ color: 'var(--sage)', fontWeight: 600, fontSize: '0.9rem', marginBottom: 18 }}>
-                      Your plan {selectedPlan?.max_plants ? `covers up to ${selectedPlan.max_plants} plants` : 'covers its included plants'}. Add extra only if you need more — ₹{ADDITIONAL_PLANT_RATE} per plant (optional).
+                      The price {selectedPlan?.max_plants ? `covers up to ${selectedPlan.max_plants} plants` : `covers up to ${PLANT_BASE_COVERS} plants`}. For more plants, pick your range below — the shown amount is added to the price.
                     </p>
 
-                    {/* Selectable plant-count chips */}
+                    {/* Selectable plant-range chips — exact slab prices, never per-plant */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
                       {(() => { const sel = !customQuote && form.plant_count === 0; return (
                         <button onClick={() => { setCustomQuote(false); setForm(f => ({ ...f, plant_count: 0 })); }}
                           style={{ flex: '1 0 92px', padding: '14px 12px', borderRadius: 16, border: `2px solid ${sel ? 'var(--forest)' : 'var(--border)'}`, background: sel ? 'var(--forest)' : '#fff', color: sel ? '#fff' : 'var(--forest)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
-                          <div style={{ fontWeight: 900, fontSize: '1.05rem' }}>None</div>
-                          <div style={{ fontSize: '0.7rem', fontWeight: 700, opacity: sel ? 0.92 : 0.6 }}>Plan only · ₹0</div>
+                          <div style={{ fontWeight: 900, fontSize: '1.05rem' }}>Up to {PLANT_BASE_COVERS}</div>
+                          <div style={{ fontSize: '0.7rem', fontWeight: 700, opacity: sel ? 0.92 : 0.6 }}>Included · ₹0</div>
                         </button>
                       ); })()}
-                      {PLANT_OPTIONS.map(n => {
-                        const sel = !customQuote && form.plant_count === n;
+                      {plantSlabs.map(s => {
+                        const sel = !customQuote && form.plant_count === s.max;
                         return (
-                          <button key={n} onClick={() => { setCustomQuote(false); setForm(f => ({ ...f, plant_count: n })); }}
+                          <button key={s.min} onClick={() => { setCustomQuote(false); setForm(f => ({ ...f, plant_count: s.max })); }}
                             style={{ flex: '1 0 92px', padding: '14px 12px', borderRadius: 16, border: `2px solid ${sel ? 'var(--forest)' : 'var(--border)'}`, background: sel ? 'var(--forest)' : '#fff', color: sel ? '#fff' : 'var(--forest)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
-                            <div style={{ fontWeight: 900, fontSize: '1.05rem' }}>{n}</div>
-                            <div style={{ fontSize: '0.7rem', fontWeight: 700, opacity: sel ? 0.92 : 0.6 }}>Plants · ₹{(n * ADDITIONAL_PLANT_RATE).toLocaleString('en-IN')}</div>
+                            <div style={{ fontWeight: 900, fontSize: '1.05rem' }}>{s.min}–{s.max}</div>
+                            <div style={{ fontSize: '0.7rem', fontWeight: 700, opacity: sel ? 0.92 : 0.6 }}>Plants · +₹{Number(s.extra).toLocaleString('en-IN')}</div>
                           </button>
                         );
                       })}
                       <button onClick={() => setCustomQuote(true)}
                         style={{ flex: '1 0 92px', padding: '14px 12px', borderRadius: 16, border: `2px solid ${customQuote ? 'var(--gold)' : 'var(--border)'}`, background: customQuote ? 'var(--gold)' : '#fff', color: 'var(--forest)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
-                        <div style={{ fontWeight: 900, fontSize: '1.05rem' }}>100+</div>
+                        <div style={{ fontWeight: 900, fontSize: '1.05rem' }}>{maxAutoPlants}+</div>
                         <div style={{ fontSize: '0.7rem', fontWeight: 700, opacity: 0.7 }}>Custom Quote</div>
                       </button>
                     </div>
@@ -672,8 +697,8 @@ function BookFlow() {
                     {!customQuote ? (
                       <>
                         <div style={{ background: 'var(--bg-elevated)', borderRadius: 16, padding: '14px 18px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>{form.plant_count === 0 ? 'No additional plants (plan only)' : `${form.plant_count} plants × ₹${ADDITIONAL_PLANT_RATE}`}</span>
-                          <span style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '1.2rem' }}>+₹{(form.plant_count * ADDITIONAL_PLANT_RATE).toLocaleString('en-IN')}</span>
+                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>{form.plant_count === 0 ? `Up to ${PLANT_BASE_COVERS} plants (included)` : `${plantSlabs.find(s => form.plant_count >= s.min && form.plant_count <= s.max) ? `${plantSlabs.find(s => form.plant_count >= s.min && form.plant_count <= s.max)!.min}–${plantSlabs.find(s => form.plant_count >= s.min && form.plant_count <= s.max)!.max}` : form.plant_count} plants`}</span>
+                          <span style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '1.2rem' }}>+₹{(plantSurcharge(form.plant_count) ?? 0).toLocaleString('en-IN')}</span>
                         </div>
                         <button onClick={() => setActiveStep(isSubscriptionPlan ? 5 : 4)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>{isSubscriptionPlan ? 'Next: Review' : 'Next: Schedule'}</button>
                       </>
@@ -821,7 +846,7 @@ function BookFlow() {
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Additional Plants</span>
-                          <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{form.plant_count === 0 ? 'None (plan only)' : `${form.plant_count} × ₹${ADDITIONAL_PLANT_RATE} = +₹${(form.plant_count * ADDITIONAL_PLANT_RATE).toLocaleString('en-IN')}`}</span>
+                          <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{form.plant_count === 0 ? `Up to ${PLANT_BASE_COVERS} (included)` : `Up to ${form.plant_count} plants = +₹${(plantSurcharge(form.plant_count) ?? 0).toLocaleString('en-IN')}`}</span>
                         </div>
                         {!isSubscriptionPlan && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

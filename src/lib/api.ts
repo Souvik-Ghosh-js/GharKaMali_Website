@@ -121,6 +121,11 @@ export const checkServiceability = (lat: number, lng: number) =>
 // ─── PLANS & ADDONS ───────────────────────────────────────────────────────────
 export const getPlans = () => req('/plans', { auth: false });
 export const getAddons = () => req('/addons', { auth: false });
+
+// On-demand plant-count pricing slabs (admin-configurable): base price covers
+// up to base_covers plants, the matching slab's extra is added, and beyond
+// max_auto_plants there is no auto price — custom quote only.
+export const getPlantSlabs = () => req('/pricing/plant-slabs', { auth: false });
 export const getFaqs = () => req('/faqs', { auth: false });
 
 export const getPreviousGardeners = () => req('/bookings/previous-gardeners');
