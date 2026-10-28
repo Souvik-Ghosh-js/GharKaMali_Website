@@ -21,7 +21,7 @@ import Spinner from '@/components/Spinner';
 const AddressPicker = dynamic(() => import('@/components/AddressPicker'), { ssr: false });
 
 type ModalType = 'location' | 'plan' | 'addons' | 'schedule';
-const TIMES = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
+const TIMES = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
 // Plant-count pricing: the base price covers up to 10 plants; the matching
 // SLAB surcharge is added on top (exact slab price — never per-plant math).
 // Beyond the last slab there is no auto price: custom quote only. The live

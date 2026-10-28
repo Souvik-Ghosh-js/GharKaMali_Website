@@ -532,7 +532,7 @@ export default function BookingDetailPage() {
             <div className="form-group">
               <label className="form-label">Preferred Time</label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
-                {['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'].map(t => (
+                {['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'].map(t => (
                   <button key={t} onClick={() => setNewTime(t)}
                     style={{ padding: '9px', borderRadius: 10, border: `1.5px solid ${newTime === t ? 'var(--forest)' : 'var(--border)'}`, background: newTime === t ? 'rgba(11,61,46,0.06)' : '#fff', color: newTime === t ? 'var(--forest)' : 'var(--text-2)', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'all 0.15s' }}>
                     {t}
