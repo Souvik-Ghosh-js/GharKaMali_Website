@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import { useAuth } from '@/store/auth';
 import { getMySubscriptions, cancelSubscription, pauseSubscription, resumeSubscription, selectSubscriptionDates } from '@/lib/api';
 import { payWithRazorpay } from '@/lib/razorpay';
+import WalletPayToggle from '@/components/WalletPayToggle';
 
 const IcPause = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>;
 const IcPlay  = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>;
@@ -45,6 +46,7 @@ export default function SubscriptionsPage() {
   const qc = useQueryClient();
   const [confirm, setConfirm] = useState<Confirm>(null);
   const [acting, setActing] = useState(false);
+  const [useWallet, setUseWallet] = useState(false);
   const [schedulingSub, setSchedulingSub] = useState<any>(null);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
@@ -104,7 +106,7 @@ export default function SubscriptionsPage() {
   const handlePayment = async (sub: any) => {
     setActing(true);
     try {
-      const pay = await payWithRazorpay({ type: 'subscription', subscription_id: sub.id });
+      const pay = await payWithRazorpay({ type: 'subscription', subscription_id: sub.id, use_wallet: useWallet });
       if (pay.ok) toast.success('Payment successful! Your plan is now active.');
       else if (pay.cancelled) toast('Payment cancelled — subscription cancelled.', { icon: '⚠️' });
       else toast.error(pay.message || 'Payment failed');
@@ -253,9 +255,12 @@ export default function SubscriptionsPage() {
                           </>
                         )}
                         {sub.status === 'pending' && (
-                          <button onClick={(e) => { e.stopPropagation(); handlePayment(sub); }} disabled={acting} className="btn btn-primary btn-sm" style={{ padding: '8px 24px' }}>
-                            {acting ? '...' : '💳 Complete Payment'}
-                          </button>
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <WalletPayToggle checked={useWallet} onChange={setUseWallet} total={Number(sub.amount_paid || sub.plan?.price) || 0} />
+                            <button onClick={(e) => { e.stopPropagation(); handlePayment(sub); }} disabled={acting} className="btn btn-primary btn-sm" style={{ padding: '8px 24px' }}>
+                              {acting ? '...' : '💳 Complete Payment'}
+                            </button>
+                          </div>
                         )}
                         {isPaused && (
                           <button onClick={(e) => { e.stopPropagation(); setConfirm({ type: 'resume', id: sub.id }); }} className="btn btn-primary btn-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { createOrder, validateCoupon, getAvailableCoupons } from '@/lib/api';
 import CouponList, { AvailableCoupon } from '@/components/CouponList';
 import { payWithRazorpay } from '@/lib/razorpay';
+import WalletPayToggle from '@/components/WalletPayToggle';
 import { sanitize } from '@/lib/validators';
 import StateSelect from '@/components/StateSelect';
 import { useAuth } from '@/store/auth';
@@ -40,6 +41,7 @@ export default function CartDrawer() {
   const { user, updateUser } = useAuth();
   const { lat: storeLat, lng: storeLng, zone: userZone, setCoords } = useLocation();
   const [step, setStep] = useState<CheckoutStep>('cart');
+  const [useWallet, setUseWallet] = useState(false);
   const [addrF, setAddrF] = useState({ roomNo: '', building: '', city: '', state: 'Uttar Pradesh', pincode: '' });
   const [address, setAddress] = useState('');
   const [pinLat, setPinLat] = useState<number | null>(null);
@@ -334,7 +336,7 @@ export default function CartDrawer() {
 
       // Single combined Razorpay payment for the whole cart (products + visits).
       if (fulfill.length > 0) {
-        const pay = await payWithRazorpay({ fulfill });
+        const pay = await payWithRazorpay({ fulfill, use_wallet: useWallet });
         if (!pay.ok) {
           // Backend voids the whole unpaid cart (stock + coupon restored) on cancel.
           toast.error(pay.cancelled ? 'Payment cancelled — your order was not placed.' : (pay.message || 'Payment failed'));
@@ -753,6 +755,7 @@ export default function CartDrawer() {
               </div>
             </div>
             <div className="cart-footer" style={{ borderTop: '1px solid var(--border)' }}>
+              <WalletPayToggle checked={useWallet} onChange={setUseWallet} total={payable} />
               <button onClick={handleCheckout} disabled={!useSaved && !address.trim()} className="btn btn-primary w-full" style={{ justifyContent: 'center', padding: '14px', opacity: (!useSaved && !address.trim()) ? 0.5 : 1 }}>
                 Complete Purchase · ₹{payable.toLocaleString('en-IN')} <IcArrow />
               </button>

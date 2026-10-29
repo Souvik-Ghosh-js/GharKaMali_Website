@@ -14,6 +14,7 @@ import CouponList, { AvailableCoupon } from '@/components/CouponList';
 import ServiceDetailContent from '@/components/ServiceDetailContent';
 import { cleanPlanDescription } from '@/lib/planHelpers';
 import { payWithRazorpay } from '@/lib/razorpay';
+import WalletPayToggle from '@/components/WalletPayToggle';
 import { v, firstError, sanitize } from '@/lib/validators';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from '@/store/location';
@@ -97,6 +98,7 @@ function BookFlow() {
   const [activeStep, setActiveStep] = useState(0);
   const [checking, setChecking] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [useWallet, setUseWallet] = useState(false);
   const [zone, setZone] = useState<any>(globalZone);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [addressMode, setAddressMode] = useState<'current' | 'other'>('current');
@@ -320,7 +322,7 @@ function BookFlow() {
           auto_renew: form.auto_renew,
           payment_method: 'razorpay',
         });
-        const pay = await payWithRazorpay({ type: 'subscription', subscription_id: res.id });
+        const pay = await payWithRazorpay({ type: 'subscription', subscription_id: res.id, use_wallet: useWallet });
         if (pay.ok) {
           toast.success('Subscription activated!');
           router.push('/subscriptions');
@@ -340,7 +342,7 @@ function BookFlow() {
         // Add-ons are already persisted and included in total_amount by createBooking
         // (it reads `addons` from the payload). Do NOT call addBookingAddons here — that
         // would create duplicate add-on rows and double-charge the customer.
-        const pay = await payWithRazorpay({ type: 'booking', booking_id: res.id });
+        const pay = await payWithRazorpay({ type: 'booking', booking_id: res.id, use_wallet: useWallet });
         if (pay.ok) {
           toast.success('Booking confirmed & paid!');
           router.push(`/bookings/${res.id}`);
@@ -943,6 +945,7 @@ function BookFlow() {
                         <span style={{ fontWeight: 700, color: 'var(--forest)', fontSize: '1.9rem', fontFamily: 'var(--font-display)' }}>₹{total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                       </div>
                     </div>
+                    <WalletPayToggle checked={useWallet} onChange={setUseWallet} total={total} />
                     <button
                       onClick={handleAddToCart}
                       className="btn"

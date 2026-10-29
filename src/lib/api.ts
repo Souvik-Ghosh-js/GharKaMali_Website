@@ -230,9 +230,15 @@ export const getPayments = (page?: number, limit?: number) =>
 export const walletTopup = (amount: number, geofence_id?: number) =>
   req('/payments/wallet-topup', { method: 'POST', body: JSON.stringify({ amount, geofence_id }) });
 
+// ─── WALLET (cashback + top-ups ledger) ───────────────────────────────────────
+// Balance, expiring credits, transaction history + the live cashback offer.
+export const getWallet = () => req('/wallet');
+// Public cashback tiers (for banners on booking/shop pages).
+export const getWalletOffers = () => req('/wallet/offers');
+
 // ─── RAZORPAY ─────────────────────────────────────────────────────────────────
 // Create a Razorpay order on the backend (returns key_id, order_id, amount, …).
-export const createRazorpayOrder = (b: { type?: string; amount?: number; booking_id?: number; subscription_id?: number; order_id?: number; geofence_id?: number; fulfill?: { type: string; id: number }[] }) =>
+export const createRazorpayOrder = (b: { type?: string; amount?: number; booking_id?: number; subscription_id?: number; order_id?: number; geofence_id?: number; fulfill?: { type: string; id: number }[]; use_wallet?: boolean }) =>
   req('/payments/razorpay/order', { method: 'POST', body: JSON.stringify(b) });
 // Verify the signature Razorpay Checkout returns; the backend then fulfills.
 export const verifyRazorpayPayment = (b: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) =>

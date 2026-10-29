@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/store/auth';
-import { getProfile, getPayments } from '@/lib/api';
+import { getProfile, getWallet } from '@/lib/api';
 import { payWithRazorpay } from '@/lib/razorpay';
 
 const AMOUNTS = [100, 250, 500, 1000, 2000, 5000];
@@ -40,22 +40,21 @@ export default function WalletPage() {
   }, [isAuthenticated, isLoading, router]);
   
   const { data: profile } = useQuery({ queryKey: ['profile'], queryFn: getProfile, enabled: isAuthenticated });
-  
-  /* Bug fix: getPayments returns { items, total } or raw array */
-  const { data: txRaw, isLoading: tLoad } = useQuery({
-    queryKey: ['payments'],
-    queryFn: () => getPayments(1, 20),
+
+  // Wallet ledger: balance, cashback offer, expiring credits + full history.
+  const { data: wallet, isLoading: tLoad } = useQuery({
+    queryKey: ['wallet'],
+    queryFn: getWallet,
     enabled: isAuthenticated,
   });
-  
-  const transactions: any[] = Array.isArray(txRaw)
-    ? txRaw
-    : Array.isArray((txRaw as any)?.items)
-    ? (txRaw as any).items
-    : [];
-  
-  const balance = Number((profile as any)?.wallet_balance ?? 0);
+
+  const transactions: any[] = Array.isArray((wallet as any)?.transactions) ? (wallet as any).transactions : [];
+  const offer = (wallet as any)?.offer;
+  const expiring: any[] = Array.isArray((wallet as any)?.expiring) ? (wallet as any).expiring : [];
+
+  const balance = Number((wallet as any)?.balance ?? (profile as any)?.wallet_balance ?? 0);
   const finalAmount = custom ? parseInt(custom) || 0 : amount;
+  const fmtDate = (v: any) => v ? new Date(String(v).replace(' ', 'T')).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
   
   const qc = useQueryClient();
   const topupMut = useMutation({
@@ -67,7 +66,7 @@ export default function WalletPage() {
     onSuccess: () => {
       toast.success('Wallet topped up successfully!');
       qc.invalidateQueries({ queryKey: ['profile'] });
-      qc.invalidateQueries({ queryKey: ['payments'] });
+      qc.invalidateQueries({ queryKey: ['wallet'] });
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -94,6 +93,33 @@ export default function WalletPage() {
               ₹{balance.toLocaleString('en-IN')}
             </div>
             <div style={{ fontSize: '0.9rem', color: 'var(--earth)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>Use wallet balance on any booking or shop purchase</div>
+
+            {/* Expiring-soon nudge */}
+            {expiring.length > 0 && (
+              <div style={{ marginTop: 16, display: 'inline-flex', alignItems: 'center', gap: 8, background: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: 12, padding: '10px 16px', fontSize: '0.85rem', fontWeight: 700, color: '#92400E' }}>
+                <IcClock /> ₹{(expiring[0].amount_paise / 100).toLocaleString('en-IN')} expires on {fmtDate(expiring[0].expires_at)} — use it on your next order!
+              </div>
+            )}
+
+            {/* Cashback offer */}
+            {offer?.enabled && Array.isArray(offer.tiers) && offer.tiers.length > 0 && (
+              <div style={{ marginTop: 24, background: 'var(--bg-elevated)', border: '1px solid var(--border-gold)', borderRadius: 20, padding: '20px 24px', maxWidth: 680 }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--sage)', letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: 'var(--font-mono)', marginBottom: 12 }}>
+                  🎁 Cashback on every order
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  {offer.tiers.map((t: any) => (
+                    <div key={t.min_order} style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 14, padding: '10px 16px', textAlign: 'center' }}>
+                      <div style={{ fontWeight: 900, color: 'var(--forest)', fontFamily: 'var(--font-display)', fontSize: '1.1rem' }}>₹{t.cashback}</div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--sage)', fontWeight: 700 }}>on ₹{Number(t.min_order).toLocaleString('en-IN')}+</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--earth)', marginTop: 10, fontWeight: 600 }}>
+                  Cashback lands in your wallet when your order is paid, and stays valid for {offer.validity_days} days.
+                </div>
+              </div>
+            )}
           </div>
         </div>
         
@@ -122,12 +148,16 @@ export default function WalletPage() {
                   </div>
                 ) : (
                   transactions.map((tx: any, i: number) => {
-                    const isCredit = tx.type === 'credit' || tx.amount > 0;
-                    const txLabel = tx.description ?? (tx.type === 'topup' ? 'Wallet Top-Up' : tx.type === 'booking' ? 'Booking Payment' : 'Transaction');
-                    // Date can arrive under different keys depending on the source row.
-                    const txDate = tx.created_at ?? tx.createdAt ?? tx.updated_at ?? tx.date ?? null;
+                    const isCredit = tx.direction === 'credit';
+                    const txLabel = tx.note
+                      || (tx.type === 'topup' ? 'Wallet Top-Up'
+                        : tx.type === 'cashback' ? 'Cashback Earned'
+                        : tx.type === 'migration' ? 'Balance Carried Over'
+                        : tx.type === 'admin' ? 'GharKaMali Credit'
+                        : isCredit ? 'Wallet Credit' : 'Paid from Wallet');
+                    const txDate = tx.created_at ?? null;
                     const txDateText = txDate
-                      ? new Date(txDate).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })
+                      ? new Date(String(txDate).replace(' ', 'T')).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })
                       : '—';
                     return (
                       <div key={tx.id ?? i} style={{ padding: '20px 24px', borderBottom: i < transactions.length - 1 ? '1px solid var(--border)' : 'none', display: 'flex', alignItems: 'center', gap: 16, animation: `fade-up 0.4s var(--ease) ${i * 30}ms both`, transition: 'background 0.2s var(--ease)' }}
@@ -138,13 +168,17 @@ export default function WalletPage() {
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: 6, color: 'var(--forest)' }}>{txLabel}</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: 'var(--earth)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', color: 'var(--earth)', fontFamily: 'var(--font-mono)', fontWeight: 600, flexWrap: 'wrap' }}>
                             <IcClock />
                             {txDateText}
+                            {isCredit && tx.expires_at && !tx.expired && (
+                              <span style={{ color: '#B45309' }}>· valid till {fmtDate(tx.expires_at)}</span>
+                            )}
+                            {tx.expired && <span style={{ color: '#DC2626' }}>· expired</span>}
                           </div>
                         </div>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.2rem', color: isCredit ? '#16A34A' : 'var(--forest)', flexShrink: 0 }}>
-                          {isCredit ? '+' : '-'}₹{Math.abs(tx.amount)?.toLocaleString('en-IN')}
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.2rem', color: tx.expired ? '#9CA3AF' : isCredit ? '#16A34A' : 'var(--forest)', flexShrink: 0, textDecoration: tx.expired ? 'line-through' : 'none' }}>
+                          {isCredit ? '+' : '-'}₹{((tx.amount_paise || 0) / 100).toLocaleString('en-IN')}
                         </div>
                       </div>
                     );

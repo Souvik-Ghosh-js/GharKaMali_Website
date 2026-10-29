@@ -29,6 +29,9 @@ export type RazorpayArgs = {
   geofence_id?: number;
   // Combined cart: pay for several entities in one transaction.
   fulfill?: { type: 'order' | 'booking' | 'subscription'; id: number }[];
+  // Spend wallet balance first; Razorpay charges only the remainder. When the
+  // wallet covers everything the backend fulfills directly (no Checkout).
+  use_wallet?: boolean;
 };
 
 export type RazorpayResult = { ok: boolean; cancelled?: boolean; message?: string };
@@ -46,6 +49,10 @@ export async function payWithRazorpay(args: RazorpayArgs): Promise<RazorpayResul
     order = await createRazorpayOrder(args); // req() unwraps to the data object
   } catch (e: any) {
     return { ok: false, message: e?.message || 'Could not start the payment.' };
+  }
+  // Wallet covered the whole amount — already paid and fulfilled server-side.
+  if (order?.wallet_paid) {
+    return { ok: true, message: `Paid ₹${order.wallet_applied} from your wallet` };
   }
   if (!order?.key_id || !order?.order_id) {
     return { ok: false, message: 'Payment is not configured. Please contact support.' };

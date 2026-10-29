@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import { useAuth } from '@/store/auth';
 import { getBooking, cancelBooking, rateBooking, rescheduleBooking, getTimeAddons, requestTimeAddon, downloadInvoice } from '@/lib/api';
 import { payWithRazorpay } from '@/lib/razorpay';
+import WalletPayToggle from '@/components/WalletPayToggle';
 
 /* ─── Icons ──────────────────────────────────────────────────────────────────── */
 const IcPlan = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>;
@@ -88,6 +89,7 @@ export default function BookingDetailPage() {
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('09:00');
   const [paying, setPaying] = useState(false);
+  const [useWallet, setUseWallet] = useState(false);
 
   useEffect(() => { if (!isLoading && !isAuthenticated) router.replace('/login'); }, [isAuthenticated, isLoading]);
 
@@ -147,7 +149,7 @@ export default function BookingDetailPage() {
   const handlePayment = async () => {
     setPaying(true);
     try {
-      const pay = await payWithRazorpay({ type: 'booking', booking_id: booking.id });
+      const pay = await payWithRazorpay({ type: 'booking', booking_id: booking.id, use_wallet: useWallet });
       if (pay.ok) toast.success('✅ Payment successful!');
       else if (pay.cancelled) toast('Payment cancelled — booking cancelled.', { icon: '⚠️' });
       else toast.error(pay.message || 'Payment failed');
@@ -429,9 +431,12 @@ export default function BookingDetailPage() {
 
               {/* Action buttons */}
               {status === 'pending' && booking.payment_status !== 'paid' && (
-                <button onClick={handlePayment} disabled={paying} className="btn btn-primary w-full" style={{ justifyContent: 'center', padding: '14px' }}>
-                  {paying ? 'Processing...' : 'Complete Payment'}
-                </button>
+                <>
+                  <WalletPayToggle checked={useWallet} onChange={setUseWallet} total={Number(booking.total_amount) || 0} />
+                  <button onClick={handlePayment} disabled={paying} className="btn btn-primary w-full" style={{ justifyContent: 'center', padding: '14px' }}>
+                    {paying ? 'Processing...' : 'Complete Payment'}
+                  </button>
+                </>
               )}
 
               {canRate && (
