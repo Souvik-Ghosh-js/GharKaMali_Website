@@ -702,7 +702,7 @@ function BookFlow() {
                           <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>{form.plant_count === 0 ? `Up to ${PLANT_BASE_COVERS} plants (included)` : `${plantSlabs.find(s => form.plant_count >= s.min && form.plant_count <= s.max) ? `${plantSlabs.find(s => form.plant_count >= s.min && form.plant_count <= s.max)!.min}–${plantSlabs.find(s => form.plant_count >= s.min && form.plant_count <= s.max)!.max}` : form.plant_count} plants`}</span>
                           <span style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '1.2rem' }}>+₹{(plantSurcharge(form.plant_count) ?? 0).toLocaleString('en-IN')}</span>
                         </div>
-                        <button onClick={() => setActiveStep(isSubscriptionPlan ? 5 : 4)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>{isSubscriptionPlan ? 'Next: Review' : 'Next: Schedule'}</button>
+                        <button onClick={() => setActiveStep(isSubscriptionPlan ? 5 : 3)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>{isSubscriptionPlan ? 'Next: Review' : 'Next: Add-ons'}</button>
                       </>
                     ) : (
                       <div style={{ background: 'rgba(3,65,26,0.04)', border: '1.5px solid var(--border-gold)', borderRadius: 18, padding: 24 }}>
@@ -733,8 +733,8 @@ function BookFlow() {
               </AnimatePresence>
             </div>
 
-            {/* STEP 4: ADD-ONS — hidden for now (set the guard back to true to re-enable) */}
-            {false && (
+            {/* STEP 4: ADD-ONS (On-Demand only) */}
+            {!isSubscriptionPlan && (
             <div className={activeStep === 3 ? 'book-step-active' : 'book-step-inactive'} style={{ background: '#fff', borderRadius: 32, padding: activeStep === 3 ? '40px' : '0 40px', border: activeStep === 3 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 3 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 3 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 3 ? 'none' : 'auto' }}>
               <StepHeader num={4} title="Enhance Your Visit (Add-ons)" active={activeStep === 3} done={activeStep > 3} onClick={() => setActiveStep(3)} locked={activeStep < 3} />
               <AnimatePresence>
@@ -752,7 +752,7 @@ function BookFlow() {
                         );
                       })}
                     </div>
-                    <button onClick={() => setActiveStep(isSubscriptionPlan ? 5 : 4)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>{isSubscriptionPlan ? 'Next: Review' : 'Next: Schedule'}</button>
+                    <button onClick={() => setActiveStep(4)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>{form.addons.length > 0 ? 'Next: Schedule' : 'Skip — Next: Schedule'}</button>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -762,7 +762,7 @@ function BookFlow() {
             {/* STEP 5: SCHEDULE (On-Demand only) */}
             {!isSubscriptionPlan && (
             <div className={activeStep === 4 ? 'book-step-active' : 'book-step-inactive'} style={{ background: '#fff', borderRadius: 32, padding: activeStep === 4 ? '40px' : '0 40px', border: activeStep === 4 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 4 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 4 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 4 ? 'none' : 'auto' }}>
-              <StepHeader num={4} title="Pick Your Preferred Slot" active={activeStep === 4} done={activeStep > 4} onClick={() => setActiveStep(4)} locked={activeStep < 4} />
+              <StepHeader num={5} title="Pick Your Preferred Slot" active={activeStep === 4} done={activeStep > 4} onClick={() => setActiveStep(4)} locked={activeStep < 4} />
               <AnimatePresence>
                 {activeStep === 4 && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ paddingBottom: 40, borderTop: '1px solid var(--border-gold)', paddingTop: 32 }}>
@@ -836,7 +836,7 @@ function BookFlow() {
 
             {/* STEP 6: SUMMARY & PAYMENT */}
             <div style={{ background: '#fff', borderRadius: 32, padding: activeStep === 5 ? '40px' : '0 40px', border: activeStep === 5 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 5 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 5 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 5 ? 'none' : 'auto' }}>
-              <StepHeader num={isSubscriptionPlan ? 4 : 5} title="Final Review" active={activeStep === 5} done={false} onClick={() => setActiveStep(5)} locked={activeStep < 5} />
+              <StepHeader num={isSubscriptionPlan ? 4 : 6} title="Final Review" active={activeStep === 5} done={false} onClick={() => setActiveStep(5)} locked={activeStep < 5} />
               <AnimatePresence>
                 {activeStep === 5 && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ paddingBottom: 40, borderTop: '1px solid var(--border-gold)', paddingTop: 32 }}>
