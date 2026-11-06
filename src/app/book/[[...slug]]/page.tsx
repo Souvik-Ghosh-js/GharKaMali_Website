@@ -114,6 +114,7 @@ function BookFlow() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slotsLoaded, setSlotsLoaded] = useState(false);
   const [noGardenersInZone, setNoGardenersInZone] = useState(false);
+  const [blockedMsg, setBlockedMsg] = useState<string | null>(null); // admin-blocked date notice
   // Instant booking has been removed from the UI. All on-demand bookings are
   // scheduled (user picks date + slot). To re-enable instant, restore the
   // `bookingMode`/`instantInfo` state + instant blocks from git history.
@@ -420,17 +421,23 @@ function BookFlow() {
       setLoadingSlots(true);
       setSlotsLoaded(false);
       setNoGardenersInZone(false);
+      setBlockedMsg(null);
       checkGardenerAvailability(form.scheduled_date, undefined, zone.id)
         .then((res: any) => {
-          const slots: string[] = Array.isArray(res) ? res : (res?.available_slots ?? []);
+          // Normal days: res is the slots array. Admin-blocked days: an object
+          // { slots: [], blocked: true, message } from the backend.
+          const slots: string[] = Array.isArray(res) ? res : (res?.slots ?? res?.available_slots ?? []);
+          const blocked = !Array.isArray(res) && res?.blocked === true;
           setAvailableSlots(slots);
-          setNoGardenersInZone(res?.no_gardeners_in_zone === true || slots.length === 0);
+          setBlockedMsg(blocked ? (res?.message || 'Bookings are closed on this date. Please pick another day.') : null);
+          setNoGardenersInZone(!blocked && (res?.no_gardeners_in_zone === true || slots.length === 0));
         })
-        .catch(() => { setAvailableSlots([]); setNoGardenersInZone(false); })
+        .catch(() => { setAvailableSlots([]); setNoGardenersInZone(false); setBlockedMsg(null); })
         .finally(() => { setLoadingSlots(false); setSlotsLoaded(true); });
     } else {
       setSlotsLoaded(false);
       setNoGardenersInZone(false);
+      setBlockedMsg(null);
     }
   }, [form.scheduled_date, zone]);
 
@@ -810,12 +817,17 @@ function BookFlow() {
                             <Spinner size={15} color="var(--sage)" /> Checking availability...
                           </div>
                         )}
-                        {!loadingSlots && slotsLoaded && noGardenersInZone && (
+                        {!loadingSlots && slotsLoaded && blockedMsg && (
+                          <div style={{ padding: '16px', borderRadius: 14, background: '#fff8e1', border: '1.5px solid #f5c842', color: '#7a5c00', fontWeight: 700, fontSize: '0.85rem', marginBottom: 12 }}>
+                            {blockedMsg}
+                          </div>
+                        )}
+                        {!loadingSlots && slotsLoaded && noGardenersInZone && !blockedMsg && (
                           <div style={{ padding: '16px', borderRadius: 14, background: '#fff8e1', border: '1.5px solid #f5c842', color: '#7a5c00', fontWeight: 700, fontSize: '0.85rem', marginBottom: 12 }}>
                             We don't have gardeners serving this area yet — so no dates are bookable right now. We're expanding fast; please check back soon or WhatsApp us and we'll notify you when your area goes live.
                           </div>
                         )}
-                        {!noGardenersInZone && (
+                        {!noGardenersInZone && !blockedMsg && (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
                           {TIMES.map(t => {
                             const sel = form.scheduled_time === t;
