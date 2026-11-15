@@ -9,7 +9,7 @@ import Navbar from '@/components/Navbar';
 import StateSelect from '@/components/StateSelect';
 import { useAuth } from '@/store/auth';
 import { useCart } from '@/store/cart';
-import { checkServiceability, getPlans, getAddons, getPlantSlabs, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, submitContact, validateCoupon, getAvailableCoupons, getServiceDetails, CouponScope, ServiceDetail } from '@/lib/api';
+import { checkServiceability, getPlans, getAddons, getOneTimePricing, createBooking, createSubscription, getPreviousGardeners, checkGardenerAvailability, submitContact, validateCoupon, getAvailableCoupons, getServiceDetails, CouponScope, ServiceDetail } from '@/lib/api';
 import CouponList, { AvailableCoupon } from '@/components/CouponList';
 import ServiceDetailContent from '@/components/ServiceDetailContent';
 import { cleanPlanDescription } from '@/lib/planHelpers';
@@ -18,26 +18,19 @@ import WalletPayToggle from '@/components/WalletPayToggle';
 import { v, firstError, sanitize } from '@/lib/validators';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from '@/store/location';
+import { serviceCharge, surchargeLines, MIN_PLANTS, VERMICOMPOST_SIZES, DEFAULT_INTERVALS, DEFAULT_VERMICOMPOST, type OneTimePricing } from '@/lib/oneTimePricing';
 import Spinner from '@/components/Spinner';
 const AddressPicker = dynamic(() => import('@/components/AddressPicker'), { ssr: false });
 
 type ModalType = 'location' | 'plan' | 'addons' | 'schedule';
 const TIMES = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
-// Plant-count pricing: the base price covers up to 10 plants; the matching
-// SLAB surcharge is added on top (exact slab price — never per-plant math).
-// Beyond the last slab there is no auto price: custom quote only. The live
-// table is admin-configurable and fetched from the API; these defaults match
-// the server's and apply only until that fetch lands.
-type PlantSlab = { min: number; max: number; extra: number };
-const DEFAULT_PLANT_SLABS: PlantSlab[] = [
-  { min: 11, max: 15, extra: 100 }, { min: 16, max: 20, extra: 200 },
-  { min: 21, max: 30, extra: 350 }, { min: 31, max: 40, extra: 400 },
-  { min: 41, max: 50, extra: 600 }, { min: 51, max: 60, extra: 800 },
-  { min: 61, max: 70, extra: 1000 }, { min: 71, max: 80, extra: 1200 },
-  { min: 81, max: 100, extra: 1300 }, { min: 101, max: 150, extra: 1800 },
-  { min: 151, max: 200, extra: 2000 },
-];
-const PLANT_BASE_COVERS = 10;
+// One-time visit pricing (lib/oneTimePricing): the zone base price covers the
+// first 10 plants; every extra plant is charged at its own range's rate
+// (progressive — the total only ever goes up), rounded to ₹1 once. The zone's
+// table comes from the API; the server recomputes the amount at checkout.
+// Monthly plans keep their own rule (server: ₹25 per plant beyond the plan).
+const SUB_EXTRA_PLANT_RATE = 25;
+const PLANT_QUICK_PICKS = [10, 15, 20, 30, 50, 100, 150, 200];
 const GST_RATE = 0.18; // 18% GST added on top of every booking/plan
 
 const IcArrow = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>;
@@ -104,7 +97,8 @@ function BookFlow() {
   const [addressMode, setAddressMode] = useState<'current' | 'other'>('current');
   const [form, setForm] = useState({
     address: '', lat: 0, lng: 0, plan_id: legacyPlanId,
-    plant_count: 0, scheduled_date: '', scheduled_time: '09:00',
+    plant_count: MIN_PLANTS, scheduled_date: '', scheduled_time: '09:00',
+    vermicompost_kg: 0, // optional add-on: 0 = none, else 1 / 5 / 10 kg (never preselected)
     addons: [] as { addon_id: number; quantity: number }[],
     auto_renew: true, notes: '', preferred_gardener_id: 0
   });
@@ -121,21 +115,24 @@ function BookFlow() {
   // const [bookingMode, setBookingMode] = useState<'instant' | 'schedule'>('schedule');
   // const [instantInfo, setInstantInfo] = useState<{ available: boolean; eta_minutes: number; gardener_count?: number; reason?: string | null } | null>(null);
   // const [checkingInstant, setCheckingInstant] = useState(false);
-  // "Additional Plants Requiring Care" — chip selection + 100+ custom-quote lead.
+  // Plants step: above the zone's last range (200 by default) there is no
+  // automatic price — the customer leaves a custom-quote lead instead.
   const [customQuote, setCustomQuote] = useState(false);
-  const [plantSlabs, setPlantSlabs] = useState<PlantSlab[]>(DEFAULT_PLANT_SLABS);
-  useEffect(() => {
-    getPlantSlabs()
-      .then((r: any) => { const s = r?.slabs || r?.data?.slabs; if (Array.isArray(s) && s.length) setPlantSlabs(s); })
-      .catch(() => { /* keep the built-in defaults */ });
-  }, []);
-  const maxAutoPlants = plantSlabs[plantSlabs.length - 1]?.max ?? 200;
-  // Slab surcharge for a plant count; null = beyond the table (custom quote).
-  const plantSurcharge = (n: number): number | null => {
-    if (n <= PLANT_BASE_COVERS) return 0;
-    const slab = plantSlabs.find((s) => n >= s.min && n <= s.max);
-    return slab ? Number(slab.extra) || 0 : null;
-  };
+  // This zone's one-time pricing table (refetched whenever the address moves
+  // to another zone, so the quote always follows the service address).
+  const { data: pricingRaw, isError: pricingError, refetch: refetchPricing } = useQuery<OneTimePricing>({
+    queryKey: ['one-time-pricing', zone?.id],
+    queryFn: () => getOneTimePricing(zone.id),
+    enabled: !!zone?.id,
+    staleTime: 60_000,
+    retry: 1,
+  });
+  // Until the zone table lands, price from the zone base + the standard rates.
+  const pricing: OneTimePricing | null = pricingRaw ?? (zone?.base_price != null ? {
+    base_price: Number(zone.base_price), base_plants: 10, min_plants: MIN_PLANTS, max_plants: 200,
+    intervals: DEFAULT_INTERVALS, vermicompost: DEFAULT_VERMICOMPOST, surcharges: [], gst_rate: GST_RATE,
+  } : null);
+  const maxAutoPlants = pricing?.max_plants ?? 200;
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
   const [leadSubmitting, setLeadSubmitting] = useState(false);
@@ -186,7 +183,7 @@ function BookFlow() {
       await submitContact({
         name: leadName.trim(),
         phone: leadPhone,
-        message: `Custom quote — 100+ plants${selectedPlan ? ` (interested in ${selectedPlan.name})` : ''}.${form.address ? ` Address: ${form.address}.` : ''}`,
+        message: `Custom quote — more than ${maxAutoPlants} plants${selectedPlan ? ` (interested in ${selectedPlan.name})` : ''}.${form.address ? ` Address: ${form.address}.` : ''}`,
         geofence_id: zone?.id,
       });
       toast.success('Thanks! Our team will contact you with a custom quote.');
@@ -196,15 +193,35 @@ function BookFlow() {
     } finally { setLeadSubmitting(false); }
   };
 
-  // Pre-GST subtotal: plan base + additional plants + add-ons.
+  // One-time visit quote: service charge for the exact plant count, optional
+  // vermicompost and any surcharge active for this zone on the visit date —
+  // each a separate line. null for monthly plans.
+  const isSubPlan = selectedPlan?.plan_type === 'subscription';
+  const oneTime = (() => {
+    if (isSubPlan || !pricing) return null;
+    const svc = serviceCharge(form.plant_count, pricing.base_price, pricing.intervals);
+    if (!svc.ok) return { svc, vermi: null, surcharges: [] as ReturnType<typeof surchargeLines> };
+    const v = form.vermicompost_kg ? pricing.vermicompost.find((x) => x.kg === form.vermicompost_kg) : null;
+    return {
+      svc,
+      vermi: v ? { kg: v.kg, amount: Number(v.price) } : null,
+      surcharges: surchargeLines(pricing.surcharges, svc.amount, form.scheduled_date || undefined),
+    };
+  })();
+  const surchargeTotal = oneTime?.surcharges.reduce((s, l) => s + l.amount, 0) ?? 0;
+
+  // Pre-GST subtotal: visit (or plan) + vermicompost + surcharges + add-ons.
   const subtotal = (() => {
-    const planBase = Number(selectedPlan?.plan_type !== 'subscription' && zone?.base_price != null ? zone.base_price : (selectedPlan?.price || 0));
-    const plantCost = plantSurcharge(form.plant_count) ?? 0; // slab surcharge (base covers 10)
     const addonsTotal = form.addons.reduce((sum, { addon_id }) => {
       const a = addons.find(x => x.id === addon_id);
       return sum + (Number(a?.price) || 0);
     }, 0);
-    return planBase + plantCost + addonsTotal;
+    if (isSubPlan) {
+      // Monthly plan: plan price + ₹25 per plant beyond the plan (server rule).
+      return Number(selectedPlan?.price || 0) + form.plant_count * SUB_EXTRA_PLANT_RATE + addonsTotal;
+    }
+    const visit = oneTime?.svc.ok ? oneTime.svc.amount : 0;
+    return visit + (oneTime?.vermi?.amount ?? 0) + surchargeTotal + addonsTotal;
   })();
   const gstAmount = Math.round(subtotal * GST_RATE * 100) / 100; // 18% GST
   const grossTotal = Math.round(subtotal * (1 + GST_RATE) * 100) / 100; // subtotal + GST
@@ -228,6 +245,7 @@ function BookFlow() {
         scheduled_time: form.scheduled_time,
         service_address: form.address,
         plant_count: form.plant_count,
+        vermicompost_kg: form.vermicompost_kg || null,
         addons: form.addons,
         price: total,
         ...(appliedCoupon ? { coupon_code: appliedCoupon.code } : {}),
@@ -238,6 +256,21 @@ function BookFlow() {
   };
 
   const isSubscriptionPlan = selectedPlan?.plan_type === 'subscription';
+  // One-time visits count ALL plants (minimum 10, default 10); monthly plans
+  // count only EXTRA plants beyond the plan (from 0). Compost is one-time only.
+  useEffect(() => {
+    setForm(f => ({
+      ...f,
+      plant_count: isSubscriptionPlan ? 0 : Math.max(MIN_PLANTS, f.plant_count),
+      vermicompost_kg: isSubscriptionPlan ? 0 : f.vermicompost_kg,
+    }));
+  }, [isSubscriptionPlan]);
+  const setPlants = (n: number) => {
+    const lo = isSubscriptionPlan ? 0 : MIN_PLANTS;
+    const v = Math.max(lo, Math.floor(Number.isFinite(n) ? n : lo));
+    setCustomQuote(!isSubscriptionPlan && v > maxAutoPlants);
+    setForm(f => ({ ...f, plant_count: Math.min(v, isSubscriptionPlan ? 500 : maxAutoPlants + 1) }));
+  };
   // Coupon scope follows the plan type: monthly plan -> 'subscription', one-time visit -> 'booking'.
   const couponScope: CouponScope = isSubscriptionPlan ? 'subscription' : 'booking';
 
@@ -284,8 +317,8 @@ function BookFlow() {
   };
 
   const handleFinish = async () => {
-    if (customQuote) {
-      toast.error('For 100+ plants, please request a custom quote in the Additional Plants step.');
+    if (customQuote || (oneTime && !oneTime.svc.ok)) {
+      toast.error(`For more than ${maxAutoPlants} plants, please request a custom quote in the Plants step.`);
       setActiveStep(2);
       return;
     }
@@ -334,12 +367,27 @@ function BookFlow() {
         }
       } else {
         // On-demand bookings are always scheduled (instant booking removed).
-        res = await createBooking({
-          ...payload,
-          is_instant: false,
-          scheduled_date: form.scheduled_date,
-          scheduled_time: form.scheduled_time,
-        });
+        try {
+          res = await createBooking({
+            ...payload,
+            is_instant: false,
+            scheduled_date: form.scheduled_date,
+            scheduled_time: form.scheduled_time,
+            vermicompost_kg: form.vermicompost_kg || undefined,
+            // The server refuses (409) if its total differs from what the
+            // customer is looking at, so they always confirm the real amount.
+            expected_total: total,
+          });
+        } catch (e: any) {
+          if (e?.status === 409 && e?.data?.code === 'PRICE_CHANGED') {
+            await refetchPricing();
+            setAppliedCoupon(null);
+            toast(e.message || 'The price was updated — please review the new total.', { icon: 'ℹ️', duration: 6000 });
+            setSubmitting(false);
+            return;
+          }
+          throw e;
+        }
         // Add-ons are already persisted and included in total_amount by createBooking
         // (it reads `addons` from the payload). Do NOT call addBookingAddons here — that
         // would create duplicate add-on rows and double-charge the customer.
@@ -669,47 +717,75 @@ function BookFlow() {
 
             {/* STEP 3: PLANT COUNT */}
             <div className={activeStep === 2 ? 'book-step-active' : 'book-step-inactive'} style={{ background: '#fff', borderRadius: 32, padding: activeStep === 2 ? '40px' : '0 40px', border: activeStep === 2 ? '2px solid var(--forest)' : '1px solid var(--border)', boxShadow: activeStep === 2 ? '0 8px 40px rgba(3,65,26,0.12)' : 'none', overflow: 'hidden', filter: activeStep < 2 ? 'blur(4px)' : 'none', pointerEvents: activeStep < 2 ? 'none' : 'auto' }}>
-              <StepHeader num={3} title="Additional Plants Requiring Care" active={activeStep === 2} done={activeStep > 2} onClick={() => setActiveStep(2)} locked={activeStep < 2} />
+              <StepHeader num={3} title={isSubscriptionPlan ? 'Additional Plants Requiring Care' : 'How Many Plants?'} active={activeStep === 2} done={activeStep > 2} onClick={() => setActiveStep(2)} locked={activeStep < 2} />
               <AnimatePresence>
                 {activeStep === 2 && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ paddingBottom: 40, borderTop: '1px solid var(--border-gold)', paddingTop: 32 }}>
-                    <p style={{ color: 'var(--sage)', fontWeight: 600, fontSize: '0.9rem', marginBottom: 18 }}>
-                      The price {selectedPlan?.max_plants ? `covers up to ${selectedPlan.max_plants} plants` : `covers up to ${PLANT_BASE_COVERS} plants`}. For more plants, pick your range below — the shown amount is added to the price.
+                    <p style={{ color: 'var(--sage)', fontWeight: 600, fontSize: '0.9rem', marginBottom: 18, lineHeight: 1.6 }}>
+                      {isSubscriptionPlan
+                        ? `Your plan covers up to ${selectedPlan?.max_plants || 10} plants. Add any extra plants beyond that (+₹${SUB_EXTRA_PLANT_RATE} each).`
+                        : `How many plants should we care for? The price covers the first ${MIN_PLANTS} plants; each extra plant is charged at its range's rate. For more than ${maxAutoPlants} plants we prepare a custom quote.`}
                     </p>
 
-                    {/* Selectable plant-range chips — exact slab prices, never per-plant */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
-                      {(() => { const sel = !customQuote && form.plant_count === 0; return (
-                        <button onClick={() => { setCustomQuote(false); setForm(f => ({ ...f, plant_count: 0 })); }}
-                          style={{ flex: '1 0 92px', padding: '14px 12px', borderRadius: 16, border: `2px solid ${sel ? 'var(--forest)' : 'var(--border)'}`, background: sel ? 'var(--forest)' : '#fff', color: sel ? '#fff' : 'var(--forest)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
-                          <div style={{ fontWeight: 900, fontSize: '1.05rem' }}>Up to {PLANT_BASE_COVERS}</div>
-                          <div style={{ fontSize: '0.7rem', fontWeight: 700, opacity: sel ? 0.92 : 0.6 }}>Included · ₹0</div>
-                        </button>
-                      ); })()}
-                      {plantSlabs.map(s => {
-                        const sel = !customQuote && form.plant_count === s.max;
-                        return (
-                          <button key={s.min} onClick={() => { setCustomQuote(false); setForm(f => ({ ...f, plant_count: s.max })); }}
-                            style={{ flex: '1 0 92px', padding: '14px 12px', borderRadius: 16, border: `2px solid ${sel ? 'var(--forest)' : 'var(--border)'}`, background: sel ? 'var(--forest)' : '#fff', color: sel ? '#fff' : 'var(--forest)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
-                            <div style={{ fontWeight: 900, fontSize: '1.05rem' }}>{s.min}–{s.max}</div>
-                            <div style={{ fontSize: '0.7rem', fontWeight: 700, opacity: sel ? 0.92 : 0.6 }}>Plants · +₹{Number(s.extra).toLocaleString('en-IN')}</div>
-                          </button>
-                        );
-                      })}
-                      <button onClick={() => setCustomQuote(true)}
-                        style={{ flex: '1 0 92px', padding: '14px 12px', borderRadius: 16, border: `2px solid ${customQuote ? 'var(--gold)' : 'var(--border)'}`, background: customQuote ? 'var(--gold)' : '#fff', color: 'var(--forest)', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
-                        <div style={{ fontWeight: 900, fontSize: '1.05rem' }}>{maxAutoPlants}+</div>
-                        <div style={{ fontSize: '0.7rem', fontWeight: 700, opacity: 0.7 }}>Custom Quote</div>
-                      </button>
+                    {/* Exact plant quantity: − / + or type it. One-time visits start at 10. */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 16 }}>
+                      <button type="button" aria-label="Fewer plants" onClick={() => setPlants(form.plant_count - 1)} disabled={form.plant_count <= (isSubscriptionPlan ? 0 : MIN_PLANTS)}
+                        style={{ width: 48, height: 48, borderRadius: '50%', border: '2px solid var(--forest)', background: '#fff', color: 'var(--forest)', fontSize: '1.5rem', fontWeight: 700, cursor: 'pointer', opacity: form.plant_count <= (isSubscriptionPlan ? 0 : MIN_PLANTS) ? 0.35 : 1 }}>−</button>
+                      <div style={{ textAlign: 'center' }}>
+                        <input type="number" inputMode="numeric" aria-label="Number of plants" value={form.plant_count}
+                          min={isSubscriptionPlan ? 0 : MIN_PLANTS}
+                          onChange={e => setForm(f => ({ ...f, plant_count: parseInt(e.target.value, 10) || 0 }))}
+                          onBlur={e => setPlants(parseInt(e.target.value, 10))}
+                          style={{ width: 110, textAlign: 'center', fontSize: '2rem', fontWeight: 900, color: 'var(--forest)', border: '2px solid var(--border)', borderRadius: 16, padding: '6px 8px', outline: 'none' }} />
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--sage)', marginTop: 4 }}>{isSubscriptionPlan ? 'extra plants' : 'plants'}</div>
+                      </div>
+                      <button type="button" aria-label="More plants" onClick={() => setPlants(form.plant_count + 1)}
+                        style={{ width: 48, height: 48, borderRadius: '50%', border: '2px solid var(--forest)', background: 'var(--forest)', color: '#fff', fontSize: '1.5rem', fontWeight: 700, cursor: 'pointer' }}>+</button>
                     </div>
+                    {!isSubscriptionPlan && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 20 }}>
+                        {PLANT_QUICK_PICKS.filter(n => n <= maxAutoPlants).map(n => {
+                          const sel = !customQuote && form.plant_count === n;
+                          return (
+                            <button key={n} type="button" onClick={() => setPlants(n)}
+                              style={{ padding: '8px 14px', borderRadius: 99, border: `2px solid ${sel ? 'var(--forest)' : 'var(--border)'}`, background: sel ? 'var(--forest)' : '#fff', color: sel ? '#fff' : 'var(--forest)', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer' }}>
+                              {n}
+                            </button>
+                          );
+                        })}
+                        <button type="button" onClick={() => { setCustomQuote(true); setForm(f => ({ ...f, plant_count: maxAutoPlants + 1 })); }}
+                          style={{ padding: '8px 14px', borderRadius: 99, border: `2px solid ${customQuote ? 'var(--gold)' : 'var(--border)'}`, background: customQuote ? 'var(--gold)' : '#fff', color: 'var(--forest)', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer' }}>
+                          {maxAutoPlants}+ · Custom quote
+                        </button>
+                      </div>
+                    )}
+                    {!isSubscriptionPlan && pricingError && !pricingRaw && (
+                      <div style={{ background: 'rgba(220,38,38,0.06)', color: '#7f1d1d', borderRadius: 12, padding: '10px 14px', fontSize: '0.82rem', fontWeight: 600, marginBottom: 16 }}>
+                        We couldn&apos;t load prices for this address. Please choose a supported service area or contact support.
+                      </div>
+                    )}
 
                     {!customQuote ? (
                       <>
-                        <div style={{ background: 'var(--bg-elevated)', borderRadius: 16, padding: '14px 18px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>{form.plant_count === 0 ? `Up to ${PLANT_BASE_COVERS} plants (included)` : `${plantSlabs.find(s => form.plant_count >= s.min && form.plant_count <= s.max) ? `${plantSlabs.find(s => form.plant_count >= s.min && form.plant_count <= s.max)!.min}–${plantSlabs.find(s => form.plant_count >= s.min && form.plant_count <= s.max)!.max}` : form.plant_count} plants`}</span>
-                          <span style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '1.2rem' }}>+₹{(plantSurcharge(form.plant_count) ?? 0).toLocaleString('en-IN')}</span>
+                        <div style={{ background: 'var(--bg-elevated)', borderRadius: 16, padding: '14px 18px', marginBottom: 24 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>
+                              {isSubscriptionPlan ? `${form.plant_count} extra plant${form.plant_count === 1 ? '' : 's'}` : `Visit for ${form.plant_count} plants`}
+                            </span>
+                            <span style={{ fontWeight: 900, color: 'var(--forest)', fontSize: '1.2rem' }}>
+                              {isSubscriptionPlan
+                                ? `+₹${(form.plant_count * SUB_EXTRA_PLANT_RATE).toLocaleString('en-IN')}`
+                                : oneTime?.svc.ok ? `₹${oneTime.svc.amount.toLocaleString('en-IN')}` : '—'}
+                            </span>
+                          </div>
+                          {!isSubscriptionPlan && oneTime?.svc.ok && oneTime.svc.breakdown.length > 0 && (
+                            <div style={{ fontSize: '0.72rem', color: 'var(--sage)', fontWeight: 600, marginTop: 6, lineHeight: 1.5 }}>
+                              ₹{pricing!.base_price.toLocaleString('en-IN')} for the first {MIN_PLANTS} + {oneTime.svc.breakdown.map(b => `${b.plants} × ₹${b.rate}`).join(' + ')}
+                              {oneTime.svc.rawAmount !== oneTime.svc.amount ? ` (₹${oneTime.svc.rawAmount.toFixed(2)}, rounded)` : ''} · excl. GST
+                            </div>
+                          )}
                         </div>
-                        <button onClick={() => setActiveStep(isSubscriptionPlan ? 5 : 3)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>{isSubscriptionPlan ? 'Next: Review' : 'Next: Add-ons'}</button>
+                        <button onClick={() => setActiveStep(isSubscriptionPlan ? 5 : 3)} disabled={!isSubscriptionPlan && !oneTime?.svc.ok} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>{isSubscriptionPlan ? 'Next: Review' : 'Next: Add-ons'}</button>
                       </>
                     ) : (
                       <div style={{ background: 'rgba(3,65,26,0.04)', border: '1.5px solid var(--border-gold)', borderRadius: 18, padding: 24 }}>
@@ -726,7 +802,7 @@ function BookFlow() {
                               className="btn btn-primary" style={{ flex: '1 1 170px', justifyContent: 'center', padding: '12px', fontWeight: 700, fontSize: '0.85rem' }}>
                               {leadSubmitting ? 'Submitting…' : 'Request Custom Quote'}
                             </button>
-                            <a href={`https://wa.me/919643701701?text=${encodeURIComponent('Hi GharKaMali! I need a custom quote for 100+ plants.')}`} target="_blank" rel="noopener noreferrer"
+                            <a href={`https://wa.me/919643701701?text=${encodeURIComponent(`Hi GharKaMali! I need a custom quote for more than ${maxAutoPlants} plants.`)}`} target="_blank" rel="noopener noreferrer"
                               className="btn btn-forest" style={{ flex: '0 0 auto', justifyContent: 'center', padding: '12px 18px', gap: 8, display: 'inline-flex', alignItems: 'center' }}>
                               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.6.1-.2.3-.7.9-.8 1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.2.2-.4.1-.2 0-.3 0-.5 0-.1-.6-1.5-.8-2-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2 0 1.3.9 2.5 1.1 2.7.1.2 1.9 2.9 4.6 4 .6.3 1.1.4 1.5.5.6.2 1.2.2 1.6.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2-.1-.1-.2-.1-.4-.2z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.2-1.2l-.3-.2-3 .9.9-2.9-.2-.3A8 8 0 1 1 12 20z"/></svg>
                               WhatsApp
@@ -747,6 +823,27 @@ function BookFlow() {
               <AnimatePresence>
                 {activeStep === 3 && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ paddingBottom: 40, borderTop: '1px solid var(--border-gold)', paddingTop: 32 }}>
+                    {/* Optional vermicompost add-on — zone-priced, never preselected */}
+                    {pricing && (
+                      <div style={{ marginBottom: 28 }}>
+                        <div style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '0.95rem', marginBottom: 4 }}>Add vermicompost? <span style={{ fontWeight: 600, color: 'var(--sage)', fontSize: '0.8rem' }}>(optional)</span></div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--sage)', fontWeight: 600, marginBottom: 12 }}>Organic compost delivered with the visit — charged separately from the gardening service.</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
+                          {[0, ...VERMICOMPOST_SIZES].map(kg => {
+                            const sel = form.vermicompost_kg === kg;
+                            const price = kg ? pricing.vermicompost.find(v => v.kg === kg)?.price : null;
+                            if (kg && price == null) return null;
+                            return (
+                              <button key={kg} type="button" onClick={() => setForm(f => ({ ...f, vermicompost_kg: kg }))}
+                                style={{ padding: '14px 12px', borderRadius: 16, border: `2px solid ${sel ? 'var(--forest)' : 'var(--border)'}`, background: sel ? 'rgba(3,65,26,0.05)' : '#fff', cursor: 'pointer', textAlign: 'center' }}>
+                                <div style={{ fontWeight: 800, color: 'var(--forest)', fontSize: '0.95rem' }}>{kg ? `${kg} kg` : 'No compost'}</div>
+                                <div style={{ fontWeight: 900, color: kg ? 'var(--gold)' : 'var(--sage)', fontSize: '0.9rem' }}>{kg ? `+₹${Number(price).toLocaleString('en-IN')}` : '₹0'}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 32 }}>
                       {addons.map(a => {
                         const sel = form.addons.some(x => x.addon_id === a.id);
@@ -759,7 +856,7 @@ function BookFlow() {
                         );
                       })}
                     </div>
-                    <button onClick={() => setActiveStep(4)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>{form.addons.length > 0 ? 'Next: Schedule' : 'Skip — Next: Schedule'}</button>
+                    <button onClick={() => setActiveStep(4)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 10, fontWeight: 500, fontSize: '0.85rem' }}>{form.addons.length > 0 || form.vermicompost_kg ? 'Next: Schedule' : 'Skip — Next: Schedule'}</button>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -858,10 +955,35 @@ function BookFlow() {
                           <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Plan</span>
                           <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{selectedPlan?.name}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Additional Plants</span>
-                          <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{form.plant_count === 0 ? `Up to ${PLANT_BASE_COVERS} (included)` : `Up to ${form.plant_count} plants = +₹${(plantSurcharge(form.plant_count) ?? 0).toLocaleString('en-IN')}`}</span>
-                        </div>
+                        {isSubscriptionPlan ? (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Additional Plants</span>
+                            <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{form.plant_count === 0 ? 'None' : `${form.plant_count} × ₹${SUB_EXTRA_PLANT_RATE} = +₹${(form.plant_count * SUB_EXTRA_PLANT_RATE).toLocaleString('en-IN')}`}</span>
+                          </div>
+                        ) : (
+                          <>
+                            {/* Separate line items: service, vermicompost, each surcharge */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Gardening service · {form.plant_count} plants</span>
+                              <span style={{ fontWeight: 800, color: 'var(--forest)' }}>{oneTime?.svc.ok ? `₹${oneTime.svc.amount.toLocaleString('en-IN')}` : 'Custom quote'}</span>
+                            </div>
+                            {oneTime?.vermi && (
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Vermicompost · {oneTime.vermi.kg} kg</span>
+                                <span style={{ fontWeight: 800, color: 'var(--forest)' }}>+₹{oneTime.vermi.amount.toLocaleString('en-IN')}</span>
+                              </div>
+                            )}
+                            {oneTime?.surcharges.map(s => (
+                              <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                                <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>
+                                  Surcharge · {s.name}
+                                  <span style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, opacity: 0.85 }}>{[s.reason, s.type === 'percentage' ? `${s.value}% of the service charge` : 'Fixed charge'].filter(Boolean).join(' · ')}</span>
+                                </span>
+                                <span style={{ fontWeight: 800, color: 'var(--forest)' }}>+₹{s.amount.toLocaleString('en-IN')}</span>
+                              </div>
+                            ))}
+                          </>
+                        )}
                         {!isSubscriptionPlan && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Schedule</span>

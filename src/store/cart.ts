@@ -24,6 +24,7 @@ export interface CartItem {
     service_latitude?: number;
     service_longitude?: number;
     plant_count?: number;
+    vermicompost_kg?: number | null;
     addons?: { addon_id: number; quantity: number }[];
     notes?: string;
     price?: number;

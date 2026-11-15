@@ -313,6 +313,7 @@ export default function CartDrawer() {
               service_latitude: svcLat,
               service_longitude: svcLng,
               plant_count: svc.bookingDetails?.plant_count || 1,
+              vermicompost_kg: svc.bookingDetails?.vermicompost_kg || undefined,
               preferred_gardener_id: svc.bookingDetails?.preferred_gardener_id || null,
               customer_notes: svc.bookingDetails?.notes || 'Booked via cart',
               addon_ids: svc.bookingDetails?.addons || [],
