@@ -31,7 +31,8 @@ const TIMES = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
 // Monthly plans keep their own rule (server: ₹25 per plant beyond the plan).
 const SUB_EXTRA_PLANT_RATE = 25;
 const PLANT_QUICK_PICKS = [10, 15, 20, 30, 50, 100, 150, 200];
-const GST_RATE = 0.18; // 18% GST added on top of every booking/plan
+const GST_RATE = 0.18; // 18% GST on the service / add-ons / surcharges / plans
+const VERMICOMPOST_GST_RATE = 0.05; // vermicompost = fertilizer (HSN 3101) — 5%
 
 const IcArrow = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>;
 const IcChevronLeft = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>;
@@ -223,8 +224,13 @@ function BookFlow() {
     const visit = oneTime?.svc.ok ? oneTime.svc.amount : 0;
     return visit + (oneTime?.vermi?.amount ?? 0) + surchargeTotal + addonsTotal;
   })();
-  const gstAmount = Math.round(subtotal * GST_RATE * 100) / 100; // 18% GST
-  const grossTotal = Math.round(subtotal * (1 + GST_RATE) * 100) / 100; // subtotal + GST
+  // GST per rate (mirrors the server): 18% on the service portion, 5% on
+  // vermicompost. Subtotals and each GST line round to paise independently.
+  const vermiAmount = !isSubPlan ? (oneTime?.vermi?.amount ?? 0) : 0;
+  const gstServiceAmount = Math.round((subtotal - vermiAmount) * GST_RATE * 100) / 100;
+  const gstVermiAmount = Math.round(vermiAmount * VERMICOMPOST_GST_RATE * 100) / 100;
+  const gstAmount = Math.round((gstServiceAmount + gstVermiAmount) * 100) / 100;
+  const grossTotal = Math.round((subtotal + gstAmount) * 100) / 100; // subtotal + GST
   // Coupon discount is subtracted from the GST-inclusive total (same as the shop).
   const discount = appliedCoupon ? Math.min(appliedCoupon.discount, grossTotal) : 0;
   const total = Math.max(0, Math.round((grossTotal - discount) * 100) / 100);
@@ -1062,10 +1068,23 @@ function BookFlow() {
                           <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>Subtotal (excl. GST)</span>
                           <span style={{ fontWeight: 700, color: 'var(--forest)' }}>₹{subtotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>GST (18%)</span>
-                          <span style={{ fontWeight: 700, color: 'var(--forest)' }}>+₹{gstAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
-                        </div>
+                        {gstVermiAmount > 0 ? (
+                          <>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>GST (18% on service)</span>
+                              <span style={{ fontWeight: 700, color: 'var(--forest)' }}>+₹{gstServiceAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>GST (5% on vermicompost)</span>
+                              <span style={{ fontWeight: 700, color: 'var(--forest)' }}>+₹{gstVermiAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: 'var(--sage)', fontWeight: 700, fontSize: '0.9rem' }}>GST (18%)</span>
+                            <span style={{ fontWeight: 700, color: 'var(--forest)' }}>+₹{gstAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                          </div>
+                        )}
                         {appliedCoupon && discount > 0 && (
                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             <span style={{ color: '#16a34a', fontWeight: 700, fontSize: '0.9rem' }}>Discount ({appliedCoupon.code})</span>

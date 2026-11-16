@@ -32,6 +32,8 @@ export const BASE_PLANTS = 10;
 export const MIN_PLANTS = 10;
 export const VERMICOMPOST_SIZES = [1, 5, 10];
 export const GST_RATE = 0.18;
+// Vermicompost is organic fertilizer (HSN 3101) — 5% GST, not the 18% service rate.
+export const VERMICOMPOST_GST_RATE = 0.05;
 
 export const DEFAULT_INTERVALS: RateInterval[] = [
   { min: 11, max: 15, rate: 30.2 }, { min: 16, max: 20, rate: 20 },
