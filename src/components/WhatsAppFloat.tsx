@@ -1,4 +1,5 @@
 'use client';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useLocation } from '@/store/location';
 import { maliVisitPrice } from '@/lib/pricing';
@@ -27,7 +28,7 @@ const IcChevron = () => (
   </svg>
 );
 
-export default function WhatsAppFloat() {
+function WhatsAppFloatInner() {
   const { zone } = useLocation();
   const zonePrice = maliVisitPrice(zone);
   // Zone-aware label/msg for the visit quick-action; plain when area unknown.
@@ -146,4 +147,11 @@ export default function WhatsAppFloat() {
       `}</style>
     </>
   );
+}
+
+// The Privé page has its own reserve button.
+export default function WhatsAppFloat() {
+  const pathname = usePathname() || '';
+  if (pathname.startsWith('/prive')) return null;
+  return <WhatsAppFloatInner />;
 }

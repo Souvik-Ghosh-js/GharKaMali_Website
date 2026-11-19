@@ -1,4 +1,5 @@
 'use client';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { getSocialProof } from '@/lib/api';
 
@@ -32,7 +33,7 @@ const IcClose = () => (
   </svg>
 );
 
-export default function SocialProofToast() {
+function SocialProofToastInner() {
   const [items, setItems] = useState<SocialProofItem[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [visible, setVisible] = useState(false);
@@ -235,4 +236,11 @@ export default function SocialProofToast() {
       </div>
     </>
   );
+}
+
+// The Privé page has its own reserve button.
+export default function SocialProofToast() {
+  const pathname = usePathname() || '';
+  if (pathname.startsWith('/prive')) return null;
+  return <SocialProofToastInner />;
 }

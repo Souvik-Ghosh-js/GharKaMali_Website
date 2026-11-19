@@ -14,6 +14,7 @@ import GrowthVine from '@/components/GrowthVine';
 import Footer from '@/components/Footer';
 import PageLoader from '@/components/PageLoader';
 import ImageFadeSlider from '@/components/ImageFadeSlider';
+import PriveHomeSection from '@/components/prive/PriveHomeSection';
 import { getPlans, getBlogs, getTaglines, getShopProducts, getPublicReviews } from '@/lib/api';
 import { planSlug } from '@/lib/slug';
 import { SHOP_ENABLED } from '@/lib/features';
@@ -1227,6 +1228,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ═══ PRIVÉ ═══ */}
+      <PriveHomeSection />
 
       {/* ═══ BRAND STORY ═══ */}
       <section className="section section-overflow brand-story-section fx-contours-dark" id="brand-story" data-no-reveal style={{ background: 'linear-gradient(180deg, transparent 0%, rgba(228,241,232,0.7) 60%, rgba(228,241,232,0.9) 100%)' }}>
